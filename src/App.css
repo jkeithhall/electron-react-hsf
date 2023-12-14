@@ -2,37 +2,82 @@
   text-align: center;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+/* Add styles here to customize the appearance of your app */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;600;800&family=VT323&display=swap');
+
+body {
+    margin: 20px;
+    font-family: "Poppins";
+    background-color: #1f2330;
+    color: #ddd;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+ul, li {
+    padding: 0;
+    list-style-type: none;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr;
+    column-gap: 30px;
+    background-color: #1f2330;
 }
 
-.App-link {
-  color: #61dafb;
+header{
+    grid-column: span 3;
+    text-align: center;
+    border-bottom: 5px solid #555;
+    background-color: #1f2330;
+    color: #ddd;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+nav {
+    padding: 10px;
+    border-right: 5px solid #555;
+    background-color: #282D3D;
+    color: #ddd;
+    max-width: 150px;
 }
+
+nav img {
+    width: 100%;
+    max-width: 100px;
+}
+
+.work-space {
+    padding: 30px;
+    background-color: #1f2330;
+}
+
+.work-space h2{
+    font-size:  3.5em;
+    max-width: 800px;
+}
+
+.work-space img {
+    width: 100%;
+}
+.work-space p {
+    margin-top: 30px;
+    line-height: 2em;
+    color: #777;
+}
+
+aside {
+    padding: 30px;
+    border-left: 5px solid #555;
+    background-color: #1f2330;
+    color: #ddd
+}
+
+footer {
+    grid-column: span 3;
+    text-align: center;
+    border-top: 5px solid #555;
+    padding: 10px;
+    background-color: #1f2330;
+    color: #ddd
+}
+
