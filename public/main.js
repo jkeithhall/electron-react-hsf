@@ -1,7 +1,9 @@
-const { app, BrowserWindow } = require('electron')
+const { app, BrowserWindow, dialog, Menu, MenuItem, ipcMain } = require('electron')
 
 const path = require('path')
 const isDev = require('electron-is-dev')
+const fs = require('fs')
+const { electron } = require('process')
 
 function createWindow() {
   // Create the browser window.
@@ -18,6 +20,28 @@ function createWindow() {
       ? 'http://localhost:3000'
       : `file://${path.join(__dirname, '../build/index.html')}`
   )
+
+  const menu = Menu.getApplicationMenu();
+  menu.items[0].submenu.append(new MenuItem({
+    label: 'Open',
+    accelerator: 'CmdOrCtrl+O',
+    click() {
+        dialog.showOpenDialog({
+            properties: ['openFile']
+        })
+        .then(function(fileObj) {
+            if (!fileObj.canceled) {
+                //console.log("Opened File")
+                win.webContents.send('FILE_OPEN', fileObj.filePaths)
+            }
+        })
+        .catch(function(err) {
+            console.error(err)
+        })
+    }
+  }));
+
+  Menu.setApplicationMenu(menu);
 }
 
 app.on('ready', createWindow)
