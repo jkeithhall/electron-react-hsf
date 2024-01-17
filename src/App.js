@@ -1,19 +1,18 @@
 // Need to move this to a file open event response...
-//import data from './scenario.json';
 import './App.css';
 import './App.scss'
 import { useRef, useState } from 'react';
 //import ListGroupItem from 'react-bootstrap/esm/ListGroupItem';
 import Header from './components/Header';
 import HSFNav from './components/HSFNav';
-import HSFCard from './components/HSFCard';
+import HSFCards from './components/HSFCards';
 import Footer from './components/Footer';
 import InformationBar from './components/InformationBar';
 
 import parseJSONFile from './utils/parseJSONFile';
 
 export default function App() {
-  const [activeScenario, setActiveScenario] = useState(null);
+  // State variables
   const [activeStep, setActiveStep] = useState('Scenario');
   const [sourceName, setSourceName] = useState('Aeolus');
   const [baseSource, setBaseSource] = useState('./samples/aeolus/');
@@ -29,26 +28,22 @@ export default function App() {
   const [maxSchedules, setMaxSchedules] = useState(10);
   const [cropRatio, setCropRatio] = useState(5);
 
-  const stateVariables = {
-    sourceName, baseSource, modelSource, targetSource, pythonSource, outputPath, version, startJD, startSeconds, endSeconds, primaryStepSeconds, maxSchedules, cropRatio
-  };
+  // Bundling state variables
+  const sources = { sourceName, baseSource, modelSource, targetSource, pythonSource, outputPath, version };
+  const setSources = { setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion };
+  const simulationParameters = { startJD, startSeconds, endSeconds, primaryStepSeconds };
+  const setSimulationParameters = { setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds };
+  const schedulerParameters = { maxSchedules, cropRatio };
+  const setSchedulerParameters = { setMaxSchedules, setCropRatio };
+
   const setStateMethods = {
     setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio
   };
 
   const readFile = async (e) => {
-    e.preventDefault();
-    if (e.target.files.length === 0) {
-      return;
-    } else if (e.target.files.length > 1) {
-      alert("Please select only one file.");
-      return;
-    }
-
     const reader = new FileReader();
     reader.onload = async (e) => {
       const text = e.target.result;
-      setActiveScenario(text);
       parseJSONFile(text, setStateMethods);
     };
     reader.readAsText(e.target.files[0]);
@@ -58,8 +53,13 @@ export default function App() {
     <div className="App">
       <div className="grid-container">
         <Header readFile={readFile}/>
-        <HSFNav activeStep={activeStep} setActiveStep={setActiveStep} />
-        <HSFCard activeScenario={activeScenario} stateVariables={stateVariables} setStateMethods={setStateMethods}/>
+        <HSFNav activeStep={activeStep} setActiveStep={setActiveStep}/>
+        <HSFCards
+          sources={sources}
+          simulationParameters={simulationParameters}
+          schedulerParameters={schedulerParameters}
+          setStateMethods={setStateMethods}
+        />
         <InformationBar/>
         <Footer/>
       </div>
