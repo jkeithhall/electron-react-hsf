@@ -1,147 +1,69 @@
-import logo from './SimLab_sqblk.png';
 // Need to move this to a file open event response...
 //import data from './scenario.json';
 import './App.css';
-import Accordion from 'react-bootstrap/Accordion'
-import Button from 'react-bootstrap/Button'
-import ListGroup from 'react-bootstrap/ListGroup';
 import './App.scss'
 import { useRef, useState } from 'react';
 //import ListGroupItem from 'react-bootstrap/esm/ListGroupItem';
+import Header from './components/Header';
+import HSFNav from './components/HSFNav';
+import HSFCard from './components/HSFCard';
+import Footer from './components/Footer';
+import InformationBar from './components/InformationBar';
 
-class Scenario {
-  constructor(scanarioData) {
-    this.scenarioName = scanarioData;
-  }
-}
-function HSFNav() {
-  return (
-    <nav>
-      <img src={logo} alt="logo" />
-      <p>Catagories</p>
-      <li><button id="scenarioNav">Scenario</button></li>
-      <li>Tasks</li>
-      <li>System Model</li>
-      <li>Dependencies</li>
-      <li>Constraints</li>
-      <li>Simulate</li>
-      <li>Analyze</li>
-    </nav>
-  );
-}
+import parseJSONFile from './utils/parseJSONFile';
+
 export default function App() {
   const [activeScenario, setActiveScenario] = useState(null);
+  const [activeStep, setActiveStep] = useState('Scenario');
+  const [sourceName, setSourceName] = useState('Aeolus');
+  const [baseSource, setBaseSource] = useState('./samples/aeolus/');
+  const [modelSource, setModelSource] = useState('DSAC_Static_Mod_Scripted.xml');
+  const [targetSource, setTargetSource] = useState('v2.2-300targets.xml');
+  const [pythonSource, setPythonSource] = useState('pythonScripts/');
+  const [outputPath, setOutputPath] = useState('none');
+  const [version, setVersion] = useState(1.0);
+  const [startJD, setStartJD] = useState(2454680.0);
+  const [startSeconds, setStartSeconds] = useState(0.0);
+  const [endSeconds, setEndSeconds] = useState(60.0);
+  const [primaryStepSeconds, setPrimaryStepSeconds] = useState(30);
+  const [maxSchedules, setMaxSchedules] = useState(10);
+  const [cropRatio, setCropRatio] = useState(5);
 
-  const showFile = async (e) => {
-    e.preventDefault()
-    const reader = new FileReader()
-    reader.onload = async (e) => { 
-      const text = (e.target.result)
-      setActiveScenario(text)
+  const stateVariables = {
+    sourceName, baseSource, modelSource, targetSource, pythonSource, outputPath, version, startJD, startSeconds, endSeconds, primaryStepSeconds, maxSchedules, cropRatio
+  };
+  const setStateMethods = {
+    setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio
+  };
+
+  const readFile = async (e) => {
+    e.preventDefault();
+    if (e.target.files.length === 0) {
+      return;
+    } else if (e.target.files.length > 1) {
+      alert("Please select only one file.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const text = e.target.result;
+      setActiveScenario(text);
+      parseJSONFile(text, setStateMethods);
     };
-    reader.readAsText(e.target.files[0])
+    reader.readAsText(e.target.files[0]);
   }
+
   return (
     <div className="App">
       <div className="grid-container">
-        <header className="App-header">
-          <h1>HSF Builder - PICASSO</h1>
-          <input type="file" onChange={(e) => showFile(e)} />
-        </header>
-          <HSFNav />
-
-          <div class="work-space">
-              <HSFCard scanarioData={activeScenario}/>
-
-          </div>
-          <aside>
-              <ul>
-                <li>
-                  <p><strong>Info Here</strong></p>
-                </li>
-                <li>
-                  <p><strong>Developed by:</strong></p>
-                  <p>Sim Master</p>
-                </li>
-              </ul>
-            </aside>
-            <footer>
-              <p> Copyright 2023 - Poly Sim</p>
-            </footer> 
+        <Header readFile={readFile}/>
+        <HSFNav activeStep={activeStep} setActiveStep={setActiveStep} />
+        <HSFCard activeScenario={activeScenario} stateVariables={stateVariables} setStateMethods={setStateMethods}/>
+        <InformationBar/>
+        <Footer/>
       </div>
     </div>
   );
 }
-
-function HSFCard({scanarioData}) {
-  //let data = [{"Scenario Name": 1, name: "test"},{id: 2, name: "Eric"}];
-  let data = {
-        "Sources":{
-          "Name": "Aeolus",
-          "Base Source": "./samples/aeolus/",
-          "Model Source": "DSAC_Static_Mod_Scripted.xml",
-          "Target Source": "v2.2-300targets.xml",
-          "Python Source": "pythonScripts/",
-          "Output Path": "none",
-          "Version": 1.0
-        },
-        "Simulation Parameters": {
-            "Start JD": 2454680.0,
-            "Start Seconds": 0.0,
-            "End Seconds" : 60.0,
-            "Primary Step Seconds": 30
-          },
-        "Scheduler Parameters": {
-          "Max Schedules": 10,
-          "Crop Ratio": 5,
-        }
-    }
-  if (scanarioData !== null)
-    data = JSON.parse(scanarioData)
-  //console.log(data)
-
-  const Visit = (obj) => {
-    let i = 0
-    const values = Object.values(obj)
-    const keys = Object.keys(obj)
-    console.log("keys")
-    console.log(keys)
-    return(
-      keys.map((key) => {
-        if (obj[key] && typeof obj[key] === "object"){
-          return (
-            <Accordion.Item eventKey={i++}>
-              <Accordion.Header>{key}</Accordion.Header>
-                <Accordion.Body>
-                  <ListGroup as="ol" variant="flush">{Visit(obj[key])}</ListGroup>
-                </Accordion.Body>
-            </Accordion.Item>
-          )
-        } else {
-          console.log(values[key])
-          return (
-            <ListGroup.Item as='li' className='d-flex align-items-start'>
-              <div className="ms-2 me-auto">
-                <div className="fw-bold text-start">
-                  {key}:
-                </div>
-                  <div className='text-start'>{obj[key]}</div>
-                </div>
-            </ListGroup.Item>
-          )
-        }
-        }
-      )
-    )
-  }
-  //const print = (val) => console.log(val)
-  //visit(data, print)
-  let scnElements = ''
-  return (
-      <Accordion flush>
-        {Visit(data)}
-      </Accordion>
-  )
-}
-//export default App;
 
