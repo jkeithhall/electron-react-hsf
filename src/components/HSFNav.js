@@ -5,14 +5,21 @@ export default function HSFNav({activeStep, setActiveStep}) {
   return (
     <nav>
       <img src='/SimLab_sqblk.png' alt="Sim Lab CalPoly Logo" />
-      <h3>Categories</h3>
+      <h2>Categories</h2>
       {navCategories.map((category) => {
-        const className = activeStep === category ? 'active' : '';
-        return (
-          <li key={category}>
-            <button className={className} onClick={() => {setActiveStep(category)}}>{category}</button>
-          </li>
-        );
+        if (activeStep === category) {
+          return (
+            <li key={category}>
+              <button onClick={() => {setActiveStep(category)}}>{category}</button>
+            </li>
+          );
+        } else {
+          return (
+            <li key={category}>
+              <div onClick={() => {setActiveStep(category)}}>{category}</div>
+            </li>
+          );
+        }
       })}
     </nav>
   );

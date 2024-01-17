@@ -1,8 +1,8 @@
 // Need to move this to a file open event response...
 import './App.css';
-import './App.scss'
-import { useRef, useState } from 'react';
-//import ListGroupItem from 'react-bootstrap/esm/ListGroupItem';
+import './App.scss';
+
+import { useState } from 'react';
 import Header from './components/Header';
 import HSFNav from './components/HSFNav';
 import HSFCards from './components/HSFCards';
@@ -30,11 +30,8 @@ export default function App() {
 
   // Bundling state variables
   const sources = { sourceName, baseSource, modelSource, targetSource, pythonSource, outputPath, version };
-  const setSources = { setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion };
   const simulationParameters = { startJD, startSeconds, endSeconds, primaryStepSeconds };
-  const setSimulationParameters = { setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds };
   const schedulerParameters = { maxSchedules, cropRatio };
-  const setSchedulerParameters = { setMaxSchedules, setCropRatio };
 
   const setStateMethods = {
     setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio
@@ -54,12 +51,16 @@ export default function App() {
       <div className="grid-container">
         <Header readFile={readFile}/>
         <HSFNav activeStep={activeStep} setActiveStep={setActiveStep}/>
-        <HSFCards
-          sources={sources}
-          simulationParameters={simulationParameters}
-          schedulerParameters={schedulerParameters}
-          setStateMethods={setStateMethods}
-        />
+        <div className='work-space'>
+          {activeStep === 'Scenario' &&
+          <HSFCards
+            activeScenario={activeStep}
+            sources={sources}
+            simulationParameters={simulationParameters}
+            schedulerParameters={schedulerParameters}
+            setStateMethods={setStateMethods}
+            />}
+        </div>
         <InformationBar/>
         <Footer/>
       </div>
