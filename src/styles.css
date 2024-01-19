@@ -1,0 +1,119 @@
+.App {
+  text-align: center;
+}
+
+/* Add styles here to customize the appearance of your app */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;600;800&family=VT323&display=swap');
+
+body {
+    font-family: "Poppins";
+    background-color: #1f2330;
+    color: #ddd;
+    margin: 0;
+}
+
+code {
+font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+ul, li {
+    padding: 0;
+    list-style-type: none;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr;
+    column-gap: 30px;
+    min-width: 1000px;
+}
+
+header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-bottom: 2px solid #555;
+    background-color: #1f2330;
+    padding: 10px;
+    color: #ddd;
+    width: 100%;
+    height: 100px;
+}
+
+nav {
+    padding: 10px;
+    border-right: 2px solid #555;
+    background-color: #282D3D;
+    color: #ddd;
+    width: 190px;
+}
+
+nav h2 {
+    font-size: 1.5em;
+    margin-bottom: 20px;
+}
+
+nav img {
+    width: 100%;
+    max-width: 100px;
+    margin-bottom: 20px;
+}
+
+.file-selection-header {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    height: 60px;
+    margin-bottom: 20px;
+}
+
+.work-space {
+    padding: 20px;
+    background-color: #1f2330;
+    min-height: 550px;
+}
+
+.work-space img {
+    width: 100%;
+}
+
+.work-space p {
+    line-height: 2em;
+}
+
+.file-selection-footer {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: flex-end;
+    height: 60px;
+    margin-top: 20px;
+}
+
+aside {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-left: 2px solid #555;
+    background-color: #282D3D;
+    color: #ddd;
+    padding: 10px;
+}
+
+footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-top: 2px solid #555;
+    padding: 10px;
+    background-color: #1f2330;
+    color: #ddd;
+    width: 100%;
+    height: 100px;
+}
+
+
