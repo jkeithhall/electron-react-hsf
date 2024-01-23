@@ -2,7 +2,7 @@ import { useState } from 'react';
 import Header from './components/Header';
 import HSFNav from './components/HSFNav';
 import FileSelector from './components/FileSelector';
-import HSFCards from './components/HSFCards';
+import ScenarioCards from './components/ScenarioCards';
 import Footer from './components/Footer';
 import InformationBar from './components/InformationBar';
 
@@ -43,7 +43,7 @@ export default function App() {
             <FileSelector setStateMethods={setStateMethods} activeStep={activeStep}/>
           }
           {activeStep === 'Scenario' &&
-            <HSFCards
+            <ScenarioCards
               sources={sources}
               simulationParameters={simulationParameters}
               schedulerParameters={schedulerParameters}

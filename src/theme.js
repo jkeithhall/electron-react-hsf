@@ -13,6 +13,10 @@ const theme = createTheme({
       dark: '1a1d25',
     },
   },
+  shape: {
+    borderRadius: 5,
+    square: false,
+  },
   typography: {
     fontFamily: 'Poppins',
     h1: {
@@ -72,10 +76,27 @@ const theme = createTheme({
     MuiAccordion: {
       styleOverrides: {
         root: {
+          square: false,
           backgroundColor: '#282D3D',
           color: '#dddddd',
+          borderRadius: '5px',
         },
-
+      },
+    },
+    MuiBox: {
+      styleOverrides: {
+        root: {
+          square: false,
+          borderRadius: '5px',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          square: false,
+          borderRadius: '5px',
+        },
       },
     },
   }

@@ -9,7 +9,7 @@ import Typography from '@mui/material/Typography';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import Button from '@mui/material/Button';
 
-export default function HSFCards({readFile, sources, simulationParameters, schedulerParameters, setStateMethods, setActiveStep}) {
+export default function ScenarioCards({readFile, sources, simulationParameters, schedulerParameters, setStateMethods, setActiveStep}) {
   // State variables for form validation and errors
   const [ formErrors, setFormErrors] = useState({});
   const [ activeAccordion, setActiveAccordion ] = useState(null);
