@@ -1,7 +1,9 @@
+import Typography from '@mui/material/Typography';
+
 export default function Footer() {
   return (
     <footer>
-      <p>Copyright &copy; 2023 Poly Sim</p>
+      <Typography variant="body">Copyright &copy; 2023 Poly Sim</Typography>
     </footer>
   );
 }

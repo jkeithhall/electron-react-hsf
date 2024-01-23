@@ -1,15 +1,10 @@
-// Need to move this to a file open event response...
-import './App.css';
-import './App.scss';
-
 import { useState } from 'react';
 import Header from './components/Header';
 import HSFNav from './components/HSFNav';
+import FileSelector from './components/FileSelector';
 import HSFCards from './components/HSFCards';
 import Footer from './components/Footer';
 import InformationBar from './components/InformationBar';
-
-import parseJSONFile from './utils/parseJSONFile';
 
 export default function App() {
   // State variables
@@ -33,37 +28,33 @@ export default function App() {
   const simulationParameters = { startJD, startSeconds, endSeconds, primaryStepSeconds };
   const schedulerParameters = { maxSchedules, cropRatio };
 
+  // Bundling state methods
   const setStateMethods = {
     setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio
   };
 
-  const readFile = async (e) => {
-    const reader = new FileReader();
-    reader.onload = async (e) => {
-      const text = e.target.result;
-      parseJSONFile(text, setStateMethods);
-    };
-    reader.readAsText(e.target.files[0]);
-  }
-
   return (
     <div className="App">
+      <Header/>
       <div className="grid-container">
-        <Header readFile={readFile}/>
         <HSFNav activeStep={activeStep} setActiveStep={setActiveStep}/>
         <div className='work-space'>
+          {(activeStep === 'Scenario' || activeStep === 'Tasks') &&
+            <FileSelector setStateMethods={setStateMethods} activeStep={activeStep}/>
+          }
           {activeStep === 'Scenario' &&
-          <HSFCards
-            activeScenario={activeStep}
-            sources={sources}
-            simulationParameters={simulationParameters}
-            schedulerParameters={schedulerParameters}
-            setStateMethods={setStateMethods}
-            />}
+            <HSFCards
+              sources={sources}
+              simulationParameters={simulationParameters}
+              schedulerParameters={schedulerParameters}
+              setStateMethods={setStateMethods}
+              setActiveStep={setActiveStep}
+            />
+          }
         </div>
         <InformationBar/>
-        <Footer/>
       </div>
+      <Footer/>
     </div>
   );
 }

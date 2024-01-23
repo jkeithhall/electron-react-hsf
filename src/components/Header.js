@@ -1,10 +1,9 @@
-// import { promises } from 'fs';
+import Typography from '@mui/material/Typography';
 
-export default function Header({readFile}) {
+export default function Header() {
   return (
-    <header className="App-header">
-      <h1>HSF Builder - PICASSO</h1>
-      <input type="file" onChange={readFile} />
+    <header>
+      <Typography variant="h1">HSF Builder &#8211; PICASSO</Typography>
     </header>
   );
 }

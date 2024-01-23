@@ -1,13 +1,15 @@
+import Typography from '@mui/material/Typography';
+
 export default function InformationBar() {
   return (
     <aside>
       <ul>
         <li>
-          <p><strong>Info Here</strong></p>
+          <Typography variant="h4" my={2}>Information</Typography>
         </li>
         <li>
-          <p><strong>Developed by:</strong></p>
-          <p>Sim Master</p>
+          <Typography variant="h5">Developed by:</Typography>
+          <Typography variant="body">Sim Master</Typography>
         </li>
       </ul>
     </aside>

@@ -1,39 +1,55 @@
-import ListGroup from 'react-bootstrap/ListGroup';
+import TextField from '@mui/material/TextField';
+import Box from '@mui/material/Box';
 
-const inputTypes = {
-  sourceName: { displayName: 'Source', formType: 'text'},
-  baseSource: { displayName: 'Base Source', formType: 'text'},
-  modelSource: { displayName: 'Model Source', formType: 'text'},
-  targetSource: { displayName: 'Target Source', formType: 'text'},
-  pythonSource: { displayName: 'Python Source', formType: 'text'},
-  outputPath: { displayName: 'Output Path', formType: 'text'},
-  version: { displayName: 'Version', formType: 'number'},
-  startJD: { displayName: 'Start JD', formType: 'number'},
-  startSeconds: { displayName: 'Start Seconds', formType: 'number'},
-  endSeconds: { displayName: 'End Seconds', formType: 'number'},
-  primaryStepSeconds: { displayName: 'Primary Step Seconds', formType: 'number'},
-  maxSchedules: { displayName: 'Max Schedules', formType: 'number'},
-  cropRatio: { displayName: 'Crop Ratio', formType: 'number'},
-};
+import { validateParametersAt } from '../utils/validateParameters';
 
-export default function ParameterGroup ({parameters, setParameters}) {
+const convertDisplayName = (camelCaseName) => {
+  const words = camelCaseName.split(/(?=[A-Z])/);
+  const firstWord = words[0];
+  words[0] = firstWord[0].toUpperCase() + firstWord.slice(1);
+  return words.join(' ');
+}
+
+export default function ParameterGroup ({parameters, setParameters, formErrors, setFormErrors}) {
+  const handleBlur = async (e) => {
+    const { name } = e.target;
+    try {
+      await validateParametersAt(parameters, name);
+      const newFormErrors = { ...formErrors };
+      delete newFormErrors[name];
+      setFormErrors(newFormErrors);
+    } catch (error) {
+      const { message } = error;
+      setFormErrors({ ...formErrors, [name]: message });
+    }
+  }
+
   return(
-    Object.entries(parameters).map(([key, value]) => {
-      const setMethodName = 'set' + key[0].toUpperCase() + key.slice(1);
+    <Box sx={{ padding: '10px', backgroundColor: '#dddddd' }}>
+      {Object.entries(parameters).map(([key, value]) => {
+        const setMethodName = 'set' + key[0].toUpperCase() + key.slice(1);
+        const displayName = convertDisplayName(key);
+        const valid = !formErrors[key];
+        const errorMessage = valid ? ' ' : formErrors[key];
 
-      return (
-        <ListGroup.Item key={key} as='li' className='d-flex align-items-start'>
-          <form>
-            <label htmlFor={key}><strong>{inputTypes[key].displayName}:&nbsp;</strong><br/></label>
-            <input
-              type={inputTypes[key].formType}
+        return (
+          <Box key={key} my={0.5}>
+            <TextField
               id={key}
+              fullWidth
+              label={displayName}
+              variant="outlined"
+              color={valid ? 'info' : 'error'}
               name={key}
               value={value}
-              onChange={(e) => setParameters[setMethodName](e.target.value)}/>
-          </form>
-        </ListGroup.Item>
-      )
-    })
+              onChange={(e) => setParameters[setMethodName](e.target.value)}
+              onBlur={handleBlur}
+              error={!valid}
+              helperText={errorMessage}
+            />
+          </Box>
+        )
+      })}
+    </Box>
   )
 }
