@@ -1,20 +1,51 @@
+/*
+  CSS Reset
+*/
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+* {
+    margin: 0;
+}
+html, body {
+    height: 100%;
+}
+body {
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+}
+input, button, textarea, select {
+    font: inherit;
+}
+p, h1, h2, h3, h4, h5, h6 {
+    overflow-wrap: break-word;
+}
+#root, #__next {
+    isolation: isolate;
+}
+/*
+  CSS Reset
+*/
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;600;800&family=VT323&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap');
+
 .App {
-  text-align: center;
+    text-align: center;
 }
 
-/* Add styles here to customize the appearance of your app */
-
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;600;800&family=VT323&display=swap');
-
 body {
-    font-family: "Poppins";
+    font-family: "Poppins, sans-serif";
     background-color: #1f2330;
     color: #ddd;
     margin: 0;
 }
 
 code {
-font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
 
@@ -25,9 +56,11 @@ ul, li {
 
 .grid-container {
     display: grid;
-    grid-template-columns: 1fr 3fr 1fr;
+    grid-template-columns: 200px 1fr 200px;
+    justify-items: center;
     column-gap: 30px;
     min-width: 1000px;
+    height: 700px;
 }
 
 header {
@@ -43,11 +76,14 @@ header {
 }
 
 nav {
-    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 30px;
     border-right: 2px solid #555;
     background-color: #282D3D;
     color: #ddd;
-    width: 190px;
 }
 
 nav h2 {
@@ -71,9 +107,26 @@ nav img {
 }
 
 .work-space {
-    padding: 20px;
+    padding: 30px 50px;
     background-color: #1f2330;
+    min-height: 600px;
+    width: 100%;
     min-height: 550px;
+    max-width: 900px;
+    overflow: scroll;
+}
+
+aside {
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-left: 2px solid #555;
+    background-color: #282D3D;
+    color: #ddd;
+    padding: 30px;
+    width: 100%;
 }
 
 .work-space img {
@@ -84,7 +137,7 @@ nav img {
     line-height: 2em;
 }
 
-.file-selection-footer {
+.next-step-button-footer {
     display: flex;
     flex-direction: column;
     justify-content: flex-end;
@@ -93,16 +146,39 @@ nav img {
     margin-top: 20px;
 }
 
-aside {
+.stacking-context {
+    position: relative;
+    top: 0;
+    left: 0;
+    z-index: 2;
+}
+
+.edit-delete-icons {
+    margin: 0 10px;
     display: flex;
-    flex-direction: column;
+    align-self: flex-end;
+    justify-content: space-evenly;
+}
+
+.confirm-delete-icons {
+    margin: 10px 30px;
+    display: flex;
+    align-self: flex-end;
+    justify-content: space-evenly;
+}
+
+.overlay {
+    z-index: 1;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(128,128,128,0.20);
+    display: flex;
     justify-content: center;
     align-items: center;
-    border-left: 2px solid #555;
-    background-color: #282D3D;
-    color: #ddd;
-    padding: 10px;
-}
+  }
 
 footer {
     display: flex;
@@ -113,7 +189,7 @@ footer {
     background-color: #1f2330;
     color: #ddd;
     width: 100%;
-    height: 100px;
+    height: 70px;
 }
 
 

@@ -9,7 +9,7 @@ export default function InformationBar() {
         </li>
         <li>
           <Typography variant="h5">Developed by:</Typography>
-          <Typography variant="body">Sim Master</Typography>
+          <Typography variant="body1">Sim Master</Typography>
         </li>
       </ul>
     </aside>

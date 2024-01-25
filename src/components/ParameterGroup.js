@@ -1,7 +1,7 @@
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 
-import { validateParametersAt } from '../utils/validateParameters';
+import { validateScenarioParametersAt } from '../utils/validateParameters';
 
 const convertDisplayName = (camelCaseName) => {
   const words = camelCaseName.split(/(?=[A-Z])/);
@@ -14,7 +14,7 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
   const handleBlur = async (e) => {
     const { name } = e.target;
     try {
-      await validateParametersAt(parameters, name);
+      await validateScenarioParametersAt(parameters, name);
       const newFormErrors = { ...formErrors };
       delete newFormErrors[name];
       setFormErrors(newFormErrors);
@@ -25,7 +25,7 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
   }
 
   return(
-    <Box sx={{ padding: '10px', backgroundColor: '#dddddd' }}>
+    <Box sx={{ padding: '10px', backgroundColor: '#dddddd', borderRadius: '5px', overflow: 'scroll', maxHeight: '400px' }}>
       {Object.entries(parameters).map(([key, value]) => {
         const setMethodName = 'set' + key[0].toUpperCase() + key.slice(1);
         const displayName = convertDisplayName(key);
@@ -39,7 +39,7 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
               fullWidth
               label={displayName}
               variant="outlined"
-              color={valid ? 'info' : 'error'}
+              color='info'
               name={key}
               value={value}
               onChange={(e) => setParameters[setMethodName](e.target.value)}
