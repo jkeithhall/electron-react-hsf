@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { validateParametersAt } from '../utils/validateParameters';
-
+import { validateScenarioParametersAt } from '../utils/validateParameters';
+import FileSelector from './FileSelector';
 import ParameterGroup from './ParameterGroup';
 import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -9,7 +9,7 @@ import Typography from '@mui/material/Typography';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import Button from '@mui/material/Button';
 
-export default function ScenarioCards({readFile, sources, simulationParameters, schedulerParameters, setStateMethods, setActiveStep}) {
+export default function ScenarioCards({activeStep, setActiveStep, sources, simulationParameters, schedulerParameters, setStateMethods}) {
   // State variables for form validation and errors
   const [ formErrors, setFormErrors] = useState({});
   const [ activeAccordion, setActiveAccordion ] = useState(null);
@@ -18,7 +18,7 @@ export default function ScenarioCards({readFile, sources, simulationParameters, 
     const parameters = { ...sources, ...simulationParameters, ...schedulerParameters };
     for (const parameter in parameters) {
       try {
-        await validateParametersAt(parameters, parameter);
+        await validateScenarioParametersAt(parameters, parameter);
         const newFormErrors = { ...formErrors };
         delete newFormErrors[parameter];
         setFormErrors(newFormErrors);
@@ -56,6 +56,7 @@ export default function ScenarioCards({readFile, sources, simulationParameters, 
 
   return (
     <>
+      <FileSelector setStateMethods={setStateMethods} activeStep={activeStep}/>
       <Accordion
         expanded={activeAccordion === 'Sources'}
         onChange={() => handleAccordionChange('Sources')}
@@ -101,7 +102,7 @@ export default function ScenarioCards({readFile, sources, simulationParameters, 
           <ParameterGroup parameters={schedulerParameters} setParameters={setStateMethods} formErrors={formErrors} setFormErrors={setFormErrors}/>
         </AccordionDetails>
       </Accordion>
-      <div className='file-selection-footer'>
+      <div className='next-step-button-footer'>
         <Button
           variant="contained"
           color= { valid ? 'info' : 'error' }

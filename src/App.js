@@ -3,6 +3,7 @@ import Header from './components/Header';
 import HSFNav from './components/HSFNav';
 import FileSelector from './components/FileSelector';
 import ScenarioCards from './components/ScenarioCards';
+import TaskCarousel from './components/TaskCarousel';
 import Footer from './components/Footer';
 import InformationBar from './components/InformationBar';
 
@@ -22,6 +23,40 @@ export default function App() {
   const [primaryStepSeconds, setPrimaryStepSeconds] = useState(30);
   const [maxSchedules, setMaxSchedules] = useState(10);
   const [cropRatio, setCropRatio] = useState(5);
+  const [taskList, setTaskList] = useState([{
+    taskName: 't6',
+    type: 'gt',
+    latitude: 0.0,
+    longitude: -120.0,
+    altitude: 0.0,
+    priority: 2,
+    value: 4,
+    minQuality: 5.0,
+    desiredCapTime: 28800,
+    nonzeroValCapTime: 28800,
+  }, {
+    taskName: 't7',
+    type: 'gt',
+    latitude: 0.0,
+    longitude: -120.0,
+    altitude: 0.0,
+    priority: 2,
+    value: 4,
+    minQuality: 5.0,
+    desiredCapTime: 28800,
+    nonzeroValCapTime: 28800,
+  }, {
+    taskName: 't8',
+    type: 'gt',
+    latitude: 0.0,
+    longitude: -120.0,
+    altitude: 0.0,
+    priority: 2,
+    value: 4,
+    minQuality: 5.0,
+    desiredCapTime: 28800,
+    nonzeroValCapTime: 28800,
+  }]);
 
   // Bundling state variables
   const sources = { sourceName, baseSource, modelSource, targetSource, pythonSource, outputPath, version };
@@ -30,7 +65,7 @@ export default function App() {
 
   // Bundling state methods
   const setStateMethods = {
-    setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio
+    setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio, setTaskList
   };
 
   return (
@@ -39,16 +74,23 @@ export default function App() {
       <div className="grid-container">
         <HSFNav activeStep={activeStep} setActiveStep={setActiveStep}/>
         <div className='work-space'>
-          {(activeStep === 'Scenario' || activeStep === 'Tasks') &&
-            <FileSelector setStateMethods={setStateMethods} activeStep={activeStep}/>
-          }
           {activeStep === 'Scenario' &&
             <ScenarioCards
+              activeStep={activeStep}
+              setActiveStep={setActiveStep}
               sources={sources}
               simulationParameters={simulationParameters}
               schedulerParameters={schedulerParameters}
               setStateMethods={setStateMethods}
+            />
+          }
+          {activeStep === 'Tasks' &&
+            <TaskCarousel
+              activeStep={activeStep}
               setActiveStep={setActiveStep}
+              setStateMethods={setStateMethods}
+              taskList={taskList}
+              setTaskList={setTaskList}
             />
           }
         </div>

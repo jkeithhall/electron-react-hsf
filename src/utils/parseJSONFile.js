@@ -1,5 +1,5 @@
 export default function parseJSONFile(text, setStateMethods) {
-  const { setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio } = setStateMethods;
+  const { setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio, setTaskList } = setStateMethods;
   const parsedJSON = JSON.parse(text);
 
   // NOTE: Javascript favors camelCase convention (no spaces), which allows for easier variable naming via destructuring:
@@ -8,19 +8,28 @@ export default function parseJSONFile(text, setStateMethods) {
   const simulationParameters = parsedJSON['Simulation Parameters'];
   const schedulerParameters = parsedJSON['Scheduler Parameters'];
 
-  setSourceName(Sources['Name']);
-  setBaseSource(Sources['Base Source']);
-  setModelSource(Sources['Model Source']);
-  setTargetSource(Sources['Target Source']);
-  setPythonSource(Sources['Python Source']);
-  setOutputPath(Sources['Output Path']);
-  setVersion(Sources['Version']);
+  const { Tasks } = parsedJSON;
 
-  setStartJD(simulationParameters['Start JD']);
-  setStartSeconds(simulationParameters['Start Seconds']);
-  setEndSeconds(simulationParameters['End Seconds']);
-  setPrimaryStepSeconds(simulationParameters['Primary Step Seconds']);
+  if (Sources !== undefined && simulationParameters !== undefined && schedulerParameters !== undefined) {
+    setSourceName(Sources['Name']);
+    setBaseSource(Sources['Base Source']);
+    setModelSource(Sources['Model Source']);
+    setTargetSource(Sources['Target Source']);
+    setPythonSource(Sources['Python Source']);
+    setOutputPath(Sources['Output Path']);
+    setVersion(Sources['Version']);
 
-  setMaxSchedules(schedulerParameters['Max Schedules']);
-  setCropRatio(schedulerParameters['Crop Ratio']);
+    setStartJD(simulationParameters['Start JD']);
+    setStartSeconds(simulationParameters['Start Seconds']);
+    setEndSeconds(simulationParameters['End Seconds']);
+    setPrimaryStepSeconds(simulationParameters['Primary Step Seconds']);
+
+    setMaxSchedules(schedulerParameters['Max Schedules']);
+    setCropRatio(schedulerParameters['Crop Ratio']);
+  } else if (Tasks !== undefined) {
+    setTaskList(Tasks);
+  } else {
+    console.error('Error parsing JSON file');
+    throw new Error('Error parsing JSON file');
+  }
 }
