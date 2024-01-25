@@ -10,11 +10,16 @@ const theme = createTheme({
     secondary: {
       main: '#1f2330',
       light: '#292d3a',
-      dark: '1a1d25',
+      dark: '#1a1d25',
+    },
+    info: {
+      main: '#0288d1',
+      light: '#03a9f4',
+      dark: '#01579b',
     },
   },
   typography: {
-    fontFamily: 'Poppins',
+    fontFamily: 'Poppins, sans-serif',
     h1: {
       fontSize: '2rem',
       fontWeight: 500,
@@ -47,7 +52,7 @@ const theme = createTheme({
       fontSize: '0.875rem',
       fontWeight: 400,
     },
-    body1: {
+    body: {
       fontSize: '1rem',
       fontWeight: 400,
     },
@@ -72,10 +77,11 @@ const theme = createTheme({
     MuiAccordion: {
       styleOverrides: {
         root: {
+          square: false,
           backgroundColor: '#282D3D',
           color: '#dddddd',
+          borderRadius: '5px',
         },
-
       },
     },
   }

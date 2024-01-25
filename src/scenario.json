@@ -11,12 +11,12 @@
   },
   "Simulation Parameters": {
       "Start JD": 2454680.0,
-      "Start Seconds": -1.0,
+      "Start Seconds": 0.0,
       "End Seconds" : 60.0,
       "Primary Step Seconds": 30
     },
   "Scheduler Parameters": {
     "Max Schedules": 10,
-    "Crop Ratio": 7
+    "Crop Ratio": 5
   }
 }
