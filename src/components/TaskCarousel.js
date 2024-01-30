@@ -6,6 +6,7 @@ import Paper from '@mui/material/Paper';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import Button from '@mui/material/Button';
 
+// TaskCarousel is deprecated in favor of TaskTable
 export default function TaskCarousel({activeStep, setActiveStep, setStateMethods, taskList, setTaskList}) {
   const [ formErrorCount, setFormErrorCount] = useState(0);
   const focusedTask = useRef(null);

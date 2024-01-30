@@ -73,6 +73,15 @@ const theme = createTheme({
       fontWeight: 500,
     },
   },
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 1120,
+      lg: 1280,
+      xl: 1920,
+    },
+  },
   components: {
     MuiAccordion: {
       styleOverrides: {
@@ -81,6 +90,7 @@ const theme = createTheme({
           backgroundColor: '#282D3D',
           color: '#dddddd',
           borderRadius: '5px',
+          width: '100%',
         },
       },
     },

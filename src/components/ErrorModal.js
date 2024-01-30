@@ -8,7 +8,7 @@ export default function ErrorModal({ onConfirm, title, message }) {
       <Card sx={{ zIndex: 2, padding: '15px', width: '40ch', border: '2px', borderRadius: "5px"}}>
         <Typography variant="h4" my={2} color="error">Error</Typography>
         <Typography variant="body1">{message}</Typography>
-        <div className='confirm-delete-icons'>
+        <div className='confirm-close-icons'>
           <CheckIcon onClick={onConfirm} />
         </div>
       </Card>

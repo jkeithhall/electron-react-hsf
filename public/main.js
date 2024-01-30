@@ -8,8 +8,7 @@ const { electron } = require('process')
 function createWindow() {
   // Create the browser window.
   const win = new BrowserWindow({
-    width: 800,
-    height: 600,
+    fullscreen: true,
     webPreferences: {
       nodeIntegration: true
     }
@@ -23,7 +22,7 @@ function createWindow() {
 
   const menu = Menu.getApplicationMenu();
   menu.items[0].submenu.append(new MenuItem({
-    label: 'Open',
+    label: 'Open File',
     accelerator: 'CmdOrCtrl+O',
     click() {
         dialog.showOpenDialog({
