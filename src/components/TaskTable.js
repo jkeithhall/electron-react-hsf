@@ -158,7 +158,7 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
     { field: 'nonzeroValCapTime', headerName: 'Nonzero Val Cap Time', width: 170, editable: true },
   ];
 
-  const removeModalMessage = selectedTaskName === '' ? 'Are you sure you want to remove this task (unnnamed)?' : `Are you sure you want to remove Task ${selectedTaskName}?`;
+  const removeModalMessage = selectedTaskName === '' ? 'Are you sure you want to remove this task (unnamed)?' : `Are you sure you want to remove Task ${selectedTaskName}?`;
   const locationModalTitle = selectedTaskName === '' ? 'Edit location for this task (unnamed)' : `Edit location for Task ${selectedTaskName}`;
 
   return (
@@ -186,10 +186,9 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
       <Paper
         sx={{
           height: 475,
-          backgroundColor: '#dddddd',
+          backgroundColor: 'primary.light',
           width: '100%',
           maxWidth: 1350,
-          padding: '10px',
           '& .actions': {
             color: 'text.primary',
           },
