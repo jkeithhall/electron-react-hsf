@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import Header from './components/Header';
 import HSFNav from './components/HSFNav';
-import FileSelector from './components/FileSelector';
 import ScenarioCards from './components/ScenarioCards';
-import TaskCarousel from './components/TaskCarousel';
+import TaskTable from './components/TaskTable';
 import Footer from './components/Footer';
-import InformationBar from './components/InformationBar';
+
+import { randomId } from '@mui/x-data-grid-generator';
 
 export default function App() {
   // State variables
@@ -24,10 +24,11 @@ export default function App() {
   const [maxSchedules, setMaxSchedules] = useState(10);
   const [cropRatio, setCropRatio] = useState(5);
   const [taskList, setTaskList] = useState([{
+    id: randomId(),
     taskName: 't6',
     type: 'gt',
-    latitude: 0.0,
-    longitude: -120.0,
+    latitude: 37.7749,
+    longitude: -122.4194,
     altitude: 0.0,
     priority: 2,
     value: 4,
@@ -35,10 +36,11 @@ export default function App() {
     desiredCapTime: 28800,
     nonzeroValCapTime: 28800,
   }, {
+    id: randomId(),
     taskName: 't7',
     type: 'gt',
-    latitude: 0.0,
-    longitude: -120.0,
+    latitude: 47.6061,
+    longitude: -122.3328,
     altitude: 0.0,
     priority: 2,
     value: 4,
@@ -46,10 +48,11 @@ export default function App() {
     desiredCapTime: 28800,
     nonzeroValCapTime: 28800,
   }, {
+    id: randomId(),
     taskName: 't8',
     type: 'gt',
-    latitude: 0.0,
-    longitude: -120.0,
+    latitude: 34.4208,
+    longitude: -119.6982,
     altitude: 0.0,
     priority: 2,
     value: 4,
@@ -85,7 +88,7 @@ export default function App() {
             />
           }
           {activeStep === 'Tasks' &&
-            <TaskCarousel
+            <TaskTable
               activeStep={activeStep}
               setActiveStep={setActiveStep}
               setStateMethods={setStateMethods}
@@ -94,7 +97,6 @@ export default function App() {
             />
           }
         </div>
-        <InformationBar/>
       </div>
       <Footer/>
     </div>

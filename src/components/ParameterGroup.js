@@ -30,10 +30,10 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
         const setMethodName = 'set' + key[0].toUpperCase() + key.slice(1);
         const displayName = convertDisplayName(key);
         const valid = !formErrors[key];
-        const errorMessage = valid ? ' ' : formErrors[key];
+        const errorMessage = valid ? '' : formErrors[key];
 
         return (
-          <Box key={key} my={0.5}>
+          <Box key={key} my={1}>
             <TextField
               id={key}
               fullWidth

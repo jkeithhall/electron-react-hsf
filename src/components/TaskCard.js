@@ -9,6 +9,7 @@ import TextField from '@mui/material/TextField';
 import TrashIcon from '@mui/icons-material/Delete';
 import ConfirmationModal from './ConfirmationModal';
 
+// TaskCards are deprecated in favor of TaskTable
 export default function TaskCard({task, index, setTaskList, formErrorCount, setFormErrorCount}) {
   const [ formErrors, setFormErrors] = useState({});
   const [ modalOpen, setModalOpen ] = useState(false);

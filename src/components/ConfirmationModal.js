@@ -9,7 +9,7 @@ export default function ConfirmationModal({ onCancel, onConfirm, title, message 
       <Card sx={{ zIndex: 2, padding: '15px', width: '40ch', borderRadius: "5px"}}>
         <Typography variant="h4" my={2}>{title}</Typography>
         <Typography variant="body1">{message}</Typography>
-        <div className='confirm-delete-icons'>
+        <div className='confirm-close-icons'>
           <CheckIcon onClick={onConfirm} />
           <CloseIcon onClick={onCancel} />
         </div>
