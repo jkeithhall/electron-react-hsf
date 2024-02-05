@@ -37,15 +37,6 @@ export default function App() {
     setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio, setTaskList
   };
 
-  // Send file reader and state methods to Electron
-  useEffect(() => {
-    if (window.electronApi) {
-      const { electronApi } = window;
-      console.log({electronApi});
-      window.electronApi.initializeFileReaders(parseJSONFile, setStateMethods);
-    }
-  });
-
   return (
     <div className="App">
       <Header/>

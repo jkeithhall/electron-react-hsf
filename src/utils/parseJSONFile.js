@@ -39,5 +39,6 @@ export default function parseJSONFile(type, content, setStateMethods) {
     }
   } catch (error) {
     console.log(`Error parsing JSON file: ${error.message}`);
+    throw new Error(`Error parsing JSON file: ${error.message}`);
   }
 }
