@@ -1,0 +1,25 @@
+const { dialog } = require('electron');
+const { readFile } = require('fs').promises;
+
+const handleOpenFileClick = async (browserWindow, fileType) => {
+  const fileObj = await dialog.showOpenDialog({
+    properties: ['openFile'],
+    filters: [{ name: 'JSON', extensions: ['json'] }]
+  })
+  // If file selected open it
+  if (fileObj) {
+    openFile(browserWindow, fileType, fileObj.filePaths[0]);
+  }
+}
+
+const openFile = async (browserWindow, fileType, filePath) => {
+  // Read file contents
+  const content = await readFile(filePath, { encoding: 'utf-8' });
+
+  // Send file contents to renderer process
+  browserWindow.webContents.send('file-opened', fileType, content, filePath);
+};
+
+module.exports = { handleOpenFileClick };
+
+

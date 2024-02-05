@@ -7,6 +7,7 @@ import DraggableMarker from './DraggableMarker';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 
@@ -58,8 +59,12 @@ export default function LocationModal({ title, onCancel, onConfirm, selectedLoca
           <DraggableMarker position={markerLocation} setPosition={setMarkerLocation} />
         </MapContainer>
         <div className='confirm-close-icons'>
-          <CheckIcon onClick={onConfirm(markerLocation)} />
-          <CloseIcon onClick={onCancel} />
+          <Button color="info" variant="contained" onClick={onConfirm(markerLocation)} startIcon={<CheckIcon />}>
+            Confirm
+          </Button >
+          <Button color="primary" variant="contained" onClick={onCancel} startIcon={<CloseIcon />}>
+            Cancel
+          </Button>
         </div>
       </Card>
     </div>

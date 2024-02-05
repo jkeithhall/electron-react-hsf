@@ -4,12 +4,11 @@ import ConfirmationModal from './ConfirmationModal';
 import ErrorModal from './ErrorModal';
 import Input from '@mui/material/Input';
 import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 import parseJSONFile from '../utils/parseJSONFile';
 
-export default function FileSelector({setStateMethods}) {
-  const [scenarioFilename, setScenarioFilename] = useState(null);
+export default function FileSelector({activeStep, setStateMethods}) {
   const [selectedFileName, setSelectedFileName] = useState(null);
   const [selectedFileContent, setSelectedFileContent] = useState(null);
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
@@ -41,9 +40,7 @@ export default function FileSelector({setStateMethods}) {
   const handleConfirm = (fileContent, fileName) => {
     // Parse file content
     try {
-      parseJSONFile(fileContent, setStateMethods);
-      // If successful update state
-      setScenarioFilename(fileName);
+      parseJSONFile(activeStep, fileContent, setStateMethods);
     } catch (error) {
       // If error, log error
       console.log(error);
@@ -88,9 +85,12 @@ export default function FileSelector({setStateMethods}) {
         mx={3}
       />
       <label htmlFor='fileInput'>
-        <Button variant="contained" component="span">Choose File</Button>
+        <Button
+          variant="contained"
+          component="span"
+          startIcon={<UploadFileIcon />}
+        >Choose File</Button>
       </label>
-      <Typography variant="body1" my={1}>{scenarioFilename}</Typography>
       {confirmationModalOpen && (
       <div className='stacking-context'>
         <ConfirmationModal

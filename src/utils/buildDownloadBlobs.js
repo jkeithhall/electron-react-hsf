@@ -1,12 +1,7 @@
-import { promises } from 'fs';
-
-export default async function buildScenarioFile (sources, simulationParameters, schedulerParameters) {
+function buildScenarioBlob (sources, simulationParameters, schedulerParameters) {
   const { sourceName, baseSource, modelSource, targetSource, pythonSource, outputPath, version } = sources;
   const { startJD, startSeconds, endSeconds, primaryStepSeconds } = simulationParameters;
   const { maxSchedules, cropRatio } = schedulerParameters;
-
-  // FILL IN WITH DESIRED PATH
-  const writeDirectory = './samples';
 
   const parameters = {
     'Sources': {
@@ -30,9 +25,23 @@ export default async function buildScenarioFile (sources, simulationParameters, 
     }
   }
 
-  try {
-    await promises.writeFile(`${writeDirectory}/${sourceName}.json`, JSON.stringify(parameters, null, 2));
-  } catch (error) {
-    console.error(`Error writing file: ${error}`);
-  }
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([JSON.stringify(parameters, null, 2)], { type: 'application/json' });
+    resolve(blob);
+  });
 }
+
+function buildTaskBlob (taskList) {
+  const taskListCopy = taskList.map(task => {
+    // Filter out the 'id' property
+    const { id, ...taskCopy } = task;
+    return taskCopy;
+  });
+
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([JSON.stringify(taskListCopy, null, 2)], { type: 'application/json' });
+    resolve(blob);
+  });
+}
+
+export { buildScenarioBlob, buildTaskBlob };

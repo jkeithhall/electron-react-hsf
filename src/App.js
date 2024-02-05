@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './components/Header';
 import HSFNav from './components/HSFNav';
-import ScenarioCards from './components/ScenarioCards';
+import ScenarioParameters from './components/ScenarioParameters';
 import TaskTable from './components/TaskTable';
 import Footer from './components/Footer';
-
-import { randomId } from '@mui/x-data-grid-generator';
+import dayjs from 'dayjs';
+import { dateToJulian } from './utils/julianConversion';
+import initTaskList from './__config__/initTaskList';
+import parseJSONFile from './utils/parseJSONFile';
 
 export default function App() {
   // State variables
@@ -17,49 +19,13 @@ export default function App() {
   const [pythonSource, setPythonSource] = useState('pythonScripts/');
   const [outputPath, setOutputPath] = useState('none');
   const [version, setVersion] = useState(1.0);
-  const [startJD, setStartJD] = useState(2454680.0);
+  const [startJD, setStartJD] = useState(dateToJulian(dayjs())); // Current date
   const [startSeconds, setStartSeconds] = useState(0.0);
   const [endSeconds, setEndSeconds] = useState(60.0);
   const [primaryStepSeconds, setPrimaryStepSeconds] = useState(30);
   const [maxSchedules, setMaxSchedules] = useState(10);
   const [cropRatio, setCropRatio] = useState(5);
-  const [taskList, setTaskList] = useState([{
-    id: randomId(),
-    taskName: 't6',
-    type: 'gt',
-    latitude: 37.7749,
-    longitude: -122.4194,
-    altitude: 0.0,
-    priority: 2,
-    value: 4,
-    minQuality: 5.0,
-    desiredCapTime: 28800,
-    nonzeroValCapTime: 28800,
-  }, {
-    id: randomId(),
-    taskName: 't7',
-    type: 'gt',
-    latitude: 47.6061,
-    longitude: -122.3328,
-    altitude: 0.0,
-    priority: 2,
-    value: 4,
-    minQuality: 5.0,
-    desiredCapTime: 28800,
-    nonzeroValCapTime: 28800,
-  }, {
-    id: randomId(),
-    taskName: 't8',
-    type: 'gt',
-    latitude: 34.4208,
-    longitude: -119.6982,
-    altitude: 0.0,
-    priority: 2,
-    value: 4,
-    minQuality: 5.0,
-    desiredCapTime: 28800,
-    nonzeroValCapTime: 28800,
-  }]);
+  const [taskList, setTaskList] = useState(initTaskList);
 
   // Bundling state variables
   const sources = { sourceName, baseSource, modelSource, targetSource, pythonSource, outputPath, version };
@@ -71,6 +37,15 @@ export default function App() {
     setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio, setTaskList
   };
 
+  // Send file reader and state methods to Electron
+  useEffect(() => {
+    if (window.electronApi) {
+      const { electronApi } = window;
+      console.log({electronApi});
+      window.electronApi.initializeFileReaders(parseJSONFile, setStateMethods);
+    }
+  });
+
   return (
     <div className="App">
       <Header/>
@@ -78,7 +53,7 @@ export default function App() {
         <HSFNav activeStep={activeStep} setActiveStep={setActiveStep}/>
         <div className='work-space'>
           {activeStep === 'Scenario' &&
-            <ScenarioCards
+            <ScenarioParameters
               activeStep={activeStep}
               setActiveStep={setActiveStep}
               sources={sources}

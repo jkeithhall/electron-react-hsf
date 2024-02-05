@@ -84,6 +84,7 @@ nav {
     border-right: 2px solid #555;
     background-color: #282D3D;
     color: #ddd;
+    width: 100%;
 }
 
 nav h2 {
@@ -115,10 +116,11 @@ nav img {
     overflow: scroll;
 }
 
-.next-step-button-footer {
+.button-footer {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: flex-end;
+    gap: 20px;
     align-items: flex-end;
     height: 60px;
     margin-top: 20px;
@@ -129,6 +131,23 @@ nav img {
     top: 0;
     left: 0;
     z-index: 2;
+}
+
+.calendar-stacking-context {
+    background-color: white;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: space-between;
+    position: absolute;
+    z-index: 2;
+    height: 335px;
+    width: 325px;
+}
+
+.MuiPickersCalendarHeader-label {
+    color: '#0288d1';
 }
 
 .location-inputs {
@@ -149,10 +168,11 @@ nav img {
 }
 
 .confirm-close-icons {
-    margin: 10px 30px;
+    margin: 20px 30px;
     display: flex;
+    gap: 20px;
+    justify-content: center;
     align-self: flex-end;
-    justify-content: space-evenly;
 }
 
 .overlay {

@@ -10,7 +10,7 @@ import Button from '@mui/material/Button';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditLocationIcon from '@mui/icons-material/EditLocation';
 import Tooltip from '@mui/material/Tooltip';
-
+import SaveButton from './SaveButton.js';
 import FileSelector from './FileSelector.js';
 import EditToolbar from './EditToolbar.js';
 import ConfirmationModal from './ConfirmationModal';
@@ -163,7 +163,7 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
 
   return (
     <>
-      <FileSelector setStateMethods={setStateMethods} activeStep={activeStep}/>
+      <FileSelector activeStep={activeStep} setStateMethods={setStateMethods} activeStep={activeStep}/>
       {confirmModalOpen && (
         <div className='stacking-context'>
           <ConfirmationModal
@@ -183,20 +183,7 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
             onCancel={handleLocationCancel}
           />
       </div>)}
-      <Paper
-        sx={{
-          height: 475,
-          backgroundColor: 'primary.light',
-          width: '100%',
-          maxWidth: 1350,
-          '& .actions': {
-            color: 'text.primary',
-          },
-          '& .textPrimary': {
-            color: 'text.primary',
-          },
-        }}
-      >
+      <Paper sx={{ height: 475, padding: 1 }} >
         <DataGrid
           rows={taskList}
           columns={columns}
@@ -211,9 +198,16 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
           slotProps={{
             toolbar: { setTaskList, setRowModesModel },
           }}
+          sx={{ backgroundColor: '#eeeeee' }}
         />
       </Paper>
-      <div className='next-step-button-footer'>
+      <div className='button-footer'>
+        <SaveButton
+          activeStep={activeStep}
+          taskList={taskList}
+          setTaskList={setTaskList}
+          setStateMethods={setStateMethods}
+        />
         <Button
           variant="contained"
           color= { formErrorCount === 0 ? 'info' : 'error' }
