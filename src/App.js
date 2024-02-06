@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Header from './components/Header';
 import HSFNav from './components/HSFNav';
 import ScenarioParameters from './components/ScenarioParameters';
@@ -7,7 +7,6 @@ import Footer from './components/Footer';
 import dayjs from 'dayjs';
 import { dateToJulian } from './utils/julianConversion';
 import initTaskList from './__config__/initTaskList';
-import parseJSONFile from './utils/parseJSONFile';
 
 export default function App() {
   // State variables

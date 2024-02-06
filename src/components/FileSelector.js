@@ -16,7 +16,7 @@ export default function FileSelector({activeStep, setStateMethods}) {
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(false);
 
-  // Called when user selects a file
+  // Called when user selects a file using the in-browser upload button
   const handleFileChange = (e) => {
     const fileInput = e.target;
 
@@ -24,7 +24,7 @@ export default function FileSelector({activeStep, setStateMethods}) {
       const selectedFile = fileInput.files[0];
       const reader = new FileReader();
 
-      // When file is read, update state with selected file and open confirmation modal
+      // When file is read, call handleFileSelect with file content
       reader.onload = (e) => {
         const fileContent = e.target.result;
         const fileName = selectedFile.name;
@@ -36,6 +36,7 @@ export default function FileSelector({activeStep, setStateMethods}) {
     }
   }
 
+  // Called when user selects a file using the Electron File Menu or the in-browser upload button
   const handleFileSelect = (fileType, fileContent, fileName) => {
     setSelectedFileType(fileType);
     setSelectedFileContent(fileContent);
@@ -49,9 +50,7 @@ export default function FileSelector({activeStep, setStateMethods}) {
   */
   useEffect(() => {
     // If running in Electron, register handleFileSelect as event handler for menu bar file selection
-    if (window.electronApi) {
-      window.electronApi.onFileSelect(handleFileSelect);
-    }
+    if (window.electronApi) window.electronApi.onFileSelect(handleFileSelect);
   });
 
   // Called when user confirms file selection
@@ -60,8 +59,7 @@ export default function FileSelector({activeStep, setStateMethods}) {
     try {
       parseJSONFile(fileType, fileContent, setStateMethods);
     } catch (error) {
-      // If error, log error
-      console.log(error);
+      // If error, display error modal
       setErrorMessage(error.message);
       setErrorModalOpen(true);
     } finally {
@@ -107,7 +105,7 @@ export default function FileSelector({activeStep, setStateMethods}) {
           variant="contained"
           component="span"
           startIcon={<UploadFileIcon />}
-        >Choose File</Button>
+        >Upload File</Button>
       </label>
       {confirmationModalOpen && (
       <div className='stacking-context'>

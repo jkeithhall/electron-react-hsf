@@ -36,7 +36,7 @@ export default function ScenarioParameters({activeStep, setActiveStep, sources, 
 
   return (
     <>
-      <FileSelector activeStep={activeStep} setStateMethods={setStateMethods} activeStep={activeStep}/>
+      <FileSelector activeStep={activeStep} setStateMethods={setStateMethods}/>
       <Grid container spacing={3}>
         <Grid>
           <Paper elevation={3} style={{ padding: '10px', margin: '10px', backgroundColor: '#282D3D', width: 400 }}>
