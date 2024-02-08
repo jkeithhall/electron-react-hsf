@@ -3,10 +3,12 @@ import Header from './components/Header';
 import HSFNav from './components/HSFNav';
 import ScenarioParameters from './components/ScenarioParameters';
 import TaskTable from './components/TaskTable';
+import ModelEditor from './components/ModelEditor';
 import Footer from './components/Footer';
 import dayjs from 'dayjs';
 import { dateToJulian } from './utils/julianConversion';
-import initTaskList from './__config__/initTaskList';
+import initTaskList from './aeolus_config/initTaskList';
+import initModel from './aeolus_config/initModel';
 
 export default function App() {
   // State variables
@@ -25,15 +27,30 @@ export default function App() {
   const [maxSchedules, setMaxSchedules] = useState(10);
   const [cropRatio, setCropRatio] = useState(5);
   const [taskList, setTaskList] = useState(initTaskList);
+  const [model, setModel] = useState(initModel);
 
-  // Bundling state variables
+  // Bundling scenario variables
   const sources = { sourceName, baseSource, modelSource, targetSource, pythonSource, outputPath, version };
   const simulationParameters = { startJD, startSeconds, endSeconds, primaryStepSeconds };
   const schedulerParameters = { maxSchedules, cropRatio };
 
   // Bundling state methods
   const setStateMethods = {
-    setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio, setTaskList
+    setSourceName,
+    setBaseSource,
+    setModelSource,
+    setTargetSource,
+    setPythonSource,
+    setOutputPath,
+    setVersion,
+    setStartJD,
+    setStartSeconds,
+    setEndSeconds,
+    setPrimaryStepSeconds,
+    setMaxSchedules,
+    setCropRatio,
+    setTaskList,
+    setModel
   };
 
   return (
@@ -59,6 +76,15 @@ export default function App() {
               setStateMethods={setStateMethods}
               taskList={taskList}
               setTaskList={setTaskList}
+            />
+          }
+          {activeStep === 'System Model' &&
+            <ModelEditor
+              activeStep={activeStep}
+              setActiveStep={setActiveStep}
+              setStateMethods={setStateMethods}
+              model={model}
+              setModel={setModel}
             />
           }
         </div>

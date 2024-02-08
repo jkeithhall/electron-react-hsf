@@ -1,5 +1,6 @@
 {
-  "name": "electron-react-hsf",
+  "name": "Picasso",
+  "description": "Picasso is a desktop application that allows users to create and manage the parameters for a Horizon Simulation Framework (HSF) simulation. The application is built using the Electron framework and the React library.",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -21,6 +22,7 @@
     "react-dom": "^18.2.0",
     "react-leaflet": "^4.2.1",
     "react-scripts": "5.0.1",
+    "reactflow": "^11.10.3",
     "sass": "^1.69.5",
     "web-vitals": "^2.1.4",
     "yup": "^1.3.3"

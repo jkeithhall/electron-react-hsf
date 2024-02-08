@@ -28,7 +28,7 @@ export default function FileSelector({activeStep, setStateMethods}) {
       reader.onload = (e) => {
         const fileContent = e.target.result;
         const fileName = selectedFile.name;
-        handleFileSelect(activeStep, fileContent, fileName);
+        handleFileUpload(activeStep, fileContent, fileName);
       };
 
       // Read file as text
@@ -37,7 +37,8 @@ export default function FileSelector({activeStep, setStateMethods}) {
   }
 
   // Called when user selects a file using the Electron File Menu or the in-browser upload button
-  const handleFileSelect = (fileType, fileContent, fileName) => {
+  const handleFileUpload = (fileType, fileContent, fileName) => {
+    // TO DO: Check file contents for validity prior to confirmation modal
     setSelectedFileType(fileType);
     setSelectedFileContent(fileContent);
     setSelectedFileName(fileName);
@@ -45,13 +46,13 @@ export default function FileSelector({activeStep, setStateMethods}) {
   };
 
   /*
-    useEffect runs upon component mount. It sends to the main process the handleFileSelect function,
+    useEffect runs upon component mount. It sends to the main process the handleFileUpload function,
     to be called when a file is selected from a dialog box prompted by the Electron File Menu.
   */
   useEffect(() => {
-    // If running in Electron, register handleFileSelect as event handler for menu bar file selection
-    if (window.electronApi) window.electronApi.onFileSelect(handleFileSelect);
-  });
+    // If running in Electron, register handleFileUpload as event handler for menu bar file selection
+    if (window.electronApi) window.electronApi.onFileUpload(handleFileUpload);
+  }, []); // Run once on component mount
 
   // Called when user confirms file selection
   const handleConfirm = (fileType, fileContent, fileName) => {

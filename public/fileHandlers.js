@@ -1,5 +1,5 @@
 const { dialog } = require('electron');
-const { readFile } = require('fs').promises;
+const { readFile, writeFile } = require('fs').promises;
 
 const handleOpenFileClick = async (browserWindow, fileType) => {
   const fileObj = await dialog.showOpenDialog({
@@ -13,15 +13,40 @@ const handleOpenFileClick = async (browserWindow, fileType) => {
   }
 }
 
+const handleSaveFileClick = async (browserWindow, fileType) => {
+  browserWindow.webContents.send('file-download-click', fileType);
+};
+
+const showSaveDialog = async (browserWindow, content) => {
+  const result = await dialog.showSaveDialog(browserWindow, {
+    properties: ['showOverwriteConfirmation'],
+    filters: [{ name: 'JSON', extensions: ['json'] }],
+  });
+
+  if (result.canceled) return;
+
+  const { filePath } = result;
+
+  if (!filePath) return;
+
+
+  saveFile(browserWindow, content, filePath);
+};
+
 const openFile = async (browserWindow, fileType, filePath) => {
   const fileName = filePath.split('/').pop();
   // Read file contents
   const content = await readFile(filePath, { encoding: 'utf-8' });
 
   // Send file contents to renderer process
-  browserWindow.webContents.send('file-selected', fileType, content, fileName);
+  browserWindow.webContents.send('file-upload-selected', fileType, content, fileName);
 };
 
-module.exports = { handleOpenFileClick };
+const saveFile = async (browserWindow, content, filePath) => {
+  console.log(`Saving file to ${filePath} with content: ${content}`);
+  await writeFile(filePath, content);
+};
+
+module.exports = { handleOpenFileClick, handleSaveFileClick, showSaveDialog };
 
 

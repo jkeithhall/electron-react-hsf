@@ -5,10 +5,11 @@ import MenuItem from '@mui/material/MenuItem';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import { buildScenarioBlob, buildTaskBlob } from '../utils/buildDownloadBlobs';
+import buildDownloadBlob from '../utils/buildDownloadBlob';
 import downloadBlob from '../utils/downloadBlob';
+import buildDownloadJSON from '../utils/buildDownloadJSON';
 
-export default function SaveButton({activeStep, sources, simulationParameters, schedulerParameters, taskList, setStateMethods}) {
+export default function SaveButton({activeStep, sources, simulationParameters, schedulerParameters, taskList, model, setStateMethods}) {
   // State variables for form validation and errors
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -21,23 +22,34 @@ export default function SaveButton({activeStep, sources, simulationParameters, s
     setAnchorEl(null);
   };
 
-  const handleDownload = () => {
-    if (activeStep === 'Scenario') {
-      const fileName = 'sources.json';
-      buildScenarioBlob(sources, simulationParameters, schedulerParameters)
+  const handleDownloadClick = () => {
+    // If running in Electron, use Electron's saveFile function
+    if (window.electronApi) {
+      const content = buildDownloadJSON(activeStep, sources, simulationParameters, schedulerParameters, taskList, model);
+      window.electronApi.saveFile(content);
+    } else {
+      // Otherwise, use the in-browser downloadBlob function
+      const fileName = `${activeStep.toLowerCase()}.json`;
+      buildDownloadBlob(activeStep, sources, simulationParameters, schedulerParameters, taskList, model)
       .then(blob => downloadBlob(blob, fileName));
-    } if (activeStep === 'Tasks') {
-      const fileName = 'tasks.json';
-      buildTaskBlob(taskList)
-      .then(blob => downloadBlob(blob, fileName));
-    } // TO DO: Implement handleDownload for other activeSteps
-    setAnchorEl(null);
+    }
+    // Close the menu
+    handleSaveButtonClose();
   }
 
   // TO DO: Implement handleSaveToCloud
   const handleSaveToCloud = () => {
-    setAnchorEl(null);
+    handleSaveButtonClose();
   }
+
+  // Register event handler for menu bar file download click
+  useEffect(() => {
+    if (window.electronApi) {
+      window.electronApi.onFileDownload((fileType) => {
+        return buildDownloadJSON(fileType, sources, simulationParameters, schedulerParameters, taskList, model);
+      });
+    }
+  }, []); // Run once on component mount
 
   return (
     <>
@@ -62,7 +74,7 @@ export default function SaveButton({activeStep, sources, simulationParameters, s
         open={open}
         onClose={handleSaveButtonClose}
       >
-        <MenuItem onClick={handleDownload} disableRipple>
+        <MenuItem onClick={handleDownloadClick} disableRipple>
           <FileDownloadIcon />
           Download
         </MenuItem>

@@ -1,13 +1,9 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { join } = require('path');
 const isDev = require('electron-is-dev');
 const { initializeMenu } = require('./menu');
-const { ipcMain } = require('electron');
-
-ipcMain.on('get-data', (event) => {
-  event.reply('get-data', 'Data from main process');
-})
+const { showSaveDialog } = require('./fileHandlers');
 
 function createWindow() {
   // Create the browser window.
@@ -37,6 +33,14 @@ function createWindow() {
 }
 
 app.on('ready', createWindow);
+
+ipcMain.on('show-save-dialog', (event, content) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  if (!browserWindow) return;
+
+  showSaveDialog(browserWindow, content);
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {

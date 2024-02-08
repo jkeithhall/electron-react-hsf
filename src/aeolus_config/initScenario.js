@@ -1,5 +1,5 @@
 
-export const aeolusConfig = {
+export const initScenario = {
   sources: {
     name: "Aeolus",
     baseSource: "./samples/aeolus/",

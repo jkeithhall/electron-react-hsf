@@ -163,7 +163,7 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
 
   return (
     <>
-      <FileSelector activeStep={activeStep} setStateMethods={setStateMethods} activeStep={activeStep}/>
+      <FileSelector activeStep={activeStep} setStateMethods={setStateMethods}/>
       {confirmModalOpen && (
         <div className='stacking-context'>
           <ConfirmationModal
@@ -205,7 +205,6 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
         <SaveButton
           activeStep={activeStep}
           taskList={taskList}
-          setTaskList={setTaskList}
           setStateMethods={setStateMethods}
         />
         <Button

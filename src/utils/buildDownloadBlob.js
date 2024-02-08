@@ -1,3 +1,18 @@
+export default function buildDownloadBlob(fileType, sources, simulationParameters, schedulerParameters, taskList, model) {
+  switch (fileType) {
+    case 'Scenario':
+      return buildScenarioBlob(sources, simulationParameters, schedulerParameters);
+    case 'Tasks':
+      return buildTaskBlob(taskList);
+    case 'System Model':
+      return buildModelBlob(model);
+    default:
+      return new Promise((resolve, reject) => {
+        resolve();
+      });
+  }
+}
+
 function buildScenarioBlob (sources, simulationParameters, schedulerParameters) {
   const { sourceName, baseSource, modelSource, targetSource, pythonSource, outputPath, version } = sources;
   const { startJD, startSeconds, endSeconds, primaryStepSeconds } = simulationParameters;
@@ -32,16 +47,21 @@ function buildScenarioBlob (sources, simulationParameters, schedulerParameters) 
 }
 
 function buildTaskBlob (taskList) {
-  const taskListCopy = taskList.map(task => {
+  const modifiedTaskList = taskList.map(task => {
     // Filter out the 'id' property
     const { id, ...taskCopy } = task;
     return taskCopy;
   });
 
   return new Promise((resolve, reject) => {
-    const blob = new Blob([JSON.stringify(taskListCopy, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify(modifiedTaskList, null, 2)], { type: 'application/json' });
     resolve(blob);
   });
 }
 
-export { buildScenarioBlob, buildTaskBlob };
+function buildModelBlob (model) {
+  return new Promise((resolve, reject) => {
+    const blob = new Blob([JSON.stringify(model, null, 2)], { type: 'application/json' });
+    resolve(blob);
+  });
+}

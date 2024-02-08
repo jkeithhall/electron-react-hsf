@@ -1,5 +1,5 @@
 const { app, Menu } = require('electron');
-const { handleOpenFileClick } = require('./fileHandlers');
+const { handleOpenFileClick, handleSaveFileClick } = require('./fileHandlers');
 
 const initializeMenu = (window) => {
   const template = [
@@ -38,6 +38,23 @@ const initializeMenu = (window) => {
             }
           ]
         },
+        {
+          label: 'Download File',
+          submenu: [
+            {
+              label: 'Scenario File',
+              click() { handleSaveFileClick(window, 'Scenario'); }
+            },
+            {
+              label: 'Tasks File',
+              click() { handleSaveFileClick(window, 'Tasks'); }
+            },
+            {
+              label: 'Model File',
+              click() { handleSaveFileClick(window, 'Model'); }
+            }
+          ]
+        }
       ]
     },
     {
