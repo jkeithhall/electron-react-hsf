@@ -93,7 +93,7 @@ export default function FileSelector({activeStep, setStateMethods}) {
 
 
   return (
-    <div className='file-selection-header'>
+    <>
       <Input
         type="file"
         id='fileInput'
@@ -105,8 +105,9 @@ export default function FileSelector({activeStep, setStateMethods}) {
         <Button
           variant="contained"
           component="span"
-          startIcon={<UploadFileIcon />}
-        >Upload File</Button>
+          startIcon={<UploadFileIcon />}>
+          Upload File
+        </Button>
       </label>
       {confirmationModalOpen && (
       <div className='stacking-context'>
@@ -125,6 +126,6 @@ export default function FileSelector({activeStep, setStateMethods}) {
           onConfirm={() => setErrorModalOpen(false)}
         />
       </div>)}
-    </div>
+    </>
   )
 }

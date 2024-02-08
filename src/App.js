@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { styled } from '@mui/material/styles';
 import NavDrawer from './components/NavDrawer';
 import ScenarioParameters from './components/ScenarioParameters';
 import TaskTable from './components/TaskTable';
@@ -68,7 +67,9 @@ export default function App() {
       setActiveStep={setActiveStep}
       drawerWidth={navDrawerWidth}
     >
-      <Box className='work-space' >
+      <Box
+        className='work-space'
+        sx={{ width: `calc(100vw - ${navOpen ? 220 : 60}px)`, maxWidth: `calc(100vw - ${navOpen ? 220 : 60}px)`}}>
         {{'Scenario':
             <ScenarioParameters
               activeStep={activeStep}
@@ -80,6 +81,7 @@ export default function App() {
             />,
           'Tasks':
             <TaskTable
+              navOpen={navOpen}
               activeStep={activeStep}
               setActiveStep={setActiveStep}
               setStateMethods={setStateMethods}

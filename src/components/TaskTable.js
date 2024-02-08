@@ -5,13 +5,11 @@ import {
   GridActionsCellItem,
   GridRowEditStopReasons,
 } from '@mui/x-data-grid';
+import FileHeader from './FileHeader';
 import Paper from '@mui/material/Paper';
-import Button from '@mui/material/Button';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditLocationIcon from '@mui/icons-material/EditLocation';
 import Tooltip from '@mui/material/Tooltip';
-import SaveButton from './SaveButton.js';
-import FileSelector from './FileSelector.js';
 import EditToolbar from './EditToolbar.js';
 import ConfirmationModal from './ConfirmationModal';
 import LocationModal from './LocationModal';
@@ -21,7 +19,7 @@ const DEFAULT_LONGITUDE = 0;
 const DEFAULT_ALTITUDE = 0;
 const DEFAULT_LOCATION = { lat: DEFAULT_LATITUDE, lon: DEFAULT_LONGITUDE, alt: DEFAULT_ALTITUDE };
 
-export default function TaskTable({ activeStep, setActiveStep, setStateMethods, taskList, setTaskList }) {
+export default function TaskTable({ navOpen, activeStep, setActiveStep, setStateMethods, taskList, setTaskList }) {
   const [ formErrorCount, setFormErrorCount] = useState(0);
   const [rowModesModel, setRowModesModel] = useState({});
   const [confirmModalOpen, setConfirmModalOpen ] = useState(false);
@@ -30,6 +28,7 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
   const [selectedTaskName, setSelectedTaskName] = useState('');
   const [selectedTaskId, setSelectedTaskId] = useState('');
 
+  const valid = formErrorCount === 0;
 
   const handleRowModesModelChange = (newRowModesModel) => {
     setRowModesModel(newRowModesModel);
@@ -116,7 +115,7 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
     setLocationModalOpen(false);
   }
 
-  const handleNextClick = () => {
+  const handleNextButtonClick = () => {
     // TO DO: handle validation for tasks
     setActiveStep('System Model');
   };
@@ -163,7 +162,7 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
 
   return (
     <>
-      <FileSelector activeStep={activeStep} setStateMethods={setStateMethods}/>
+      <FileHeader activeStep={activeStep} valid={valid} setStateMethods={setStateMethods} handleNextButtonClick={handleNextButtonClick}/>
       {confirmModalOpen && (
         <div className='stacking-context'>
           <ConfirmationModal
@@ -183,7 +182,7 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
             onCancel={handleLocationCancel}
           />
       </div>)}
-      <Paper sx={{ maxWidth: '1150px', height: 475, padding: 1 }} >
+      <Paper sx={{ margin: '20px', maxWidth: `calc(100vw - ${(navOpen ? 220 : 60) + 60}px)`, height: 475, padding: 1 }} >
         <DataGrid
           rows={taskList}
           columns={columns}
@@ -201,20 +200,6 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
           sx={{ backgroundColor: '#eeeeee' }}
         />
       </Paper>
-      <div className='button-footer'>
-        <SaveButton
-          activeStep={activeStep}
-          taskList={taskList}
-          setStateMethods={setStateMethods}
-        />
-        <Button
-          variant="contained"
-          color= { formErrorCount === 0 ? 'info' : 'error' }
-          onClick={handleNextClick}
-          disabled={formErrorCount > 0} >
-          Next
-        </Button>
-      </div>
     </>
   );
 

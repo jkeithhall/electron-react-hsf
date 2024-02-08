@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { validateScenarioParametersAt } from '../utils/validateParameters';
-import FileSelector from './FileSelector';
+import FileHeader from './FileHeader';
 import ParameterGroup from './ParameterGroup';
+import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import Button from '@mui/material/Button';
-import SaveButton from './SaveButton';
 
 
-export default function ScenarioParameters({activeStep, setActiveStep, sources, simulationParameters, schedulerParameters, setStateMethods}) {
+export default function ScenarioParameters({activeStep, setActiveStep, sources, simulationParameters, schedulerParameters, taskList, model, setStateMethods}) {
   // State variables for form validation and errors
   const [ formErrors, setFormErrors] = useState({});
 
@@ -36,44 +35,29 @@ export default function ScenarioParameters({activeStep, setActiveStep, sources, 
 
   return (
     <>
-      <FileSelector activeStep={activeStep} setStateMethods={setStateMethods}/>
-      <Grid container spacing={3} mt={1}>
-        <Grid>
-          <Paper elevation={3} style={{ padding: '10px', margin: '10px', backgroundColor: '#282D3D', width: 400 }}>
-            <Typography variant="h5" color="primary" my={2}>Sources</Typography>
-            <ParameterGroup parameters={sources} setParameters={setStateMethods} formErrors={formErrors} setFormErrors={setFormErrors}/>
-          </Paper>
+      <FileHeader activeStep={activeStep} valid={valid} sources={sources} simulationParameters={simulationParameters} schedulerParameters={schedulerParameters} taskList={taskList} model={model} setStateMethods={setStateMethods} handleNextButtonClick={handleNextButtonClick}/>
+      <Box sx={{ flexGrow: 1 }}>
+        <Grid container spacing={3} mt={1}>
+          <Grid>
+            <Paper elevation={3} style={{ padding: '10px', margin: '10px', backgroundColor: '#282D3D', width: 400 }}>
+              <Typography variant="h5" color="primary" my={2}>Sources</Typography>
+              <ParameterGroup parameters={sources} setParameters={setStateMethods} formErrors={formErrors} setFormErrors={setFormErrors}/>
+            </Paper>
+          </Grid>
+          <Grid>
+            <Paper elevation={3} style={{ padding: '10px', margin: '10px', backgroundColor: '#282D3D', width: 300  }}>
+              <Typography variant="h5" color="primary" my={2}>Simulation Parameters</Typography>
+              <ParameterGroup parameters={simulationParameters} setParameters={setStateMethods} formErrors={formErrors} setFormErrors={setFormErrors}/>
+            </Paper>
+          </Grid>
+          <Grid>
+            <Paper elevation={3} style={{ padding: '10px', margin: '10px', backgroundColor: '#282D3D'  }}>
+              <Typography variant="h5" color="primary" my={2}>Scheduler Parameters</Typography>
+              <ParameterGroup parameters={schedulerParameters} setParameters={setStateMethods} formErrors={formErrors} setFormErrors={setFormErrors}/>
+            </Paper>
+          </Grid>
         </Grid>
-        <Grid>
-          <Paper elevation={3} style={{ padding: '10px', margin: '10px', backgroundColor: '#282D3D', width: 300  }}>
-            <Typography variant="h5" color="primary" my={2}>Simulation Parameters</Typography>
-            <ParameterGroup parameters={simulationParameters} setParameters={setStateMethods} formErrors={formErrors} setFormErrors={setFormErrors}/>
-          </Paper>
-        </Grid>
-        <Grid>
-          <Paper elevation={3} style={{ padding: '10px', margin: '10px', backgroundColor: '#282D3D'  }}>
-            <Typography variant="h5" color="primary" my={2}>Scheduler Parameters</Typography>
-            <ParameterGroup parameters={schedulerParameters} setParameters={setStateMethods} formErrors={formErrors} setFormErrors={setFormErrors}/>
-          </Paper>
-        </Grid>
-      </Grid>
-      <div className='button-footer'>
-        <SaveButton
-          activeStep={activeStep}
-          sources={sources}
-          simulationParameters={simulationParameters}
-          schedulerParameters={schedulerParameters}
-          setStateMethods={setStateMethods}
-        />
-        <Button
-          variant="contained"
-          color="info"
-          onClick={handleNextButtonClick}
-          disabled={!valid}
-        >
-          Next
-        </Button>
-      </div>
+      </Box>
     </>
   )
 }
