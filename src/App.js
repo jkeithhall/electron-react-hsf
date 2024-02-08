@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import Header from './components/Header';
-import HSFNav from './components/HSFNav';
+import NavDrawer from './components/NavDrawer';
 import ScenarioParameters from './components/ScenarioParameters';
 import TaskTable from './components/TaskTable';
 import ModelEditor from './components/ModelEditor';
-import Footer from './components/Footer';
+import Box from '@mui/material/Box';
 import dayjs from 'dayjs';
 import { dateToJulian } from './utils/julianConversion';
 import initTaskList from './aeolus_config/initTaskList';
@@ -53,12 +52,22 @@ export default function App() {
     setModel
   };
 
+  const navDrawerWidth = 220;
+  const [ navOpen, setNavOpen ] = useState(true);
+
+  const toggleNav = () => {
+    setNavOpen(!navOpen);
+  }
+
   return (
-    <div className="App">
-      <Header/>
-      <div className="grid-container">
-        <HSFNav activeStep={activeStep} setActiveStep={setActiveStep}/>
-        <div className='work-space'>
+    <NavDrawer
+      navOpen={navOpen}
+      toggleNav={toggleNav}
+      activeStep={activeStep}
+      setActiveStep={setActiveStep}
+      drawerWidth={navDrawerWidth}
+    >
+      <Box className='work-space' sx={{ width: `calc(100vw - ${navOpen ? navDrawerWidth : 60}px)` }}>
           {activeStep === 'Scenario' &&
             <ScenarioParameters
               activeStep={activeStep}
@@ -87,10 +96,8 @@ export default function App() {
               setModel={setModel}
             />
           }
-        </div>
-      </div>
-      <Footer/>
-    </div>
+      </Box>
+    </NavDrawer>
   );
 }
 

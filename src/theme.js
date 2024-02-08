@@ -116,6 +116,22 @@ const theme = createTheme({
         },
       },
     },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#282D3D',
+          color: '#dddddd',
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#282D3D',
+          color: '#dddddd',
+        },
+      },
+    },
   }
 });
 
