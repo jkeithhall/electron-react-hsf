@@ -99,20 +99,6 @@ nav img {
     margin-bottom: 20px;
 }
 
-.main {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-    padding: 30px;
-    background-color: #1f2330;
-    /* min-height: 550px; */
-    /* width: 100%;
-    max-width: calc(100% - 250px); */
-    height: calc(100vh - 100px);
-    max-height: calc(100vh - 100px);
-}
-
 .work-space {
     padding: 30px;
     display: flex;
@@ -120,11 +106,9 @@ nav img {
     justify-content: flex-start;
     align-items: center;
     background-color: #1f2330;
-    /* min-height: 550px; */
-    /* width: 100%;
-    max-width: calc(100% - 250px); */
+    width: calc(100vw - 220px);
+    max-width: calc(100vw - 60px);
     height: calc(100vh - 100px);
-    max-height: calc(100vh - 100px);
 }
 
 .button-footer {

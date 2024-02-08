@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { styled } from '@mui/material/styles';
 import NavDrawer from './components/NavDrawer';
 import ScenarioParameters from './components/ScenarioParameters';
 import TaskTable from './components/TaskTable';
@@ -67,8 +68,8 @@ export default function App() {
       setActiveStep={setActiveStep}
       drawerWidth={navDrawerWidth}
     >
-      <Box className='work-space' sx={{ width: `calc(100vw - ${navOpen ? navDrawerWidth : 60}px)` }}>
-          {activeStep === 'Scenario' &&
+      <Box className='work-space' >
+        {{'Scenario':
             <ScenarioParameters
               activeStep={activeStep}
               setActiveStep={setActiveStep}
@@ -76,26 +77,28 @@ export default function App() {
               simulationParameters={simulationParameters}
               schedulerParameters={schedulerParameters}
               setStateMethods={setStateMethods}
-            />
-          }
-          {activeStep === 'Tasks' &&
+            />,
+          'Tasks':
             <TaskTable
               activeStep={activeStep}
               setActiveStep={setActiveStep}
               setStateMethods={setStateMethods}
               taskList={taskList}
               setTaskList={setTaskList}
-            />
-          }
-          {activeStep === 'System Model' &&
+            />,
+          'System Model':
             <ModelEditor
               activeStep={activeStep}
               setActiveStep={setActiveStep}
               setStateMethods={setStateMethods}
               model={model}
               setModel={setModel}
-            />
-          }
+            />,
+          'Dependencies': <></>,
+          'Constraints': <></>,
+          'Simulate': <></>,
+          'Analyze': <></>
+          }[activeStep]}
       </Box>
     </NavDrawer>
   );

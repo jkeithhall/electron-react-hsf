@@ -21,9 +21,10 @@ import RuleIcon from '@mui/icons-material/Rule';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import QueryStatsIcon from '@mui/icons-material/QueryStats';
 
+const drawerWidth = 220;
 const navCategories = ['Scenario', 'Tasks', 'System Model', 'Dependencies', 'Constraints', 'Simulate', 'Analyze'];
 
-const openedMixin = (theme, drawerWidth) => ({
+const openedMixin = (theme) => ({
   width: drawerWidth,
   transition: theme.transitions.create('width', {
     easing: theme.transitions.easing.sharp,
@@ -48,20 +49,20 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'flex-end',
-  padding: theme.spacing(0, 1),
+  // padding: theme.spacing(0, 1),
   // necessary for content to be below app bar
   ...theme.mixins.toolbar,
 }));
 
 const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' })(
-  ({ theme, open, drawerWidth }) => ({
+  ({ theme, open }) => ({
     width: drawerWidth,
     flexShrink: 0,
     whiteSpace: 'nowrap',
     boxSizing: 'border-box',
     ...(open && {
-      ...openedMixin(theme, drawerWidth),
-      '& .MuiDrawer-paper': openedMixin(theme, drawerWidth),
+      ...openedMixin(theme),
+      '& .MuiDrawer-paper': openedMixin(theme),
     }),
     ...(!open && {
       ...closedMixin(theme),
@@ -70,7 +71,7 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
   }),
 );
 
-export default function NavDrawer({ navOpen, toggleNav, drawerWidth, activeStep, setActiveStep, children }) {
+export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveStep, childComponents, children }) {
   return (
     <Box sx={{ display: 'flex', className: "App" }}>
       <AppBar open={navOpen} drawerWidth={drawerWidth} />
@@ -130,7 +131,7 @@ export default function NavDrawer({ navOpen, toggleNav, drawerWidth, activeStep,
           })}
         </List>
       </Drawer>
-      <Box component="main" sx={{ flexGrow: 1, marginTop: '100px', marginLeft: `calc(100vw - ${navOpen ? drawerWidth : 60}px)` }}>
+      <Box component="main" sx={{ flexGrow: 1 }} mt={3}>
         <DrawerHeader />
         {children}
       </Box>

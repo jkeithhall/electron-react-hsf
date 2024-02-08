@@ -183,7 +183,7 @@ export default function TaskTable({ activeStep, setActiveStep, setStateMethods, 
             onCancel={handleLocationCancel}
           />
       </div>)}
-      <Paper sx={{ height: 475, padding: 1 }} >
+      <Paper sx={{ maxWidth: '1150px', height: 475, padding: 1 }} >
         <DataGrid
           rows={taskList}
           columns={columns}
