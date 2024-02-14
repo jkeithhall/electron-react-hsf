@@ -83,24 +83,55 @@ const theme = createTheme({
     },
   },
   components: {
-    MuiAccordion: {
+    MuiPaper: {
       styleOverrides: {
         root: {
-          square: false,
-          backgroundColor: '#282D3D',
-          color: '#dddddd',
-          borderRadius: '5px',
-          width: '100%',
+          backgroundColor: '#eeeeee',
+          padding: 1,
+          elevation: 3,
         },
       },
     },
-    // MuiDataGrid: {
-    //   styleOverrides: {
-    //     root: {
-    //       backgroundColor: '#ffffff',
-    //     },
-    //   },
-    // }
+    MuiPickersCalendarHeader: {
+      styleOverrides: {
+        root: {
+          color: '#0288d1',
+        },
+      },
+    },
+    MuiPickersDay: {
+      styleOverrides: {
+        root: {
+          '&.Mui-selected': {
+            backgroundColor: '#0288d1',
+            color: 'white',
+          },
+        },
+      },
+    },
+    MuiCalendarDatePicker: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#ffffff',
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#282D3D',
+          color: '#dddddd',
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#282D3D',
+          color: '#dddddd',
+        },
+      },
+    },
   }
 });
 

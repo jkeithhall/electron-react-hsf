@@ -1,22 +1,22 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import ConfirmationModal from './ConfirmationModal';
 import ErrorModal from './ErrorModal';
 import Input from '@mui/material/Input';
 import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 import parseJSONFile from '../utils/parseJSONFile';
 
-export default function FileSelector({setStateMethods}) {
-  const [scenarioFilename, setScenarioFilename] = useState(null);
+export default function FileSelector({activeStep, setStateMethods}) {
   const [selectedFileName, setSelectedFileName] = useState(null);
+  const [selectedFileType, setSelectedFileType] = useState(null);
   const [selectedFileContent, setSelectedFileContent] = useState(null);
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(false);
 
-  // Called when user selects a file
+  // Called when user selects a file using the in-browser upload button
   const handleFileChange = (e) => {
     const fileInput = e.target;
 
@@ -24,12 +24,11 @@ export default function FileSelector({setStateMethods}) {
       const selectedFile = fileInput.files[0];
       const reader = new FileReader();
 
-      // When file is read, update state with selected file and open confirmation modal
+      // When file is read, call handleFileSelect with file content
       reader.onload = (e) => {
         const fileContent = e.target.result;
-        setSelectedFileContent(fileContent);
-        setSelectedFileName(selectedFile.name);
-        setConfirmationModalOpen(true);
+        const fileName = selectedFile.name;
+        handleFileUpload(activeStep, fileContent, fileName);
       };
 
       // Read file as text
@@ -37,16 +36,31 @@ export default function FileSelector({setStateMethods}) {
     }
   }
 
+  // Called when user selects a file using the Electron File Menu or the in-browser upload button
+  const handleFileUpload = (fileType, fileContent, fileName) => {
+    // TO DO: Check file contents for validity prior to confirmation modal
+    setSelectedFileType(fileType);
+    setSelectedFileContent(fileContent);
+    setSelectedFileName(fileName);
+    setConfirmationModalOpen(true);
+  };
+
+  /*
+    useEffect runs upon component mount. It sends to the main process the handleFileUpload function,
+    to be called when a file is selected from a dialog box prompted by the Electron File Menu.
+  */
+  useEffect(() => {
+    // If running in Electron, register handleFileUpload as event handler for menu bar file selection
+    if (window.electronApi) window.electronApi.onFileUpload(handleFileUpload);
+  }, []); // Run once on component mount
+
   // Called when user confirms file selection
-  const handleConfirm = (fileContent, fileName) => {
+  const handleConfirm = (fileType, fileContent, fileName) => {
     // Parse file content
     try {
-      parseJSONFile(fileContent, setStateMethods);
-      // If successful update state
-      setScenarioFilename(fileName);
+      parseJSONFile(fileType, fileContent, setStateMethods);
     } catch (error) {
-      // If error, log error
-      console.log(error);
+      // If error, display error modal
       setErrorMessage(error.message);
       setErrorModalOpen(true);
     } finally {
@@ -79,7 +93,7 @@ export default function FileSelector({setStateMethods}) {
 
 
   return (
-    <div className='file-selection-header'>
+    <>
       <Input
         type="file"
         id='fileInput'
@@ -88,15 +102,19 @@ export default function FileSelector({setStateMethods}) {
         mx={3}
       />
       <label htmlFor='fileInput'>
-        <Button variant="contained" component="span">Choose File</Button>
+        <Button
+          variant="contained"
+          component="span"
+          startIcon={<UploadFileIcon />}>
+          Upload File
+        </Button>
       </label>
-      <Typography variant="body1" my={1}>{scenarioFilename}</Typography>
       {confirmationModalOpen && (
       <div className='stacking-context'>
         <ConfirmationModal
           title={'Overwrite parameters?'}
           message={`Are you sure you want to overwrite with current file?`}
-          onConfirm={() => handleConfirm(selectedFileContent, selectedFileName)}
+          onConfirm={() => handleConfirm(selectedFileType, selectedFileContent, selectedFileName)}
           onCancel={handleCancel}
         />
       </div>)}
@@ -108,6 +126,6 @@ export default function FileSelector({setStateMethods}) {
           onConfirm={() => setErrorModalOpen(false)}
         />
       </div>)}
-    </div>
+    </>
   )
 }

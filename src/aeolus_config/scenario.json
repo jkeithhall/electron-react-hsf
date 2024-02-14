@@ -1,6 +1,6 @@
 
 {
-  "Sources":{
+  "Sources": {
     "Name": "Aeolus",
     "Base Source": "./samples/aeolus/",
     "Model Source": "DSAC_Static_Mod_Scripted.xml",
@@ -12,7 +12,7 @@
   "Simulation Parameters": {
       "Start JD": 2454680.0,
       "Start Seconds": 0.0,
-      "End Seconds" : 60.0,
+      "End Seconds": 60.0,
       "Primary Step Seconds": 30
     },
   "Scheduler Parameters": {

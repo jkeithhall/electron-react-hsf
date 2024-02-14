@@ -1,35 +1,63 @@
-export default function parseJSONFile(text, setStateMethods) {
-  const { setSourceName, setBaseSource, setModelSource, setTargetSource, setPythonSource, setOutputPath, setVersion, setStartJD, setStartSeconds, setEndSeconds, setPrimaryStepSeconds, setMaxSchedules, setCropRatio, setTaskList } = setStateMethods;
-  const parsedJSON = JSON.parse(text);
+import { randomId } from '@mui/x-data-grid-generator';
 
-  // NOTE: Javascript favors camelCase convention (no spaces), which allows for easier variable naming via destructuring:
-  const { Sources } = parsedJSON;
-  // If variables have spaces in them, you can still access them via bracket notation:
-  const simulationParameters = parsedJSON['Simulation Parameters'];
-  const schedulerParameters = parsedJSON['Scheduler Parameters'];
+export default function parseJSONFile(fileType, content, setStateMethods) {
+  const {
+    setSourceName,
+    setBaseSource,
+    setModelSource,
+    setTargetSource,
+    setPythonSource,
+    setOutputPath,
+    setVersion,
+    setStartJD,
+    setStartSeconds,
+    setEndSeconds,
+    setPrimaryStepSeconds,
+    setMaxSchedules,
+    setCropRatio,
+    setTaskList,
+    setModel
+   } = setStateMethods;
 
-  const { Tasks } = parsedJSON;
+  const parsedJSON = JSON.parse(content);
 
-  if (Sources !== undefined && simulationParameters !== undefined && schedulerParameters !== undefined) {
-    setSourceName(Sources['Name']);
-    setBaseSource(Sources['Base Source']);
-    setModelSource(Sources['Model Source']);
-    setTargetSource(Sources['Target Source']);
-    setPythonSource(Sources['Python Source']);
-    setOutputPath(Sources['Output Path']);
-    setVersion(Sources['Version']);
+  try {
+    switch (fileType) {
+      case 'Scenario':
+        const { Sources } = parsedJSON;
+        const simulationParameters = parsedJSON['Simulation Parameters'];
+        const schedulerParameters = parsedJSON['Scheduler Parameters'];
 
-    setStartJD(simulationParameters['Start JD']);
-    setStartSeconds(simulationParameters['Start Seconds']);
-    setEndSeconds(simulationParameters['End Seconds']);
-    setPrimaryStepSeconds(simulationParameters['Primary Step Seconds']);
+        setSourceName(Sources['Source Name']);
+        setBaseSource(Sources['Base Source']);
+        setModelSource(Sources['Model Source']);
+        setTargetSource(Sources['Target Source']);
+        setPythonSource(Sources['Python Source']);
+        setOutputPath(Sources['Output Path']);
+        setVersion(Sources['Version']);
 
-    setMaxSchedules(schedulerParameters['Max Schedules']);
-    setCropRatio(schedulerParameters['Crop Ratio']);
-  } else if (Tasks !== undefined) {
-    setTaskList(Tasks);
-  } else {
-    console.error('Error parsing JSON file');
-    throw new Error('Error parsing JSON file');
+        setStartJD(simulationParameters['Start JD']);
+        setStartSeconds(simulationParameters['Start Seconds']);
+        setEndSeconds(simulationParameters['End Seconds']);
+        setPrimaryStepSeconds(simulationParameters['Primary Step Seconds']);
+
+        setMaxSchedules(schedulerParameters['Max Schedules']);
+        setCropRatio(schedulerParameters['Crop Ratio']);
+        break;
+      case 'Tasks':
+        const taskList = parsedJSON.map(task => {
+          return { id: randomId(), ...task };
+        });
+        setTaskList(taskList);
+        break;
+      case 'System Model':
+        setModel(parsedJSON);
+        break;
+      default:
+        break;
+    }
+  } catch (error) {
+    console.log(`Error parsing JSON file: ${error.message}`);
+    throw new Error(`Error parsing JSON file: ${error.message}`);
   }
 }
