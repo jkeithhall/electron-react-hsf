@@ -182,7 +182,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
             onCancel={handleLocationCancel}
           />
       </div>)}
-      <Paper sx={{ margin: '20px', maxWidth: `calc(100vw - ${(navOpen ? 220 : 60) + 60}px)`, height: 475, padding: 1 }} >
+      <Paper sx={{ margin: '20px', maxWidth: `calc(100vw - ${(navOpen ? 220 : 60) + 60}px)`, height: 680, padding: 1 }} >
         <DataGrid
           rows={taskList}
           columns={columns}

@@ -1,9 +1,11 @@
+import { MarkerType } from 'reactflow';
+
 const assetColors = [
   'rgba(2, 136, 209, 0.4)',
   'rgb(2,209,75, 0.4)',
   'rgb(209,2,136, 0.4)',
   'rgb(209,75,2, 0.4)',
-]
+];
 
 const createNodesEdges = function(model) {
   let nodes = [];
@@ -44,7 +46,21 @@ const createNodesEdges = function(model) {
       if (subsystem.dependencies) {
         const  { dependencies } = subsystem;
         dependencies.forEach((dependency, k) => {
-          edges.push({ id: `edge${i}.${j}-${k}`, source: `subsystem${subsystemID}`, target: `subsystem${dependency.subsystemID}` });
+          const newEdge = {
+            id: `edge${i}.${j}-${k}`,
+            source: `subsystem${subsystemID}`,
+            target: `subsystem${dependency.subsystemID}`,
+            markerEnd: {
+              type: MarkerType.Arrow,
+            },
+          };
+          const { dependencyFcn } = dependency;
+          if (dependencyFcn) {
+            const { key } = dependencyFcn;
+            const label = key.split('_');
+            newEdge.label = label[label.length - 1];
+          }
+          edges.push(newEdge);
         });
       }
     });

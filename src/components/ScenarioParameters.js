@@ -37,7 +37,7 @@ export default function ScenarioParameters({activeStep, setActiveStep, sources, 
     <>
       <FileHeader activeStep={activeStep} valid={valid} sources={sources} simulationParameters={simulationParameters} schedulerParameters={schedulerParameters} taskList={taskList} model={model} setStateMethods={setStateMethods} handleNextButtonClick={handleNextButtonClick}/>
       <Box sx={{ flexGrow: 1 }}>
-        <Grid container spacing={3} mt={1}>
+        <Grid container spacing={6} mt={1}>
           <Grid>
             <Paper elevation={3} style={{ padding: '10px', margin: '10px', backgroundColor: '#282D3D', width: 400 }}>
               <Typography variant="h5" color="primary" my={2}>Sources</Typography>

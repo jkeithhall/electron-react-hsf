@@ -32,7 +32,7 @@ export default function ModelEditor({sources, simulationParameters, schedulerPar
   return (
     <>
       <FileHeader activeStep={activeStep} valid={valid} setStateMethods={setStateMethods} handleNextButtonClick={handleNextButtonClick}/>
-      <Paper elevation={3} style={{ padding: '10px', margin: '10px', backgroundColor: '#eeeeee', width: '100%', height: 480 }}>
+      <Paper elevation={3} style={{ padding: '10px', margin: '10px', width: '100%', height: 680 }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}

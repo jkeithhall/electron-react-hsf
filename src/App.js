@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import NavDrawer from './components/NavDrawer';
+import Footer from './components/Footer';
 import ScenarioParameters from './components/ScenarioParameters';
 import TaskTable from './components/TaskTable';
 import ModelEditor from './components/ModelEditor';
@@ -102,6 +103,7 @@ export default function App() {
           'Analyze': <></>
           }[activeStep]}
       </Box>
+      <Footer/>
     </NavDrawer>
   );
 }
