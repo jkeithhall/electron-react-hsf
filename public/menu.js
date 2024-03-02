@@ -21,37 +21,67 @@ const initializeMenu = (window) => {
       label: 'File',
       submenu: [
         {
-          label: 'Upload File',
+          label: 'New\t\t\t',
+          click() { window.webContents.send('file-new-click'); }
+        },
+        {
+          label: 'Open...',
+          click() { handleOpenFileClick(window, 'SIM'); }
+        },
+        {
+          label: 'Save',
+          click() { handleSaveFileClick(window, 'SIM'); }
+        },
+        { type: 'separator' },
+        {
+          label: 'Upload \t\t\t',
           submenu: [
             {
-              label: 'Scenario File',
-              accelerator: 'CmdOrCtrl+O',
+              label: 'Scenario File...\t\t',
               click() { handleOpenFileClick(window, 'Scenario'); }
             },
             {
               label: 'Tasks File',
-              click() { handleOpenFileClick(window, 'Tasks'); }
+              submenu: [
+                {
+                  label: 'JSON File...\t\t',
+                  click() { handleOpenFileClick(window, 'Tasks'); }
+                },
+                {
+                  label: 'CSV File...',
+                  click() { handleOpenFileClick(window, 'CSV'); }
+                }
+              ]
             },
             {
-              label: 'Model File',
-              click() { handleOpenFileClick(window, 'Model'); }
+              label: 'Model File...',
+              click() { handleOpenFileClick(window, 'System Model'); }
             }
           ]
         },
         {
-          label: 'Download File',
+          label: 'Export',
           submenu: [
             {
-              label: 'Scenario File',
+              label: 'Scenario File\t\t\t',
               click() { handleSaveFileClick(window, 'Scenario'); }
             },
             {
               label: 'Tasks File',
-              click() { handleSaveFileClick(window, 'Tasks'); }
+              submenu: [
+                {
+                  label: 'JSON File\t\t\t',
+                  click() { handleSaveFileClick(window, 'Tasks'); }
+                },
+                {
+                  label: 'CSV File',
+                  click() { handleSaveFileClick(window, 'CSV'); }
+                }
+              ]
             },
             {
               label: 'Model File',
-              click() { handleSaveFileClick(window, 'Model'); }
+              click() { handleSaveFileClick(window, 'System Model'); }
             }
           ]
         }

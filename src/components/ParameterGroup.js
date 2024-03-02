@@ -4,26 +4,35 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import InputAdornment from '@mui/material/InputAdornment';
 import EventIcon from '@mui/icons-material/Event';
+import FolderIcon from '@mui/icons-material/Folder';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
+import dayjs from 'dayjs';
 
 import { validateScenarioParametersAt } from '../utils/validateParameters';
 import { julianToDate, dateToJulian } from '../utils/julianConversion.js';
 
 const convertDisplayName = (camelCaseName) => {
   if (camelCaseName === 'startJD') return 'Start Julian Date';
+  if (camelCaseName === 'pythonSrc') return 'Python Source';
   const words = camelCaseName.split(/(?=[A-Z])/);
   const firstWord = words[0];
   words[0] = firstWord[0].toUpperCase() + firstWord.slice(1);
   return words.join(' ');
 }
 
-const parametersWithSeconds = ['startSeconds', 'endSeconds', 'primaryStepSeconds'];
-const numericalParameters = parametersWithSeconds.concat(['maxSchedules', 'cropRatio']);
+const parametersWithSeconds = ['startSeconds', 'endSeconds', 'stepSeconds'];
+const numericalParameters = parametersWithSeconds.concat(['version', 'maxSchedules', 'cropTo']);
+const fileParameters = ['pythonSrc', 'outputPath'];
 
 export default function ParameterGroup ({parameters, setParameters, formErrors, setFormErrors}) {
   const [showCalendar, setShowCalendar] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setParameters({ ...parameters, [name]: value });
+  }
 
   const handleBlur = async (e) => {
     const { name } = e.target;
@@ -38,31 +47,63 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
     }
   }
 
+  const handleFileClick = (key) => async (e) => {
+    if (window.electronApi) {
+      window.electronApi.onDirectorySelect((absolutePath) => {
+        setParameters({ ...parameters, [key]: absolutePath });
+      });
+    } else {
+      try {
+        const directoryHandle = await window.showDirectoryPicker();
+        setParameters({ ...parameters, [key]: directoryHandle.name });
+      } catch (error) {
+        console.error('Error selecting directory:', error);
+      }
+    }
+  }
+
   const toggleCalendar = (e) => {
     setShowCalendar(!showCalendar);
   }
 
   const handleDateChange = (date) => {
     const newJD = dateToJulian(date);
-    setParameters.setStartJD(newJD);
+    setParameters({ ...parameters, startJD: newJD });
+  }
+
+  const setCurrentDate = () => {
+    const currentDate = dayjs(new Date())
+    const newJD = dateToJulian(currentDate);
+    setParameters({ ...parameters, startJD: newJD });
+  }
+
+  const shortenPath = (path) => {
+    const parts = path.split('/');
+    if (path.length < 50) return path;
+    return '/.../' + parts.slice(-4).join('/');
   }
 
   return(
     <Box sx={{ padding: '10px', backgroundColor: '#eeeeee', borderRadius: '5px' }}>
       {Object.entries(parameters).map(([key, value]) => {
-        const setMethodName = 'set' + key[0].toUpperCase() + key.slice(1);
-        const setMethod = setParameters[setMethodName];
-
         const displayName = convertDisplayName(key);
 
         const valid = !formErrors[key];
         const errorMessage = valid ? '' : formErrors[key];
 
         const type = numericalParameters.includes(key) ? 'number' : 'text';
+        const isFile = fileParameters.includes(key);
 
-        const endAdornment = parametersWithSeconds.includes(key) ? <InputAdornment position="end">s</InputAdornment> :
-          (key === 'startJD' ? <InputAdornment position="end">JD</InputAdornment> : null);
         const startAdornment = key === 'startJD' ? <InputAdornment position="start"><EventIcon onClick={toggleCalendar}/></InputAdornment> : null;
+
+        let endAdornment = null;
+        if (parametersWithSeconds.includes(key)) {
+          endAdornment = <InputAdornment position="end">s</InputAdornment>
+        } else if (key === 'startJD') {
+          endAdornment = <InputAdornment position="end">JD</InputAdornment>
+        } else if (isFile) {
+          endAdornment = <InputAdornment position="end"><FolderIcon /></InputAdornment>
+        }
 
         return (
           <Box key={key} my={1}>
@@ -71,11 +112,12 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
               fullWidth
               label={displayName}
               variant="outlined"
-              color='info'
+              color='primary'
               name={key}
-              value={value}
+              value={isFile ? shortenPath(value) : value}
               type={type}
-              onChange={(e) => setMethod(e.target.value)}
+              onChange={isFile ? () => {} : handleChange}
+              onClick={isFile ? handleFileClick(key) : () => {}}
               onBlur={handleBlur}
               error={!valid}
               helperText={errorMessage}
@@ -86,8 +128,10 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                   <DateCalendar value={julianToDate(value)} onChange={handleDateChange}/>
                 </LocalizationProvider>
-                <Button onClick={toggleCalendar} color="info" size="small" variant="contained"
-                  sx={{ alignSelf: 'flex-end', marginBottom: '20px', marginRight: '20px' }}>Close</Button>
+                <div style={{ display: 'flex', alignSelf: 'flex-end', gap: '10px', marginRight: '20px', marginBottom: '20px' }}>
+                  <Button onClick={setCurrentDate} color="light" size="small" variant="contained">Today</Button>
+                  <Button onClick={toggleCalendar} color="primary" size="small" variant="contained">Close</Button>
+                </div>
               </div>}
           </Box>
         )

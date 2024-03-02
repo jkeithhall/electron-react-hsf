@@ -40,7 +40,6 @@ p, h1, h2, h3, h4, h5, h6 {
 body {
     font-family: "Poppins, sans-serif";
     background-color: #1f2330;
-    color: #ddd;
     margin: 0;
 }
 
@@ -110,7 +109,7 @@ header {
     align-items: space-between;
     position: absolute;
     z-index: 2;
-    height: 335px;
+    height: 345px;
     width: 325px;
 }
 
@@ -134,16 +133,8 @@ header {
     align-items: center;
   }
 
-/* footer {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-top: 2px solid #555;
-    padding: 10px;
-    background-color: #1f2330;
-    color: #ddd;
-    width: 100%;
+footer {
     height: 70px;
-} */
+}
 
 

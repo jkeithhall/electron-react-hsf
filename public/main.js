@@ -3,7 +3,7 @@ const path = require('path');
 const { join } = require('path');
 const isDev = require('electron-is-dev');
 const { initializeMenu } = require('./menu');
-const { showSaveDialog } = require('./fileHandlers');
+const { saveFile, showSaveDialog, showDirectorySelectDialog, updateCurrentFile } = require('./fileHandlers');
 
 function createWindow() {
   // Create the browser window.
@@ -34,12 +34,36 @@ function createWindow() {
 
 app.on('ready', createWindow);
 
-ipcMain.on('show-save-dialog', (event, content) => {
+ipcMain.on('show-save-dialog', (event, fileType, content) => {
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
   if (!browserWindow) return;
 
-  showSaveDialog(browserWindow, content);
+  showSaveDialog(browserWindow, fileType, content);
+});
+
+ipcMain.on('save-current-file', (event, content, filePath) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  if (!browserWindow) return;
+
+  saveFile(browserWindow, 'SIM', content, filePath);
+});
+
+ipcMain.on('show-directory-select-dialog', (event) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  if (!browserWindow) return;
+
+  showDirectorySelectDialog(browserWindow);
+});
+
+ipcMain.on('update-open-file', (event, filePath) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  if (!browserWindow) return;
+
+  updateCurrentFile(browserWindow, filePath);
 });
 
 // Quit when all windows are closed.

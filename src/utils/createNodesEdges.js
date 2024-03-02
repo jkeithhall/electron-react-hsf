@@ -7,63 +7,49 @@ const assetColors = [
   'rgb(209,75,2, 0.4)',
 ];
 
-const createNodesEdges = function(model) {
+const assetSize = 450;
+
+const createNodesEdges = function({ assets, dependencies }) {
   let nodes = [];
   let edges = [];
 
-  model.assets.forEach((asset, i) => {
+  assets.forEach((asset, i) => {
     let y_position = 0;
-    let x_position = i * 500;
+    let x_position = 0;
     const parentNode = {
-      id: `asset${i}`,
-      position: { x: x_position, y: y_position },
-      data: { label: `Group ${asset.assetName}` },
-      style: { backgroundColor: assetColors[i], width: 450, height: 450 },
+      id: `asset_${asset.name}`,
+      position: { x: i * (assetSize + 50), y: y_position },
+      data: { label: `Group ${asset.name}` },
+      style: { backgroundColor: assetColors[i], width: assetSize, height: assetSize },
       type: 'group',
     };
     nodes.push(parentNode);
 
     y_position += 400;
-    x_position += 20;
-    // Really unsure why this conditional seems to be necessary for the x_position to be correct
-    if (i > 0) {
-      x_position -= 500;
-    }
     asset.subsystems.forEach((subsystem, j) => {
-      const { subsystemID, subsystemName } = subsystem;
+      const position = subsystem.name === 'Power' ? { x: 0, y: -70 * j + y_position } : { x: 90 * j, y: -60 * j + y_position };
       const childNode = {
-        id: `subsystem${subsystemID}`,
-        position: { x: x_position, y: y_position },
-        data: { label: subsystemName },
-        parentNode: `asset${i}`,
+        id: `${asset.name}_subsystem_${subsystem.name}`,
+        position: position,
+        data: { label: subsystem.name },
+        parentNode: `asset_${asset.name}`,
         extent: 'parent'
       };
       nodes.push(childNode);
-
-      y_position -= 60;
-      x_position += 50;
-
-      if (subsystem.dependencies) {
-        const  { dependencies } = subsystem;
-        dependencies.forEach((dependency, k) => {
-          const newEdge = {
-            id: `edge${i}.${j}-${k}`,
-            source: `subsystem${subsystemID}`,
-            target: `subsystem${dependency.subsystemID}`,
-            markerEnd: {
-              type: MarkerType.Arrow,
-            },
-          };
-          const { dependencyFcn } = dependency;
-          if (dependencyFcn) {
-            const { key } = dependencyFcn;
-            const label = key.split('_');
-            newEdge.label = label[label.length - 1];
-          }
-          edges.push(newEdge);
-        });
-      }
     });
+  });
+
+  dependencies.forEach((dependency, i) => {
+    const { subsystemName, assetName, depSubsystemName } = dependency;
+    const newEdge = {
+      id: `edge_${assetName}_${subsystemName}-${depSubsystemName}`,
+      source: `${assetName}_subsystem_${subsystemName}`,
+      target: `${assetName}_subsystem_${depSubsystemName}`,
+      markerEnd: {
+        type: MarkerType.Arrow,
+      },
+    };
+    edges.push(newEdge);
   });
 
   return { initialNodes: nodes, initialEdges: edges };

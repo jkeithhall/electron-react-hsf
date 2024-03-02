@@ -11,8 +11,8 @@ export default function ConfirmationModal({ onCancel, onConfirm, title, message 
         <Typography variant="h4" my={2}>{title}</Typography>
         <Typography variant="body1">{message}</Typography>
         <div className='confirm-close-icons'>
-          <Button variant="contained" color="info" onClick={onConfirm} startIcon={<CheckIcon/>}>Confirm</Button>
-          <Button variant="contained" color="primary" onClick={onCancel} startIcon={<CloseIcon/>}>Cancel</Button>
+          <Button variant="contained" onClick={onConfirm} startIcon={<CheckIcon/>}>Confirm</Button>
+          <Button variant="contained" color="light" onClick={onCancel} startIcon={<CloseIcon/>}>Cancel</Button>
         </div>
       </Card>
     </div>

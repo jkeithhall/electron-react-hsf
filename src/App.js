@@ -1,54 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+
 import NavDrawer from './components/NavDrawer';
 import Footer from './components/Footer';
 import ScenarioParameters from './components/ScenarioParameters';
 import TaskTable from './components/TaskTable';
 import ModelEditor from './components/ModelEditor';
+import ConfirmationModal from './components/ConfirmationModal';
+import ErrorModal from './components/ErrorModal';
 import Box from '@mui/material/Box';
-import dayjs from 'dayjs';
-import { dateToJulian } from './utils/julianConversion';
-import initTaskList from './aeolus_config/initTaskList';
+
+import initSimulationInput from './aeolus_config/initSimulationInput';
+import flattenedInitTasks from './aeolus_config/initTaskList';
 import initModel from './aeolus_config/initModel';
+
+import parseJSONFile from './utils/parseJSONFile';
+import parseCSVFile from './utils/parseCSVFile';
+import buildDownloadJSON from './utils/buildDownloadJSON';
 
 export default function App() {
   // State variables
   const [activeStep, setActiveStep] = useState('Scenario');
-  const [sourceName, setSourceName] = useState('Aeolus');
-  const [baseSource, setBaseSource] = useState('./samples/aeolus/');
-  const [modelSource, setModelSource] = useState('DSAC_Static_Mod_Scripted.xml');
-  const [targetSource, setTargetSource] = useState('v2.2-300targets.xml');
-  const [pythonSource, setPythonSource] = useState('pythonScripts/');
-  const [outputPath, setOutputPath] = useState('none');
-  const [version, setVersion] = useState(1.0);
-  const [startJD, setStartJD] = useState(dateToJulian(dayjs())); // Current date
-  const [startSeconds, setStartSeconds] = useState(0.0);
-  const [endSeconds, setEndSeconds] = useState(60.0);
-  const [primaryStepSeconds, setPrimaryStepSeconds] = useState(30);
-  const [maxSchedules, setMaxSchedules] = useState(10);
-  const [cropRatio, setCropRatio] = useState(5);
-  const [taskList, setTaskList] = useState(initTaskList);
+  const [simulationInput, setSimulationInput] = useState(initSimulationInput);
+  const [taskList, setTaskList] = useState(flattenedInitTasks);
   const [model, setModel] = useState(initModel);
-
-  // Bundling scenario variables
-  const sources = { sourceName, baseSource, modelSource, targetSource, pythonSource, outputPath, version };
-  const simulationParameters = { startJD, startSeconds, endSeconds, primaryStepSeconds };
-  const schedulerParameters = { maxSchedules, cropRatio };
+  const [selectedFileName, setSelectedFileName] = useState(null);
+  const [selectedFileType, setSelectedFileType] = useState(null);
+  const [selectedFileContent, setSelectedFileContent] = useState(null);
+  const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
+  const [errorModalOpen, setErrorModalOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState(false);
 
   // Bundling state methods
   const setStateMethods = {
-    setSourceName,
-    setBaseSource,
-    setModelSource,
-    setTargetSource,
-    setPythonSource,
-    setOutputPath,
-    setVersion,
-    setStartJD,
-    setStartSeconds,
-    setEndSeconds,
-    setPrimaryStepSeconds,
-    setMaxSchedules,
-    setCropRatio,
+    setSimulationInput,
     setTaskList,
     setModel
   };
@@ -59,6 +43,63 @@ export default function App() {
   const toggleNav = () => {
     setNavOpen(!navOpen);
   }
+
+  // Called when user selects a file to open _OR_ upload using the Electron File Menu
+  const handleFileUpload = (fileType, fileContent, fileName) => {
+    setSelectedFileType(fileType);
+    setSelectedFileContent(fileContent);
+    setSelectedFileName(fileName);
+    setConfirmationModalOpen(true);
+  };
+
+  const handleFileDownload = (fileType) => {
+    return buildDownloadJSON(fileType, setStateMethods);
+  };
+
+  // Called when user confirms file selection
+  const handleUploadConfirm = (fileType, fileContent, fileName) => {
+    // Parse file content
+    try {
+      switch(fileType) {
+        case 'SIM':
+          parseJSONFile(fileType, fileContent, setStateMethods);
+          // If sim file, confirm file open
+          window.electronApi.confirmFileOpened();
+          break;
+        case 'CSV':
+          parseCSVFile(fileContent, setTaskList);
+          break;
+        default:
+          parseJSONFile(fileType, fileContent, setStateMethods);
+      }
+    } catch (error) {
+      // If error, display error modal
+      setErrorMessage(error.message);
+      setErrorModalOpen(true);
+    } finally {
+      // Always close modal and reset selected file
+      setSelectedFileContent(null);
+      setSelectedFileName(null);
+      setConfirmationModalOpen(false);
+    }
+  }
+
+  // Called when user cancels file selection
+  const handleUploadCancel = () => {
+    // Close modal and reset selected file
+    setSelectedFileContent(null);
+    setSelectedFileName(null);
+    setConfirmationModalOpen(false);
+  }
+
+  useEffect(() => {
+    // If running in Electron, register event handlers for menu bar file selection
+    if (window.electronApi) {
+      window.electronApi.onFileOpen(handleFileUpload);
+      window.electronApi.onFileUpload(handleFileUpload);
+      window.electronApi.onFileDownload(handleFileDownload);
+    }
+  }, []);
 
   return (
     <NavDrawer
@@ -75,9 +116,8 @@ export default function App() {
             <ScenarioParameters
               activeStep={activeStep}
               setActiveStep={setActiveStep}
-              sources={sources}
-              simulationParameters={simulationParameters}
-              schedulerParameters={schedulerParameters}
+              simulationInput={simulationInput}
+              setSimulationInput={setSimulationInput}
               setStateMethods={setStateMethods}
             />,
           'Tasks':
@@ -91,6 +131,7 @@ export default function App() {
             />,
           'System Model':
             <ModelEditor
+              navOpen={navOpen}
               activeStep={activeStep}
               setActiveStep={setActiveStep}
               setStateMethods={setStateMethods}
@@ -102,6 +143,27 @@ export default function App() {
           'Simulate': <></>,
           'Analyze': <></>
           }[activeStep]}
+          {
+            confirmationModalOpen && (
+            <div className='stacking-context'>
+              <ConfirmationModal
+                title={'Overwrite parameters?'}
+                message={'Are you sure you want to overwrite with current file?'}
+                onConfirm={() => handleUploadConfirm(selectedFileType, selectedFileContent, selectedFileName)}
+                onCancel={handleUploadCancel}
+              />
+            </div>)
+          }
+          {
+            errorModalOpen && (
+            <div className='stacking-context'>
+              <ErrorModal
+                title={Error}
+                message={errorMessage}
+                onConfirm={() => setErrorModalOpen(false)}
+              />
+            </div>)
+          }
       </Box>
       <Footer/>
     </NavDrawer>

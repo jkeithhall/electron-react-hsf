@@ -12,12 +12,12 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import SatelliteAltIcon from '@mui/icons-material/SatelliteAlt';
-import PlaceIcon from '@mui/icons-material/Place';
+import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import FunctionsIcon from '@mui/icons-material/Functions';
+import LayersIcon from '@mui/icons-material/Layers';
 import RuleIcon from '@mui/icons-material/Rule';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
-import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 
 const drawerWidth = 220;
 const navCategories = ['Scenario', 'Tasks', 'System Model', 'Dependencies', 'Constraints', 'Simulate', 'Analyze'];
@@ -81,7 +81,7 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
         }}>
         <IconButton
           onClick={toggleNav}
-          color="info"
+          color="primary"
           size="large"
           sx={{
             minHeight: 58,
@@ -112,13 +112,13 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
                   >
                     {
                       {
-                        'Scenario': <SatelliteAltIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'Tasks': <PlaceIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'System Model': <AccountTreeIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'Dependencies': <FunctionsIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'Constraints': <RuleIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'Simulate': <PlayCircleIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'Analyze': <QueryStatsIcon color={activeStep === step ? 'info' : 'inherit'}/>
+                        'Scenario': <SatelliteAltIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'Tasks': <GpsFixedIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'System Model': <AccountTreeIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'Dependencies': <LayersIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'Constraints': <RuleIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'Simulate': <PlayCircleIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'Analyze': <AnalyticsOutlinedIcon color={activeStep === step ? 'primary' : 'inherit'}/>
                       }[step]
                     }
                   </ListItemIcon>
@@ -128,6 +128,7 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
             )
           })}
         </List>
+        <Divider />
       </Drawer>
       <Box component="main" className="App" sx={{ flexGrow: 1 }} mt={3}>
         <DrawerHeader />
