@@ -108,6 +108,10 @@ export default function App() {
       activeStep={activeStep}
       setActiveStep={setActiveStep}
       drawerWidth={navDrawerWidth}
+      simulationInput={simulationInput}
+      taskList={taskList}
+      model={model}
+      setStateMethods={setStateMethods}
     >
       <Box
         className='work-space'

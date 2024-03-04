@@ -3,7 +3,7 @@ const path = require('path');
 const { join } = require('path');
 const isDev = require('electron-is-dev');
 const { initializeMenu } = require('./menu');
-const { saveFile, showSaveDialog, showDirectorySelectDialog, updateCurrentFile } = require('./fileHandlers');
+const { saveFile, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges } = require('./fileHandlers');
 
 function createWindow() {
   // Create the browser window.
@@ -65,6 +65,15 @@ ipcMain.on('update-open-file', (event, filePath) => {
 
   updateCurrentFile(browserWindow, filePath);
 });
+
+ipcMain.on('check-unsaved-changes', (event, content) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  if (!browserWindow) return;
+
+  const hasUnsavedChanges = checkUnsavedChanges(content);
+  browserWindow.webContents.send('has-unsaved-changes', hasUnsavedChanges);
+})
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {

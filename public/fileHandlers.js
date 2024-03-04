@@ -2,7 +2,7 @@ const { app, dialog } = require('electron');
 const { readFile, writeFile } = require('fs').promises;
 const { basename } = require('path');
 
-const currentFile = {};
+const currentFile = { content: '', filePath: null };
 
 const filters = {
   JSON: { name: 'JSON', extensions: ['json'] },
@@ -10,12 +10,20 @@ const filters = {
   SIM: { name: 'Sim File', extensions: ['sim'] },
 };
 
-const updateCurrentFile = (browserWindow, filePath) => {
+const updateCurrentFile = (browserWindow, filePath, content) => {
   browserWindow.setRepresentedFilename(filePath);
+
   currentFile.filePath = filePath;
-  basename(filePath);
+  currentFile.content = content;
+
   browserWindow.setTitle(`${basename(filePath)} - ${app.name}`);
+  browserWindow.webContents.send('file-updated', currentFile.filePath, currentFile.content);
+  browserWindow.webContents.send('has-unsaved-changes', false);
 };
+
+const checkUnsavedChanges = (content) => {
+  return content !== currentFile.content;
+}
 
 const handleOpenFileClick = async (browserWindow, fileType) => {
   const fileObj = await dialog.showOpenDialog({
@@ -29,7 +37,11 @@ const handleOpenFileClick = async (browserWindow, fileType) => {
   }
 }
 
-const handleSaveFileClick = async (browserWindow, fileType) => {
+const handleSaveFileClick = async (browserWindow) => {
+  browserWindow.webContents.send('file-save-click');
+}
+
+const handleFileDownloadClick = async (browserWindow, fileType) => {
   browserWindow.webContents.send('file-download-click', fileType);
 };
 
@@ -78,11 +90,12 @@ const openFile = async (browserWindow, fileType, filePath) => {
 const saveFile = async (browserWindow, fileType, content, filePath) => {
   await writeFile(filePath, content);
   browserWindow.webContents.emit('file-saved', filePath);
+
   if (fileType === 'SIM') {
-    updateCurrentFile(browserWindow, filePath);
+    updateCurrentFile(browserWindow, filePath, content);
   }
 };
 
-module.exports = { saveFile, handleOpenFileClick, handleSaveFileClick, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, currentFile };
+module.exports = { saveFile, handleOpenFileClick, handleSaveFileClick, handleFileDownloadClick, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges };
 
 

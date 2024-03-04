@@ -1,3 +1,5 @@
+import { useState, useEffect, useCallback } from 'react';
+
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
@@ -18,6 +20,9 @@ import LayersIcon from '@mui/icons-material/Layers';
 import RuleIcon from '@mui/icons-material/Rule';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
+import SaveIcon from '@mui/icons-material/Save';
+
+import buildDownloadJSON from '../utils/buildDownloadJSON';
 
 const drawerWidth = 220;
 const navCategories = ['Scenario', 'Tasks', 'System Model', 'Dependencies', 'Constraints', 'Simulate', 'Analyze'];
@@ -69,7 +74,37 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
   }),
 );
 
-export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveStep, childComponents, children }) {
+
+
+export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveStep, childComponents, simulationInput, taskList, model, setStateMethods, children }) {
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  const handleSaveFile = useCallback(() => {
+    if (window.electronApi) {
+      const content = buildDownloadJSON('SIM', setStateMethods);
+      window.electronApi.saveCurrentFile(content);
+    }
+  }, [setStateMethods]);
+
+  const handleFileUpdate = (fileUpdateStatus) => {
+    setHasUnsavedChanges(fileUpdateStatus);
+  }
+
+  useEffect(() => {
+    if (window.electronApi) {
+      window.electronApi.onSaveFileClick(handleSaveFile);
+      window.electronApi.onFileUpdate(handleFileUpdate);
+
+      async function checkUnsavedChanges() {
+        const currentFileContent = await window.electronApi.getCurrentFileContent();
+        const content = await buildDownloadJSON('SIM', setStateMethods);
+        setHasUnsavedChanges(content !== currentFileContent);
+      }
+      checkUnsavedChanges();
+    }
+  }, [simulationInput, taskList, model, setStateMethods, handleSaveFile]);
+
+
   return (
     <Box sx={{ display: 'flex', className: "App" }}>
       <AppBar open={navOpen} drawerWidth={drawerWidth} />
@@ -127,8 +162,32 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
               </ListItem>
             )
           })}
+              <Divider />
+              {window.electronApi &&
+                <ListItem key={'save'} disablePadding sx={{ display: 'block' }}>
+                  <ListItemButton
+                    disabled={!hasUnsavedChanges}
+                    sx={{
+                      minHeight: 50,
+                      px: 2.5,
+                    }}
+                    onClick={() => handleSaveFile()}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        color: 'inherit',
+                        minWidth: 0,
+                        mr: navOpen ? 2 : 'auto',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <SaveIcon color={hasUnsavedChanges ? 'inherit' : 'light'}/>
+                    </ListItemIcon>
+                    <ListItemText primary={'Save'} sx={{ opacity: navOpen ? 1 : 0 }} />
+                  </ListItemButton>
+                </ListItem>
+              }
         </List>
-        <Divider />
       </Drawer>
       <Box component="main" className="App" sx={{ flexGrow: 1 }} mt={3}>
         <DrawerHeader />

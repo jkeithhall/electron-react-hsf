@@ -1,5 +1,5 @@
 const { app, Menu } = require('electron');
-const { handleOpenFileClick, handleSaveFileClick } = require('./fileHandlers');
+const { handleOpenFileClick, handleSaveFileClick, handleFileDownloadClick } = require('./fileHandlers');
 
 const initializeMenu = (window) => {
   const template = [
@@ -64,24 +64,24 @@ const initializeMenu = (window) => {
           submenu: [
             {
               label: 'Scenario File\t\t\t',
-              click() { handleSaveFileClick(window, 'Scenario'); }
+              click() { handleFileDownloadClick(window, 'Scenario'); }
             },
             {
               label: 'Tasks File',
               submenu: [
                 {
                   label: 'JSON File\t\t\t',
-                  click() { handleSaveFileClick(window, 'Tasks'); }
+                  click() { handleFileDownloadClick(window, 'Tasks'); }
                 },
                 {
                   label: 'CSV File',
-                  click() { handleSaveFileClick(window, 'CSV'); }
+                  click() { handleFileDownloadClick(window, 'CSV'); }
                 }
               ]
             },
             {
               label: 'Model File',
-              click() { handleSaveFileClick(window, 'System Model'); }
+              click() { handleFileDownloadClick(window, 'System Model'); }
             }
           ]
         }
