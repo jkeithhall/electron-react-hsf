@@ -7,7 +7,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
 
-export default function ScenarioParameters({activeStep, setActiveStep, simulationInput, setSimulationInput}) {
+export default function ScenarioParameters({activeStep, setActiveStep, simulationInput, setSimulationInput, setHasUnsavedChanges}) {
   // State variables for form validation and errors
   const [ formErrors, setFormErrors] = useState({});
 
@@ -18,12 +18,15 @@ export default function ScenarioParameters({activeStep, setActiveStep, simulatio
   const setSources = (newSources) => {
     const { name, version, pythonSrc, outputPath } = newSources;
     setSimulationInput({ name, version, dependencies: { pythonSrc, outputPath, ...otherDependencies }, simulationParameters, schedulerParameters });
+    setHasUnsavedChanges(true);
   }
   const setSimulationParameters = (newParameters) => {
     setSimulationInput({ name, version, dependencies, simulationParameters: newParameters, schedulerParameters });
+    setHasUnsavedChanges(true);
   }
   const setSchedulerParameters = (newParameters) => {
     setSimulationInput({ name, version, dependencies, simulationParameters, schedulerParameters: newParameters });
+    setHasUnsavedChanges(true);
   }
 
   // const handleNextButtonClick = async () => {

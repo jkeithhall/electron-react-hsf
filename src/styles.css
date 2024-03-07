@@ -114,10 +114,11 @@ header {
 }
 
 .confirm-close-icons {
-    margin: 10px 30px;
+    margin: 20px 20px;
     display: flex;
     align-self: flex-end;
     justify-content: space-evenly;
+    gap: 15px;
 }
 
 .overlay {

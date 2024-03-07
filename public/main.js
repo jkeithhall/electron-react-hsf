@@ -3,7 +3,7 @@ const path = require('path');
 const { join } = require('path');
 const isDev = require('electron-is-dev');
 const { initializeMenu } = require('./menu');
-const { saveFile, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges } = require('./fileHandlers');
+const { getFilePath, getContent, saveFile, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges } = require('./fileHandlers');
 
 function createWindow() {
   // Create the browser window.
@@ -42,12 +42,12 @@ ipcMain.on('show-save-dialog', (event, fileType, content) => {
   showSaveDialog(browserWindow, fileType, content);
 });
 
-ipcMain.on('save-current-file', (event, content, filePath) => {
+ipcMain.on('save-current-file', (event, filePath, content) => {
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
   if (!browserWindow) return;
 
-  saveFile(browserWindow, 'SIM', content, filePath);
+  saveFile(browserWindow, 'SIM', filePath, content);
 });
 
 ipcMain.on('show-directory-select-dialog', (event) => {
@@ -58,12 +58,12 @@ ipcMain.on('show-directory-select-dialog', (event) => {
   showDirectorySelectDialog(browserWindow);
 });
 
-ipcMain.on('update-open-file', (event, filePath) => {
+ipcMain.on('update-open-file', (event, filePath, content) => {
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
   if (!browserWindow) return;
 
-  updateCurrentFile(browserWindow, filePath);
+  updateCurrentFile(browserWindow, filePath, content);
 });
 
 ipcMain.on('check-unsaved-changes', (event, content) => {
@@ -73,7 +73,22 @@ ipcMain.on('check-unsaved-changes', (event, content) => {
 
   const hasUnsavedChanges = checkUnsavedChanges(content);
   browserWindow.webContents.send('has-unsaved-changes', hasUnsavedChanges);
-})
+});
+
+ipcMain.on('reset-current-file', (event) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  if (!browserWindow) return;
+
+  updateCurrentFile(browserWindow, null, '');
+});
+
+ipcMain.handle('get-current-filepath', async (event) => {
+  return await getFilePath();
+});
+ipcMain.handle('get-current-filecontent', async (event) => {
+  return await getContent();
+});
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {

@@ -6,7 +6,6 @@ export default function parseJSONFile(fileType, content, setStateMethods) {
     const parsedJSON = JSON.parse(content);
     const { tasks, model, ...rest } = parsedJSON;
 
-    // TO DO: Add validation before setting state
     switch (fileType) {
       case 'Scenario':
         setSimulationInput(parsedJSON);
@@ -25,6 +24,7 @@ export default function parseJSONFile(fileType, content, setStateMethods) {
       default:
 
     }
+    return parsedJSON;
   } catch (error) {
     console.log(`Error parsing JSON file: ${error.message}`);
     throw new Error(`Error parsing JSON file: ${error.message}`);

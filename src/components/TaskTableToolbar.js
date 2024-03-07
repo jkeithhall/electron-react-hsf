@@ -11,7 +11,7 @@ import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 
 
-export default function TaskTableToolbar({setTaskList, setRowModesModel}) {
+export default function TaskTableToolbar({setTaskList, setRowModesModel, setHasUnsavedChanges}) {
   const handleAddRowClick = () => {
     // Reset all rows to View mode
     setRowModesModel((oldModel) => {
@@ -57,13 +57,14 @@ export default function TaskTableToolbar({setTaskList, setRowModesModel}) {
       ...oldModel,
       [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' },
     }));
+    setHasUnsavedChanges(true);
   }
 
   return (<GridToolbarContainer>
     <Button color="primary" size='small' startIcon={<AddIcon />} onClick={handleAddRowClick}>
       Add task
     </Button>
-    {/* <GridToolbarColumnsButton color="primary"/> */}
+    <GridToolbarColumnsButton color="primary"/>
     <GridToolbarFilterButton color="primary"/>
     <GridToolbarDensitySelector color="primary"/>
     <TaskExportButton color="primary"/>

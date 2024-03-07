@@ -1,3 +1,5 @@
+import { reformatTasks } from './parseTasks';
+
 export default function buildDownloadJSON(fileType, setStateMethods) {
   const { setSimulationInput, setTaskList, setModel } = setStateMethods;
   let jsonString;
@@ -31,13 +33,16 @@ export default function buildDownloadJSON(fileType, setStateMethods) {
           const { id, ...taskCopy } = task;
           return taskCopy;
         });
-        jsonString = JSON.stringify(modifiedTaskList, null, 2);
+        jsonString = JSON.stringify(reformatTasks(modifiedTaskList), null, 2);
         return currentState;
       });
       break;
     case 'System Model':
       setModel(currentState => {
-        jsonString = JSON.stringify(currentState, null, 2);
+        const model = {
+          model: currentState
+        }
+        jsonString = JSON.stringify(model, null, 2);
         return currentState;
       });
       break;
@@ -62,11 +67,11 @@ export default function buildDownloadJSON(fileType, setStateMethods) {
         return currentState;
       });
       setTaskList(currentState => {
-        tasksData = currentState.map(task => {
+        tasksData = reformatTasks(currentState.map(task => {
           // Filter out the 'id' property
           const { id, ...taskCopy } = task;
           return taskCopy;
-        });
+        }));
         return currentState;
       });
       setModel(currentState => {

@@ -22,8 +22,6 @@ import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 
-import buildDownloadJSON from '../utils/buildDownloadJSON';
-
 const drawerWidth = 220;
 const navCategories = ['Scenario', 'Tasks', 'System Model', 'Dependencies', 'Constraints', 'Simulate', 'Analyze'];
 
@@ -76,35 +74,7 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 
 
-export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveStep, childComponents, simulationInput, taskList, model, setStateMethods, children }) {
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  const handleSaveFile = useCallback(() => {
-    if (window.electronApi) {
-      const content = buildDownloadJSON('SIM', setStateMethods);
-      window.electronApi.saveCurrentFile(content);
-    }
-  }, [setStateMethods]);
-
-  const handleFileUpdate = (fileUpdateStatus) => {
-    setHasUnsavedChanges(fileUpdateStatus);
-  }
-
-  useEffect(() => {
-    if (window.electronApi) {
-      window.electronApi.onSaveFileClick(handleSaveFile);
-      window.electronApi.onFileUpdate(handleFileUpdate);
-
-      async function checkUnsavedChanges() {
-        const currentFileContent = await window.electronApi.getCurrentFileContent();
-        const content = await buildDownloadJSON('SIM', setStateMethods);
-        setHasUnsavedChanges(content !== currentFileContent);
-      }
-      checkUnsavedChanges();
-    }
-  }, [simulationInput, taskList, model, setStateMethods, handleSaveFile]);
-
-
+export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveStep, childComponents, hasUnsavedChanges, handleSaveFile, setStateMethods, children }) {
   return (
     <Box sx={{ display: 'flex', className: "App" }}>
       <AppBar open={navOpen} drawerWidth={drawerWidth} />
@@ -171,7 +141,7 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
                       minHeight: 50,
                       px: 2.5,
                     }}
-                    onClick={() => handleSaveFile()}
+                    onClick={() => handleSaveFile(() => {})}
                   >
                     <ListItemIcon
                       sx={{

@@ -19,7 +19,7 @@ const DEFAULT_LONGITUDE = 0;
 const DEFAULT_ALTITUDE = 0;
 const DEFAULT_LOCATION = { lat: DEFAULT_LATITUDE, lon: DEFAULT_LONGITUDE, alt: DEFAULT_ALTITUDE };
 
-export default function TaskTable({ navOpen, activeStep, setActiveStep, setStateMethods, taskList, setTaskList }) {
+export default function TaskTable({ navOpen, activeStep, setActiveStep, setStateMethods, taskList, setTaskList, setHasUnsavedChanges }) {
   const [ formErrorCount, setFormErrorCount] = useState(0);
   const [rowModesModel, setRowModesModel] = useState({});
   const [confirmModalOpen, setConfirmModalOpen ] = useState(false);
@@ -37,6 +37,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
   const processRowUpdate = (newRow) => {
     const updatedRow = { ...newRow, isNew: false };
     setTaskList(taskList.map((row) => (row.id === newRow.id ? updatedRow : row)));
+    setHasUnsavedChanges(true);
     return updatedRow;
   };
 
@@ -59,6 +60,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
 
   const handleDeleteConfirm = () => {
     setTaskList(taskList.filter((row) => row.id !== selectedTaskId));
+    setHasUnsavedChanges(true);
     setSelectedTaskName('');
     setSelectedTaskId('');
     setConfirmModalOpen(false);
@@ -102,6 +104,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
     const updatedRow = { ...taskList.find((row) => row.id === selectedTaskId), latitude, longitude };
     const updatedTasks = taskList.map((row) => (row.id === selectedTaskId ? updatedRow : row));
     setTaskList(updatedTasks);
+    setHasUnsavedChanges(true);
     setSelectedTaskName('');
     setSelectedTaskId('');
     setSelectedLocation(DEFAULT_LOCATION);
@@ -213,6 +216,8 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
             message={removeModalMessage}
             onConfirm={handleDeleteConfirm}
             onCancel={handleDeleteCancel}
+            confirmText={"Remove"}
+            cancelText={"Cancel"}
           />
       </div>)}
       {locationModalOpen && (
@@ -238,7 +243,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
             toolbar: TaskTableToolbar,
           }}
           slotProps={{
-            toolbar: { setTaskList, setRowModesModel },
+            toolbar: { setTaskList, setRowModesModel, setHasUnsavedChanges },
           }}
           sx={{ width: '100%', backgroundColor: '#eeeeee' }}
         />

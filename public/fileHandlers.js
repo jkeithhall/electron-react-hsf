@@ -1,8 +1,15 @@
-const { app, dialog } = require('electron');
+const { app, dialog, ipcMain } = require('electron');
 const { readFile, writeFile } = require('fs').promises;
 const { basename } = require('path');
 
 const currentFile = { content: '', filePath: null };
+
+const getFilePath = () => {
+  return currentFile.filePath;
+};
+const getContent = () => {
+  return currentFile.content;
+};
 
 const filters = {
   JSON: { name: 'JSON', extensions: ['json'] },
@@ -11,19 +18,27 @@ const filters = {
 };
 
 const updateCurrentFile = (browserWindow, filePath, content) => {
-  browserWindow.setRepresentedFilename(filePath);
-
   currentFile.filePath = filePath;
   currentFile.content = content;
 
-  browserWindow.setTitle(`${basename(filePath)} - ${app.name}`);
-  browserWindow.webContents.send('file-updated', currentFile.filePath, currentFile.content);
+  if (filePath === null) {
+    browserWindow.setRepresentedFilename('');
+    browserWindow.setTitle(app.name);
+  } else {
+    browserWindow.setRepresentedFilename(filePath);
+    browserWindow.setTitle(`${basename(filePath)} - ${app.name}`);
+  }
+
   browserWindow.webContents.send('has-unsaved-changes', false);
 };
 
 const checkUnsavedChanges = (content) => {
   return content !== currentFile.content;
-}
+};
+
+const handleNewFileClick = async (browserWindow) => {
+  browserWindow.webContents.send('new-file-click');
+};
 
 const handleOpenFileClick = async (browserWindow, fileType) => {
   const fileObj = await dialog.showOpenDialog({
@@ -35,11 +50,11 @@ const handleOpenFileClick = async (browserWindow, fileType) => {
     const filePath = fileObj.filePaths[0];
     openFile(browserWindow, fileType, filePath);
   }
-}
+};
 
 const handleSaveFileClick = async (browserWindow) => {
   browserWindow.webContents.send('file-save-click');
-}
+};
 
 const handleFileDownloadClick = async (browserWindow, fileType) => {
   browserWindow.webContents.send('file-download-click', fileType);
@@ -57,7 +72,7 @@ const showSaveDialog = async (browserWindow, fileType, content) => {
 
   if (!filePath) return;
 
-  saveFile(browserWindow, fileType, content, filePath);
+  saveFile(browserWindow, fileType, filePath, content);
 };
 
 const showDirectorySelectDialog = async (browserWindow) => {
@@ -72,7 +87,7 @@ const showDirectorySelectDialog = async (browserWindow) => {
   if (!filePaths) return;
 
   browserWindow.webContents.send('directory-selected', filePaths[0]);
-}
+};
 
 const openFile = async (browserWindow, fileType, filePath) => {
   const fileName = filePath.split('/').pop();
@@ -80,22 +95,21 @@ const openFile = async (browserWindow, fileType, filePath) => {
   const content = await readFile(filePath, { encoding: 'utf-8' });
 
   if (fileType === 'SIM') {
-    browserWindow.webContents.send('file-open-selected', content, fileName, filePath);
+    browserWindow.webContents.send('file-open-selected', filePath, fileName, content);
   } else {
-    // Send file contents to renderer process
-    browserWindow.webContents.send('file-upload-selected', fileType, content, fileName);
+    browserWindow.webContents.send('file-upload-selected', fileType, fileName, content);
   }
 };
 
-const saveFile = async (browserWindow, fileType, content, filePath) => {
+const saveFile = async (browserWindow, fileType, filePath, content) => {
   await writeFile(filePath, content);
-  browserWindow.webContents.emit('file-saved', filePath);
+  browserWindow.webContents.send('file-save-confirmed');
 
   if (fileType === 'SIM') {
     updateCurrentFile(browserWindow, filePath, content);
   }
 };
 
-module.exports = { saveFile, handleOpenFileClick, handleSaveFileClick, handleFileDownloadClick, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges };
+module.exports = { getFilePath, getContent, saveFile, handleNewFileClick, handleOpenFileClick, handleSaveFileClick, handleFileDownloadClick, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges };
 
 

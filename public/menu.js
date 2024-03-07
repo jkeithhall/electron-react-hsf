@@ -1,5 +1,5 @@
 const { app, Menu } = require('electron');
-const { handleOpenFileClick, handleSaveFileClick, handleFileDownloadClick } = require('./fileHandlers');
+const { handleNewFileClick, handleOpenFileClick, handleSaveFileClick, handleFileDownloadClick } = require('./fileHandlers');
 
 const initializeMenu = (window) => {
   const template = [
@@ -22,7 +22,7 @@ const initializeMenu = (window) => {
       submenu: [
         {
           label: 'New\t\t\t',
-          click() { window.webContents.send('file-new-click'); }
+          click() { handleNewFileClick(window); }
         },
         {
           label: 'Open...',

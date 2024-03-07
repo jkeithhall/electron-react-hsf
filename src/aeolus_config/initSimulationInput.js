@@ -1,5 +1,5 @@
 
-const initSimulationInput = {
+const aeolusSimulationInput = {
   name: "Aeolus",
   version: 1.0,
   dependencies: {
@@ -20,5 +20,26 @@ const initSimulationInput = {
     cropTo: 5
   }
 }
+const initSimulationInput = {
+  name: '',
+  version: 1.0,
+  dependencies: {
+    baseSrc: '',
+    modelSrc: '',
+    targetSrc: '',
+    pythonSrc: '',
+    outputPath: ''
+  },
+  simulationParameters: {
+    startJD: 2454680.0,
+    startSeconds: 0.0,
+    endSeconds: 90.0,
+    stepSeconds: 30
+  },
+  schedulerParameters: {
+    maxSchedules: 10,
+    cropTo: 5
+  }
+}
 
-export default initSimulationInput;
+export { aeolusSimulationInput, initSimulationInput };

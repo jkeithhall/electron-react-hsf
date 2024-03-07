@@ -13,6 +13,8 @@ const createNodesEdges = function({ assets, dependencies }) {
   let nodes = [];
   let edges = [];
 
+  if (!assets || !dependencies) return { initialNodes: nodes, initialEdges: edges };
+
   assets.forEach((asset, i) => {
     let y_position = 0;
     let x_position = 0;
