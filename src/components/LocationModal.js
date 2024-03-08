@@ -38,7 +38,7 @@ export default function LocationModal({ title, onCancel, onConfirm, selectedLoca
             type="number"
             value={markerLocation[0]}
             onChange={handleLatChange}
-            color="info"
+            color="primary"
             size="small"
           />
           <TextField
@@ -47,7 +47,7 @@ export default function LocationModal({ title, onCancel, onConfirm, selectedLoca
             type="number"
             value={markerLocation[1]}
             onChange={handleLonChange}
-            color="info"
+            color="primary"
             size="small"
           />
         </div>
@@ -59,10 +59,10 @@ export default function LocationModal({ title, onCancel, onConfirm, selectedLoca
           <DraggableMarker position={markerLocation} setPosition={setMarkerLocation} />
         </MapContainer>
         <div className='confirm-close-icons'>
-          <Button color="info" variant="contained" onClick={onConfirm(markerLocation)} startIcon={<CheckIcon />}>
+          <Button variant="contained" onClick={onConfirm(markerLocation)} startIcon={<CheckIcon />}>
             Confirm
           </Button >
-          <Button color="primary" variant="contained" onClick={onCancel} startIcon={<CloseIcon />}>
+          <Button color="light" variant="contained" onClick={onCancel} startIcon={<CloseIcon />}>
             Cancel
           </Button>
         </div>

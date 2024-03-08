@@ -1,5 +1,5 @@
 const { app, Menu } = require('electron');
-const { handleOpenFileClick, handleSaveFileClick } = require('./fileHandlers');
+const { handleNewFileClick, handleOpenFileClick, handleSaveFileClick, handleFileDownloadClick } = require('./fileHandlers');
 
 const initializeMenu = (window) => {
   const template = [
@@ -21,37 +21,67 @@ const initializeMenu = (window) => {
       label: 'File',
       submenu: [
         {
-          label: 'Upload File',
+          label: 'New\t\t\t',
+          click() { handleNewFileClick(window); }
+        },
+        {
+          label: 'Open...',
+          click() { handleOpenFileClick(window, 'SIM'); }
+        },
+        {
+          label: 'Save',
+          click() { handleSaveFileClick(window, 'SIM'); }
+        },
+        { type: 'separator' },
+        {
+          label: 'Upload \t\t\t',
           submenu: [
             {
-              label: 'Scenario File',
-              accelerator: 'CmdOrCtrl+O',
+              label: 'Scenario File...\t\t',
               click() { handleOpenFileClick(window, 'Scenario'); }
             },
             {
               label: 'Tasks File',
-              click() { handleOpenFileClick(window, 'Tasks'); }
+              submenu: [
+                {
+                  label: 'JSON File...\t\t',
+                  click() { handleOpenFileClick(window, 'Tasks'); }
+                },
+                {
+                  label: 'CSV File...',
+                  click() { handleOpenFileClick(window, 'CSV'); }
+                }
+              ]
             },
             {
-              label: 'Model File',
-              click() { handleOpenFileClick(window, 'Model'); }
+              label: 'Model File...',
+              click() { handleOpenFileClick(window, 'System Model'); }
             }
           ]
         },
         {
-          label: 'Download File',
+          label: 'Export',
           submenu: [
             {
-              label: 'Scenario File',
-              click() { handleSaveFileClick(window, 'Scenario'); }
+              label: 'Scenario File\t\t\t',
+              click() { handleFileDownloadClick(window, 'Scenario'); }
             },
             {
               label: 'Tasks File',
-              click() { handleSaveFileClick(window, 'Tasks'); }
+              submenu: [
+                {
+                  label: 'JSON File\t\t\t',
+                  click() { handleFileDownloadClick(window, 'Tasks'); }
+                },
+                {
+                  label: 'CSV File',
+                  click() { handleFileDownloadClick(window, 'CSV'); }
+                }
+              ]
             },
             {
               label: 'Model File',
-              click() { handleSaveFileClick(window, 'Model'); }
+              click() { handleFileDownloadClick(window, 'System Model'); }
             }
           ]
         }

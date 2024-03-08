@@ -8,7 +8,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 import parseJSONFile from '../utils/parseJSONFile';
 
-export default function FileSelector({activeStep, setStateMethods}) {
+export default function FileUploadButton({activeStep, setStateMethod}) {
   const [selectedFileName, setSelectedFileName] = useState(null);
   const [selectedFileType, setSelectedFileType] = useState(null);
   const [selectedFileContent, setSelectedFileContent] = useState(null);
@@ -38,7 +38,6 @@ export default function FileSelector({activeStep, setStateMethods}) {
 
   // Called when user selects a file using the Electron File Menu or the in-browser upload button
   const handleFileUpload = (fileType, fileContent, fileName) => {
-    // TO DO: Check file contents for validity prior to confirmation modal
     setSelectedFileType(fileType);
     setSelectedFileContent(fileContent);
     setSelectedFileName(fileName);
@@ -58,7 +57,11 @@ export default function FileSelector({activeStep, setStateMethods}) {
   const handleConfirm = (fileType, fileContent, fileName) => {
     // Parse file content
     try {
-      parseJSONFile(fileType, fileContent, setStateMethods);
+      if (fileType === 'JSON') {
+        parseJSONFile(fileType, fileContent, setStateMethod);
+      } else {
+        // parseCSVFile(fileType, fileContent, setStateMethod);
+      }
     } catch (error) {
       // If error, display error modal
       setErrorMessage(error.message);
@@ -105,7 +108,9 @@ export default function FileSelector({activeStep, setStateMethods}) {
         <Button
           variant="contained"
           component="span"
-          startIcon={<UploadFileIcon />}>
+          startIcon={<UploadFileIcon />}
+          color='light'
+        >
           Upload File
         </Button>
       </label>

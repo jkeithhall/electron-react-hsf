@@ -5,21 +5,21 @@ import {
   GridActionsCellItem,
   GridRowEditStopReasons,
 } from '@mui/x-data-grid';
-import FileHeader from './FileHeader';
 import Paper from '@mui/material/Paper';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditLocationIcon from '@mui/icons-material/EditLocation';
 import Tooltip from '@mui/material/Tooltip';
-import EditToolbar from './EditToolbar.js';
+import TaskTableToolbar from './TaskTableToolbar.js';
 import ConfirmationModal from './ConfirmationModal';
 import LocationModal from './LocationModal';
 
+// Default pin location in map selector view for added tasks without location
 const DEFAULT_LATITUDE = 51.4778;
 const DEFAULT_LONGITUDE = 0;
 const DEFAULT_ALTITUDE = 0;
 const DEFAULT_LOCATION = { lat: DEFAULT_LATITUDE, lon: DEFAULT_LONGITUDE, alt: DEFAULT_ALTITUDE };
 
-export default function TaskTable({ navOpen, activeStep, setActiveStep, setStateMethods, taskList, setTaskList }) {
+export default function TaskTable({ navOpen, activeStep, setActiveStep, setStateMethods, taskList, setTaskList, setHasUnsavedChanges }) {
   const [ formErrorCount, setFormErrorCount] = useState(0);
   const [rowModesModel, setRowModesModel] = useState({});
   const [confirmModalOpen, setConfirmModalOpen ] = useState(false);
@@ -28,7 +28,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
   const [selectedTaskName, setSelectedTaskName] = useState('');
   const [selectedTaskId, setSelectedTaskId] = useState('');
 
-  const valid = formErrorCount === 0;
+  // const valid = formErrorCount === 0;
 
   const handleRowModesModelChange = (newRowModesModel) => {
     setRowModesModel(newRowModesModel);
@@ -37,6 +37,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
   const processRowUpdate = (newRow) => {
     const updatedRow = { ...newRow, isNew: false };
     setTaskList(taskList.map((row) => (row.id === newRow.id ? updatedRow : row)));
+    setHasUnsavedChanges(true);
     return updatedRow;
   };
 
@@ -51,7 +52,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
   const handleDeleteClick = (id) => () => {
     setSelectedTaskId(id);
 
-    const name = taskList.find((row) => row.id === id).taskName;
+    const name = taskList.find((row) => row.id === id).name;
     setSelectedTaskName(name);
 
     setConfirmModalOpen(true);
@@ -59,6 +60,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
 
   const handleDeleteConfirm = () => {
     setTaskList(taskList.filter((row) => row.id !== selectedTaskId));
+    setHasUnsavedChanges(true);
     setSelectedTaskName('');
     setSelectedTaskId('');
     setConfirmModalOpen(false);
@@ -91,7 +93,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
 
     setSelectedLocation(startingLocation);
 
-    let name = taskList.find((row) => row.id === id).taskName;
+    let name = taskList.find((row) => row.id === id).name;
     setSelectedTaskName(name);
 
     setLocationModalOpen(true);
@@ -102,6 +104,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
     const updatedRow = { ...taskList.find((row) => row.id === selectedTaskId), latitude, longitude };
     const updatedTasks = taskList.map((row) => (row.id === selectedTaskId ? updatedRow : row));
     setTaskList(updatedTasks);
+    setHasUnsavedChanges(true);
     setSelectedTaskName('');
     setSelectedTaskId('');
     setSelectedLocation(DEFAULT_LOCATION);
@@ -115,17 +118,54 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
     setLocationModalOpen(false);
   }
 
-  const handleNextButtonClick = () => {
-    // TO DO: handle validation for tasks
-    setActiveStep('System Model');
-  };
-
   const columns = [
     {
-      field: 'actions',
+      field: 'Delete Row Button',
       type: 'actions',
-      headerName: 'Actions',
+      headerName: '',
+      width: 50,
+      cellClassName: 'actions',
+      getActions: ({ id }) => {
+        return [
+          <GridActionsCellItem
+            icon={<Tooltip title="Delete Task"><DeleteIcon /></Tooltip>}
+            label="Delete"
+            onClick={handleDeleteClick(id)}
+            color="inherit"
+          />
+        ];
+      },
+    },
+    { field: 'name', headerName: 'Task Name', width: 150, editable: true },
+    {
+      field: 'type',
+      headerName: 'Type',
+      type: 'singleSelect',
+      valueOptions: [
+        'COMM',
+        'IMAGING',
+      ],
       width: 100,
+      editable: true
+    },
+    { field: 'maxTimes', type: 'number', headerName: 'Max Times', width: 100, editable: true },
+    { field: 'targetName', headerName: 'Target Name', width: 150, editable: true },
+    {
+      field: 'targetType',
+      headerName: 'Target Type',
+      type: 'singleSelect',
+      valueOptions: [
+        'FacilityTarget',
+        'LocationTarget',
+      ],
+      width: 130,
+      editable: true },
+    { field: 'targetValue', type: 'number', headerName: 'Value', width: 80, editable: true },
+    {
+      field: 'Map Selector',
+      type: 'actions',
+      headerName: '',
+      width: 50,
       cellClassName: 'actions',
       getActions: ({ id }) => {
         return [
@@ -135,34 +175,40 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
             className="textPrimary"
             onClick={handleEditLocationClick(id)}
             color="inherit"
-          />,
-          <GridActionsCellItem
-            icon={<Tooltip title="Delete Task"><DeleteIcon /></Tooltip>}
-            label="Delete"
-            onClick={handleDeleteClick(id)}
-            color="inherit"
-          />,
+          />
         ];
       },
     },
-    { field: 'taskName', headerName: 'Task Name', width: 120, editable: true },
-    { field: 'type', headerName: 'Type', width: 120, editable: true },
-    { field: 'latitude', headerName: 'Latitude', width: 120, editable: true },
-    { field: 'longitude', headerName: 'Longitude', width: 120, editable: true },
-    { field: 'altitude', headerName: 'Altitude', width: 120, editable: true },
-    { field: 'priority', headerName: 'Priority', width: 100, editable: true },
-    { field: 'value', headerName: 'Value', width: 100, editable: true },
-    { field: 'minQuality', headerName: 'Min Quality', width: 100, editable: true },
-    { field: 'desiredCapTime', headerName: 'Desired Cap Time', width: 150, editable: true },
-    { field: 'nonzeroValCapTime', headerName: 'Nonzero Val Cap Time', width: 170, editable: true },
+    { field: 'latitude', headerName: 'Latitude', width: 100, editable: true },
+    { field: 'longitude', headerName: 'Longitude', width: 100, editable: true },
+    { field: 'altitude', headerName: 'Altitude', width: 90, editable: true },
+    {
+      field: 'dynamicStateType',
+      headerName: 'Dyn. State Type',
+      type: 'singleSelect',
+      valueOptions: [
+        'STATIC_LLA',
+        'STATIC_ECI',
+        'PREDETERMINED_LLA',
+        'PREDETERMINED_ECI',
+        'DYNAMIC_LLA',
+        'DYNAMIC_ECI',
+        'STATIC_LVLH',
+        'NULL_STATE'
+      ],
+      width: 120,
+      editable: true
+    },
+    { field: 'integratorType', headerName: 'Integrator', width: 90, editable: true },
+    { field: 'eomsType', headerName: 'EOMS', width: 90, editable: true },
   ];
 
-  const removeModalMessage = selectedTaskName === '' ? 'Are you sure you want to remove this task (unnamed)?' : `Are you sure you want to remove Task ${selectedTaskName}?`;
-  const locationModalTitle = selectedTaskName === '' ? 'Edit location for this task (unnamed)' : `Edit location for Task ${selectedTaskName}`;
+  const removeModalMessage = selectedTaskName === '' ? 'Are you sure you want to remove this task (unnamed)?' : `Are you sure you want to remove ${selectedTaskName}?`;
+  const locationModalTitle = selectedTaskName === '' ? 'Edit location for this task (unnamed)' : `Edit location for ${selectedTaskName}`;
 
   return (
     <>
-      <FileHeader activeStep={activeStep} valid={valid} setStateMethods={setStateMethods} handleNextButtonClick={handleNextButtonClick}/>
+      {/* <FileHeader activeStep={activeStep} valid={valid} setStateMethods={setStateMethods} handleNextButtonClick={handleNextButtonClick}/> */}
       {confirmModalOpen && (
         <div className='stacking-context'>
           <ConfirmationModal
@@ -170,6 +216,8 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
             message={removeModalMessage}
             onConfirm={handleDeleteConfirm}
             onCancel={handleDeleteCancel}
+            confirmText={"Remove"}
+            cancelText={"Cancel"}
           />
       </div>)}
       {locationModalOpen && (
@@ -182,7 +230,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
             onCancel={handleLocationCancel}
           />
       </div>)}
-      <Paper sx={{ margin: '20px', maxWidth: `calc(100vw - ${(navOpen ? 220 : 60) + 60}px)`, height: 475, padding: 1 }} >
+      <Paper sx={{ margin: '25px', maxWidth: 'calc(100vw - 280px)', height: 'calc(100vh - 200px)', padding: 1, backgroundColor: '#282D3d' }} >
         <DataGrid
           rows={taskList}
           columns={columns}
@@ -192,12 +240,12 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
           onRowEditStop={handleRowEditStop}
           processRowUpdate={processRowUpdate}
           slots={{
-            toolbar: EditToolbar,
+            toolbar: TaskTableToolbar,
           }}
           slotProps={{
-            toolbar: { setTaskList, setRowModesModel },
+            toolbar: { setTaskList, setRowModesModel, setHasUnsavedChanges },
           }}
-          sx={{ backgroundColor: '#eeeeee' }}
+          sx={{ width: '100%', backgroundColor: '#eeeeee' }}
         />
       </Paper>
     </>

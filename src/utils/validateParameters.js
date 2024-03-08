@@ -1,22 +1,19 @@
 import { string, number, object } from 'yup';
 
 const scenarioSchema = object({
-  sourceName: string().required('Source Name is required'),
-  baseSource: string().required('Base Source is required'),
-  modelSource: string().required('Model Source is required'),
-  targetSource: string().required('Target Source is required'),
-  pythonSource: string().required('Python Source is required'),
+  name: string().required('Simulation name is required'),
+  pythonSrc: string().required('Python Source is required'),
   outputPath: string().required('Output Path is required'),
   version: number().required('Version is required'),
-  startJD: number().required('Start JD is required'),
+  startJD: number().required('Start Julian Date is required'),
   startSeconds: number().required().min(0, 'Start Seconds must be greater than or equal to 0'),
   // End Seconds must be greater than Start Seconds
   endSeconds: number().required().when('startSeconds', (startSeconds, schema) => {
     return schema.min(startSeconds, 'End Seconds must be greater than Start Seconds');
   }),
-  primaryStepSeconds: number().required().min(0, 'Primary Step Seconds must be greater than 0'),
+  stepSeconds: number().required().min(0, 'Step Seconds must be greater than 0'),
   maxSchedules: number().required().min(0, 'Max Schedules must be greater than 0'),
-  cropRatio: number().required().min(0, 'Crop Ratio must be greater than 0'),
+  cropTo: number().required().min(0, 'Crop To must be greater than 0'),
 });
 
 const taskSchema = object({

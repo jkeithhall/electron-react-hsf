@@ -1,41 +1,93 @@
-export default function buildDownloadJSON(fileType, sources, simulationParameters, schedulerParameters, taskList, model) {
+import { reformatTasks } from './parseTasks';
+
+export default function buildDownloadJSON(fileType, setStateMethods) {
+  const { setSimulationInput, setTaskList, setModel } = setStateMethods;
+  let jsonString;
+
   switch (fileType) {
     case 'Scenario':
-      const { sourceName, baseSource, modelSource, targetSource, pythonSource, outputPath, version } = sources;
-      const { startJD, startSeconds, endSeconds, primaryStepSeconds } = simulationParameters;
-      const { maxSchedules, cropRatio } = schedulerParameters;
-      const parameters = {
-        'Sources': {
-          'Source Name': sourceName,
-          'Base Source': baseSource,
-          'Model Source': modelSource,
-          'Target Source': targetSource,
-          'Python Source': pythonSource,
-          'Output Path': outputPath,
-          'Version': version
-        },
-        'Simulation Parameters': {
-          'Start JD': startJD,
-          'Start Seconds': startSeconds,
-          'End Seconds': endSeconds,
-          'Primary Step Seconds': primaryStepSeconds
-        },
-        'Scheduler Parameters': {
-          'Max Schedules': maxSchedules,
-          'Crop Ratio': cropRatio
-        }
-      };
-      return JSON.stringify(parameters, null, 2);
-    case 'Tasks':
-      const modifiedTaskList = taskList.map(task => {
-        // Filter out the 'id' property
-        const { id, ...taskCopy } = task;
-        return taskCopy;
+      setSimulationInput(currentState => {
+        const { name, version, dependencies, simulationParameters, schedulerParameters } = currentState;
+        const { outputPath, pythonSrc } = dependencies;
+        const modifiedScenario = {
+          name,
+          version,
+          dependencies: {
+            outputPath,
+            baseSrc: outputPath + '/builds/simulationParameters.json',
+            targetSrc: outputPath + '/builds/targets.json',
+            modelSrc: outputPath + '/builds/model.json',
+            pythonSrc,
+          },
+          simulationParameters,
+          schedulerParameters
+        };
+        jsonString = JSON.stringify(modifiedScenario, null, 2);
+        return currentState;
       });
-      return JSON.stringify(modifiedTaskList, null, 2);
+      break;
+    case 'Tasks':
+      setTaskList(currentState => {
+        const modifiedTaskList = currentState.map(task => {
+          // Filter out the 'id' property
+          const { id, ...taskCopy } = task;
+          return taskCopy;
+        });
+        jsonString = JSON.stringify(reformatTasks(modifiedTaskList), null, 2);
+        return currentState;
+      });
+      break;
     case 'System Model':
-      return JSON.stringify(model, null, 2);
+      setModel(currentState => {
+        const model = {
+          model: currentState
+        }
+        jsonString = JSON.stringify(model, null, 2);
+        return currentState;
+      });
+      break;
+    case 'SIM':
+      let simulationData, tasksData, modelData;
+      setSimulationInput(currentState => {
+        const { name, version, dependencies, simulationParameters, schedulerParameters } = currentState;
+        const { outputPath, pythonSrc } = dependencies;
+        simulationData = {
+          name,
+          version,
+          dependencies: {
+            outputPath,
+            baseSrc: outputPath + '/builds/simulationParameters.json',
+            targetSrc: outputPath + '/builds/targets.json',
+            modelSrc: outputPath + '/builds/model.json',
+            pythonSrc,
+          },
+          simulationParameters,
+          schedulerParameters
+        };
+        return currentState;
+      });
+      setTaskList(currentState => {
+        tasksData = reformatTasks(currentState.map(task => {
+          // Filter out the 'id' property
+          const { id, ...taskCopy } = task;
+          return taskCopy;
+        }));
+        return currentState;
+      });
+      setModel(currentState => {
+        modelData = currentState;
+        return currentState;
+      });
+      const simFileData = {
+        ...simulationData,
+        tasks: tasksData,
+        model: modelData
+      }
+      // Sim File is a json in compact format (no indentation)
+      jsonString = JSON.stringify(simFileData);
+      break;
     default:
-      return '';
+      return;
   }
+  return jsonString;
 }
