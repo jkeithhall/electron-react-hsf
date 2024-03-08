@@ -1,3 +1,5 @@
+import { useState, useEffect, useCallback } from 'react';
+
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import MuiDrawer from '@mui/material/Drawer';
@@ -12,12 +14,13 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import SatelliteAltIcon from '@mui/icons-material/SatelliteAlt';
-import PlaceIcon from '@mui/icons-material/Place';
+import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
-import FunctionsIcon from '@mui/icons-material/Functions';
+import LayersIcon from '@mui/icons-material/Layers';
 import RuleIcon from '@mui/icons-material/Rule';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
-import QueryStatsIcon from '@mui/icons-material/QueryStats';
+import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
+import SaveIcon from '@mui/icons-material/Save';
 
 const drawerWidth = 220;
 const navCategories = ['Scenario', 'Tasks', 'System Model', 'Dependencies', 'Constraints', 'Simulate', 'Analyze'];
@@ -69,7 +72,9 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
   }),
 );
 
-export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveStep, childComponents, children }) {
+
+
+export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveStep, childComponents, hasUnsavedChanges, handleSaveFile, setStateMethods, children }) {
   return (
     <Box sx={{ display: 'flex', className: "App" }}>
       <AppBar open={navOpen} drawerWidth={drawerWidth} />
@@ -81,7 +86,7 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
         }}>
         <IconButton
           onClick={toggleNav}
-          color="info"
+          color="primary"
           size="large"
           sx={{
             minHeight: 58,
@@ -112,13 +117,13 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
                   >
                     {
                       {
-                        'Scenario': <SatelliteAltIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'Tasks': <PlaceIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'System Model': <AccountTreeIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'Dependencies': <FunctionsIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'Constraints': <RuleIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'Simulate': <PlayCircleIcon color={activeStep === step ? 'info' : 'inherit'}/>,
-                        'Analyze': <QueryStatsIcon color={activeStep === step ? 'info' : 'inherit'}/>
+                        'Scenario': <SatelliteAltIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'Tasks': <GpsFixedIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'System Model': <AccountTreeIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'Dependencies': <LayersIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'Constraints': <RuleIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'Simulate': <PlayCircleIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'Analyze': <AnalyticsOutlinedIcon color={activeStep === step ? 'primary' : 'inherit'}/>
                       }[step]
                     }
                   </ListItemIcon>
@@ -127,6 +132,31 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
               </ListItem>
             )
           })}
+              <Divider />
+              {window.electronApi &&
+                <ListItem key={'save'} disablePadding sx={{ display: 'block' }}>
+                  <ListItemButton
+                    disabled={!hasUnsavedChanges}
+                    sx={{
+                      minHeight: 50,
+                      px: 2.5,
+                    }}
+                    onClick={() => handleSaveFile(() => {})}
+                  >
+                    <ListItemIcon
+                      sx={{
+                        color: 'inherit',
+                        minWidth: 0,
+                        mr: navOpen ? 2 : 'auto',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <SaveIcon color={hasUnsavedChanges ? 'inherit' : 'light'}/>
+                    </ListItemIcon>
+                    <ListItemText primary={'Save'} sx={{ opacity: navOpen ? 1 : 0 }} />
+                  </ListItemButton>
+                </ListItem>
+              }
         </List>
       </Drawer>
       <Box component="main" className="App" sx={{ flexGrow: 1 }} mt={3}>

@@ -1,286 +1,532 @@
 const initModel = {
-  name: 'Double-Sat Aeolus Constellation (DSAC)', // Do we want to include this?
-  lua: {
-    enableScripting: true,
-    files: [
-      'io\\scripts\\pair_test_scripts.txt',
-      'io\\scripts\\svk_test_scripts.txt',
-      'io\\scripts\\simparams_test_scripts.txt',
-      'io\\scripts\\matrixindex_test_scripts.txt',
-      'io\\scripts\\matrix_test_scripts.txt',
-      'io\\scripts\\quat_test_scripts.txt',
-      'io\\scripts\\state_test_scripts.txt',
-      'io\\scripts\\test\\ScriptedSubsytemTests\\SubsystemParameterTest.txt',
-      'io\\scripts\\test\\ScriptedSubsytemTests\\ScriptedSubsystemTest.txt',
-    ],
-  },
-  assets: [
-    {
-      assetName: 'SC1', // Include?
-      position: {
-        positionType: 'predeterminedECI',
-				ICs: [
-					{
-						type: 'Matrix',
-						key: 'ECI_Pointing_Vector(XYZ)',
-						value: [7378.137, 0.0, 0.0, 0.0, 6.02088, 4.215866],
-					}
-				],
-        eoms: {
-          eomsType: 'orbital',
+    assets: [
+      {
+        name: "Asset1",
+        dynamicState: {
+          type: "Predetermined_ECI",
+          stateData: [
+            7378.137,
+            0,
+            0,
+            0,
+            6.02088,
+            4.215866
+          ],
+          Eoms: {
+            type: "orbitalEOMS"
+          },
+          integratorOptions: {
+            h: ".15",
+            rtol: 0.0015,
+            atol: 0.000015,
+            eps: 5e-324,
+            nSteps: 1005
+          },
+          integratorParameters: [
+            {
+              type: "double",
+              key: "gyro",
+              value: 5.3
+            },
+            {
+              type: "vector",
+              key: "accel",
+              value: [
+                1,
+                2,
+                3
+              ]
+            }
+          ]
         },
+        subsystems: [
+          {
+            type: "scripted",
+            name: "ADCS",
+            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\adcs.py",
+            className: "adcs",
+            states: [
+              {
+                type: "Matrix",
+                name: "pointvec_key",
+                key: "ECI_Pointing_Vector(XYZ)",
+                value: [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            type: "Scripted",
+            name: "EOSensor",
+            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\eosensor.py",
+            className: "eosensor",
+            parameters: [
+              {
+                name: "lowQualityCaptureTime",
+                type: "double",
+                value: 3
+              },
+              {
+                name: "midQualityCaptureTime",
+                type: "double",
+                value: 5
+              },
+              {
+                name: "highQualityCaptureTime",
+                type: "double",
+                value: 7
+              },
+              {
+                name: "lowQualityNumPixels",
+                type: "double",
+                value: 5000
+              },
+              {
+                name: "midQualityNumPixels",
+                type: "double",
+                value: 10000
+              },
+              {
+                name: "highQualityNumPixels",
+                type: "double",
+                value: 15000
+              }
+            ],
+            states: [
+              {
+                type: "double",
+                name: "pixels_key",
+                key: "numPixels",
+                value: 0
+              },
+              {
+                type: "double",
+                name: "incidence_key",
+                key: "incidenceAngle",
+                value: 0
+              },
+              {
+                type: "bool",
+                name: "eoon_key",
+                key: "EOSensorOn",
+                value: false
+              }
+            ]
+          },
+          {
+            type: "scripted",
+            name: "SSDR",
+            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\ssdr.py",
+            className: "ssdr",
+            parameters: [
+              {
+                name: "bufferSize",
+                type: "double",
+                value: 5000
+              }
+            ],
+            states: [
+              {
+                type: "double",
+                name: "dataBufferFillRatio_key",
+                key: "DataBufferFillRatio",
+                value: 0
+              }
+            ]
+          },
+          {
+            type: "scripted",
+            name: "Comm",
+            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\comm.py",
+            className: "comm",
+            states: [
+              {
+                type: "double",
+                name: "datarate_key",
+                key: "DataRate(MB/s)",
+                value: 0
+              }
+            ]
+          },
+          {
+            type: "Scripted",
+            name: "Power",
+            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\power.py",
+            className: "power",
+            parameters: [
+              {
+                name: "batterySize",
+                type: "double",
+                value: 1000000
+              },
+              {
+                name: "fullSolarPower",
+                type: "double",
+                value: 150
+              },
+              {
+                name: "penumbraSolarPower",
+                type: "double",
+                value: 75
+              }
+            ],
+            states: [
+              {
+                type: "double",
+                name: "dod_key",
+                key: "DepthOfDischarge",
+                value: 0
+              },
+              {
+                type: "double",
+                name: "powin_key",
+                key: "SolarPanelPowerIn",
+                value: 0
+              }
+            ]
+          }
+        ],
+        constraints: [
+          {
+            value: 0.25,
+            subsystemName: "Power",
+            type: "FAIL_IF_HIGHER",
+            name: "con1",
+            state: {
+              type: "double",
+              key: "DepthOfDischarge"
+            }
+          },
+          {
+            value: 0.7,
+            subsystemName: "SSDR",
+            type: "FAIL_IF_HIGHER",
+            name: "con2",
+            state: {
+              type: "double",
+              key: "DataBufferFillRatio"
+            }
+          }
+        ]
       },
-      subsystems: [
+      {
+        name: "Asset2",
+        dynamicState: {
+          type: "Predetermined_ECI",
+          stateData: [
+            -7378.137,
+            0,
+            0,
+            0,
+            -6.02088,
+            4.215866
+          ],
+          Eoms: {
+            type: "orbitalEOMS"
+          }
+        },
+        subsystems: [
+          {
+            type: "scripted",
+            name: "ADCS",
+            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\adcs.py",
+            className: "adcs",
+            states: [
+              {
+                type: "Matrix",
+                name: "POINTVEC_KEY",
+                key: "ECI_Pointing_Vector(XYZ)",
+                value: [
+                  0,
+                  0,
+                  0
+                ]
+              }
+            ]
+          },
+          {
+            type: "Scripted",
+            name: "EOSensor",
+            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\eosensor.py",
+            className: "eosensor",
+            parameters: [
+              {
+                name: "lowQualityCaptureTime",
+                type: "double",
+                value: 3
+              },
+              {
+                name: "midQualityCaptureTime",
+                type: "double",
+                value: 5
+              },
+              {
+                name: "highQualityCaptureTime",
+                type: "double",
+                value: 7
+              },
+              {
+                name: "lowQualityNumPixels",
+                type: "double",
+                value: 5000
+              },
+              {
+                name: "midQualityNumPixels",
+                type: "double",
+                value: 10000
+              },
+              {
+                name: "highQualityNumPixels",
+                type: "double",
+                value: 15000
+              }
+            ],
+            states: [
+              {
+                type: "double",
+                name: "PIXELS_KEY",
+                key: "numPixels",
+                value: 0
+              },
+              {
+                type: "double",
+                name: "INCIDENCE_KEY",
+                key: "incidenceAngle",
+                value: 0
+              },
+              {
+                type: "bool",
+                name: "EOON_KEY",
+                key: "EOSensorOn",
+                value: false
+              }
+            ]
+          },
+          {
+            type: "scripted",
+            name: "SSDR",
+            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\ssdr.py",
+            className: "ssdr",
+            parameters: [
+              {
+                name: "bufferSize",
+                type: "double",
+                value: 5000
+              }
+            ],
+            states: [
+              {
+                type: "double",
+                name: "dataBufferFillRatio_key",
+                key: "DataBufferFillRatio",
+                value: 0
+              }
+            ]
+          },
+          {
+            type: "scripted",
+            name: "Comm",
+            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\comm.py",
+            className: "comm",
+            states: [
+              {
+                type: "double",
+                name: "DATARATE_KEY",
+                key: "DataRate(MB/s)",
+                value: 0
+              }
+            ]
+          },
+          {
+            type: "Scripted",
+            name: "Power",
+            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\power.py",
+            className: "power",
+            parameters: [
+              {
+                name: "batterySize",
+                type: "double",
+                value: 1000000
+              },
+              {
+                name: "fullSolarPower",
+                type: "double",
+                value: 150
+              },
+              {
+                name: "penumbraSolarPower",
+                type: "double",
+                value: 75
+              }
+            ],
+            states: [
+              {
+                type: "double",
+                name: "dod_key",
+                key: "DepthOfDischarge",
+                value: 0
+              },
+              {
+                type: "double",
+                name: "POWIN_KEY",
+                key: "SolarPanelPowerIn",
+                value: 0
+              }
+            ]
+          }
+        ],
+        constraints: [
+          {
+            value: 0.25,
+            subsystemName: "Power",
+            type: "FAIL_IF_HIGHER",
+            name: "con1",
+            state: {
+              type: "double",
+              key: "DepthOfDischarge"
+            }
+          },
+          {
+            value: 0.7,
+            subsystemName: "SSDR",
+            type: "FAIL_IF_HIGHER",
+            name: "con2",
+            state: {
+              type: "double",
+              key: "DataBufferFillRatio"
+            }
+          }
+        ]
+      }
+    ],
+    dependencies: [
+      {
+        subsystemName: "EOSensor",
+        assetName: "Asset1",
+        depSubsystemName: "ADCS",
+        depAssetName: "Asset1"
+      },
+      {
+        subsystemName: "SSDR",
+        assetName: "Asset1",
+        depSubsystemName: "EOSensor",
+        depAssetName: "Asset1",
+        fcnName: "SSDR_asset1_from_EOSensor_asset1"
+      },
+      {
+        subsystemName: "Comm",
+        assetName: "Asset1",
+        depSubsystemName: "SSDR",
+        depAssetName: "Asset1",
+        fcnName: "Comm_asset1_from_SSDR_asset1"
+      },
+      {
+        subsystemName: "Power",
+        assetName: "Asset1",
+        depSubsystemName: "Comm",
+        depAssetName: "Asset1",
+        fcnName: "Power_asset1_from_Comm_asset1"
+      },
+      {
+        subsystemName: "Power",
+        assetName: "Asset1",
+        depSubsystemName: "ADCS",
+        depAssetName: "Asset1",
+        fcnName: "Power_asset1_from_ADCS_asset1"
+      },
+      {
+        subsystemName: "Power",
+        assetName: "Asset1",
+        depSubsystemName: "EOSensor",
+        depAssetName: "Asset1",
+        fcnName: "Power_asset1_from_EOSensor_asset1"
+      },
+      {
+        subsystemName: "Power",
+        assetName: "Asset1",
+        depSubsystemName: "SSDR",
+        depAssetName: "Asset1",
+        fcnName: "Power_asset1_from_SSDR_asset1"
+      },
+      {
+        subsystemName: "EOSensor",
+        assetName: "Asset2",
+        depSubsystemName: "ADCS",
+        depAssetName: "Asset2"
+      },
+      {
+        subsystemName: "SSDR",
+        assetName: "Asset2",
+        depSubsystemName: "EOSensor",
+        depAssetName: "Asset2",
+        fcnName: "SSDR_asset1_from_EOSensor_asset1"
+      },
+      {
+        subsystemName: "Comm",
+        assetName: "Asset2",
+        depSubsystemName: "SSDR",
+        depAssetName: "Asset2",
+        fcnName: "Comm_asset1_from_SSDR_asset1"
+      },
+      {
+        subsystemName: "Power",
+        assetName: "Asset2",
+        depSubsystemName: "Comm",
+        depAssetName: "Asset2",
+        fcnName: "Power_asset1_from_Comm_asset1"
+      },
+      {
+        subsystemName: "Power",
+        assetName: "Asset2",
+        depSubsystemName: "ADCS",
+        depAssetName: "Asset2",
+        fcnName: "Power_asset1_from_ADCS_asset1"
+      },
+      {
+        subsystemName: "Power",
+        assetName: "Asset2",
+        depSubsystemName: "EOSensor",
+        depAssetName: "Asset2",
+        fcnName: "Power_asset1_from_EOSensor_asset1"
+      },
+      {
+        subsystemName: "Power",
+        assetName: "Asset2",
+        depSubsystemName: "SSDR",
+        depAssetName: "Asset2",
+        fcnName: "Power_asset1_from_SSDR_asset1"
+      }
+    ],
+    evaluator: {
+      type: "TargetValueEvaluator",
+      src: "..\\..\\..\\samples\\Aeolus\\pythonScripts\\eval.py",
+      className: "EVAL",
+      keyRequests: [
         {
-          subsystemID: 1,
-          type: 'accesss',
-					subsystemName: 'Access', // Include?
+          asset: "Asset1",
+          subsystem: "SSDR",
+          type: "double"
         },
         {
-          subsystemID: 2,
-          type: 'ACDS',
-          subsystemName: 'ADCS', // Include?
-					ICs: [
-						{
-							type: 'Matrix',
-							key: 'ECI_Pointing_Vector(XYZ)',
-							value: [0.0, 0.0, 0.0],
-						}
-					],
-          dependencies: [
-						{ subsystemID: 1 },
-					],
-        },
-				{
-					subsystemID: 3,
-          type: 'EOSensor',
-          subsystemName: 'EO Sensor',
-          lowQualityNumPixels: 5000,
-					midQualityNumPixels: 10000,
-					highQualityNumPixels: 15000,
-					lowQualityCaptureTime: 3,
-					midQualityCaptureTime: 5,
-					highQualityCaptureTime: 7,
-					ICs: [
-						{ type: 'Double', key: 'numPixels', value: 0.0 },
-						{ type: 'Double', key: 'IncidenceAngle', value: 0.0 },
-						{ type: 'Bool', key: 'EOSensorOn', value: 0.0 },
-					],
-					dependencies: [
-						{ subsystemID: 2, },
-					],
-        },
-				{
-          subsystemID: 4,
-          type: 'SSDR',
-          subsystemName: 'SSDR',
-          bufferSize: 5000,
-					ICs: [
-						{ type: 'Double', key: 'DataBufferFillRatio', value: 0.0 },
-					],
-					dependencies: [
-						{
-							subsystemID: 3,
-							dependencyFcn:
-								{
-									scripted: false,
-									type: 'double',
-									key: 'SSDRSUB_getNewDataProfile',
-								},
-						},
-					],
+          asset: "Asset2",
+          subsystem: "SSDR",
+          type: "double"
         },
         {
-          subsystemID: 5,
-          type: 'comunications',
-          subsystemName: 'Comunications',
-					ICs: [
-						{ type: 'Double', key: 'DataRate(MB/s)', value: 0.0 },
-					],
-          dependencies: [
-						{
-							subsystemID: 4,
-							dependencyFcn:
-								{
-									scripted: false,
-									type: 'double',
-									key: 'COMMSUB_getDataRateProfile',
-								},
-						},
-					],
+          asset: "Asset2",
+          subsystem: "EOSensor",
+          type: "double"
         },
         {
-					subsystemID: 6,
-          type: 'power',
-          subsystemName: 'Power',
-          batterySize: 1000000,
-					fullSolarPower: 150,
-					penumbraSolarPower: 75,
-					ICs: [
-						{ type: 'Double', key: 'DepthofDischarge', value: 0.0 },
-						{ type: 'Double', key: 'SolarPanelPowerIn', value: 0.0 },
-					],
-					dependencies: [
-						{
-							subsystemID: 5,
-							dependencyFcn:
-								{
-									scripted: false,
-									type: 'double',
-									key: 'POWERSUB_getPowerProfile',
-								},
-						},
-					],
-        },
-			],
-			constraints: [
-				{
-					subsystemID: 6,
-					type: 'FAIL_IF_HIGHER',
-					value: 0.25,
-					stateVar: { type: 'Double', key: 'DepthofDischarge' },
-				},
-				{
-					subsystemID: 4,
-					type: 'FAIL_IF_HIGHER',
-					value: 0.7,
-					stateVar: { type: 'Double', key: 'DataBufferFillRatio' },
-				},
-			],
-    },
-    {
-      assetName: 'SC2', // Include?
-      position: {
-				positionType: 'predeterminedECI',
-				ICs: [
-					{
-						type: 'Matrix',
-						key: 'ECI_Pointing_Vector(XYZ)',
-						value: [-7378.137, 0.0, 0.0, 0.0, -6.02088, 4.215866],
-					}
-				],
-				eoms: {
-					eomsType: 'orbital',
-				},
-			},
-      subsystems: [
-				{
-					subsystemID: 7,
-					type: 'accesss',
-					subsystemName: 'Access', // Include?
-				},
-				{
-					subsystemID: 8,
-					type: 'ACDS',
-					subsystemName: 'ADCS', // Include?
-					ICs: [
-						{
-							type: 'Matrix',
-							key: 'ECI_Pointing_Vector(XYZ)',
-							value: [0.0, 0.0, 0.0],
-						}
-					],
-					dependencies: [
-						{ subsystemID: 7 },
-					],
-				},
-				{
-					subsystemID: 9,
-					type: 'EOSensor',
-					subsystemName: 'EO Sensor', // Include?
-					lowQualityNumPixels: 5000,
-					midQualityNumPixels: 10000,
-					highQualityNumPixels: 15000,
-					lowQualityCaptureTime: 3,
-					midQualityCaptureTime: 5,
-					highQualityCaptureTime: 7,
-					ICs: [
-						{ type: 'Double', key: 'numPixels', value: 0.0 },
-						{ type: 'Double', key: 'IncidenceAngle', value: 0.0 },
-						{ type: 'Bool', key: 'EOSensorOn', value: 0.0 },
-					],
-					dependencies: [
-						{ subsystemID: 8 },
-					],
-				},
-				{
-					subsystemID: 10,
-					type: 'SSDR',
-					subsystemName: 'SSDR', // Include?
-					bufferSize: 5000,
-					ICs: [
-						{ type: 'Double', key: 'DataBufferFillRatio', value: 0.0 },
-					],
-					dependencies: [
-						{ subsystemID: 9,
-							dependencyFcn:
-								{
-									scripted: false,
-									type: 'double',
-									key: 'SSDRSUB_getNewDataProfile',
-								}
-							},
-					],
-				},
-				{
-					subsystemID: 11,
-					type: 'comunications',
-					subsystemName: 'Comunications', // Include?
-					ICs: [
-						{ type: 'Double', key: 'DataRate(MB/s)', value: 0.0 },
-					],
-					dependencies: [
-						{
-							subsystemID: 10,
-							dependencyFcn:
-								{
-									scripted: false,
-									type: 'double',
-									key: 'COMMSUB_getDataRateProfile',
-								}
-						},
-					],
-				},
-				{
-					subsystemID: 12,
-					type: 'power',
-					subsystemName: 'Power', // Include?
-					batterySize: 1000000,
-					fullSolarPower: 150,
-					penumbraSolarPower: 75,
-					ICs: [
-						{ type: 'Double', key: 'DepthofDischarge', value: 0.0 },
-						{ type: 'Double', key: 'SolarPanelPowerIn', value: 0.0 },
-					],
-					dependencies: [
-						{
-							subsystemID: 11,
-							dependencyFcn:
-								{
-									scripted: false,
-									type: 'double',
-									key: 'POWERSUB_getPowerProfile',
-								},
-						},
-					],
-				},
-			],
-			constraints: [
-				{
-					subsystemID: 12,
-					type: 'FAIL_IF_HIGHER',
-					value: 0.25,
-					stateVar: { type: 'Double', key: 'DepthofDischarge' },
-				},
-				{
-					subsystemID: 10,
-					type: 'FAIL_IF_HIGHER',
-					value: 0.7,
-					stateVar: { type: 'Double', key: 'DataBufferFillRatio' },
-				},
-			],
+          asset: "Asset1",
+          subsystem: "ADCS",
+          type: "double"
+        }
+      ]
     }
-  ]
-};
+  }
 
 export default initModel;

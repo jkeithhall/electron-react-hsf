@@ -9,7 +9,7 @@ import buildDownloadBlob from '../utils/buildDownloadBlob';
 import downloadBlob from '../utils/downloadBlob';
 import buildDownloadJSON from '../utils/buildDownloadJSON';
 
-export default function SaveButton({activeStep, sources, simulationParameters, schedulerParameters, taskList, model, setStateMethods}) {
+export default function SaveButton({activeStep, activeStepState}) {
   // State variables for form validation and errors
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -25,12 +25,12 @@ export default function SaveButton({activeStep, sources, simulationParameters, s
   const handleDownloadClick = () => {
     // If running in Electron, use Electron's saveFile function
     if (window.electronApi) {
-      const content = buildDownloadJSON(activeStep, sources, simulationParameters, schedulerParameters, taskList, model);
+      const content = buildDownloadJSON(activeStep, activeStepState);
       window.electronApi.saveFile(content);
     } else {
       // Otherwise, use the in-browser downloadBlob function
       const fileName = `${activeStep.toLowerCase()}.json`;
-      buildDownloadBlob(activeStep, sources, simulationParameters, schedulerParameters, taskList, model)
+      buildDownloadBlob(activeStep, activeStepState)
       .then(blob => downloadBlob(blob, fileName));
     }
     // Close the menu
@@ -46,7 +46,7 @@ export default function SaveButton({activeStep, sources, simulationParameters, s
   useEffect(() => {
     if (window.electronApi) {
       window.electronApi.onFileDownload((fileType) => {
-        return buildDownloadJSON(fileType, sources, simulationParameters, schedulerParameters, taskList, model);
+        return buildDownloadJSON(fileType, activeStepState);
       });
     }
   }, []); // Run once on component mount
@@ -54,10 +54,7 @@ export default function SaveButton({activeStep, sources, simulationParameters, s
   return (
     <>
       <Button
-        id="demo-customized-button"
-        aria-controls={open ? 'save-menu' : undefined}
-        aria-haspopup="true"
-        aria-expanded={open ? 'true' : undefined}
+        color="light"
         variant="contained"
         disableElevation
         onClick={handleSaveButtonClick}
@@ -66,10 +63,6 @@ export default function SaveButton({activeStep, sources, simulationParameters, s
         Save
       </Button>
       <StyledMenu
-        id="save-menu"
-        MenuListProps={{
-          'aria-labelledby': 'save-button',
-        }}
         anchorEl={anchorEl}
         open={open}
         onClose={handleSaveButtonClose}

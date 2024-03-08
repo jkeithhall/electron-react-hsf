@@ -3,20 +3,33 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#dddddd',
-      light: '#ffffff',
-      dark: '#blblbl',
+      main: '#0288d1',
+      light: '#349fda',
+      dark: '#015f92',
+      constrastText: '#eeeeee',
     },
     secondary: {
-      main: '#1f2330',
-      light: '#292d3a',
-      dark: '#1a1d25',
+      main: '#282D3D',
+      light: '#4f566f',
+      dark: '#1e2330',
+      constrastText: '#dddddd',
     },
-    info: {
-      main: '#0288d1',
-      light: '#03a9f4',
-      dark: '#01579b',
+    light: {
+      main: '#eeeeee',
+      light: '#ffffff',
+      dark: '#dddddd',
+      constrastText: '#222222',
     },
+    dark: {
+      main: '#222222',
+      light: '#333333',
+      dark: '#000000',
+      constrastText: '#dddddd',
+    },
+    background: {
+      default: '#dddddd',
+      primary: '#282D3D',
+    }
   },
   typography: {
     fontFamily: 'Poppins, sans-serif',
@@ -83,15 +96,15 @@ const theme = createTheme({
     },
   },
   components: {
-    MuiPaper: {
-      styleOverrides: {
-        root: {
-          backgroundColor: '#eeeeee',
-          padding: 1,
-          elevation: 3,
-        },
-      },
-    },
+    // MuiPaper: {
+    //   styleOverrides: {
+    //     root: {
+    //       backgroundColor: '#eeeeee',
+    //       padding: 1,
+    //       elevation: 3,
+    //     },
+    //   },
+    // },
     MuiPickersCalendarHeader: {
       styleOverrides: {
         root: {
