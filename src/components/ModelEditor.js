@@ -24,7 +24,7 @@ export default function ModelEditor({navOpen, model, setModel, activeStep, setAc
 
   return (
     <>
-      <Paper sx={{ alignSelf: 'flex-start', margin: '25px', minWidth: '1000px', maxWidth: 'calc(100vw - 280px)', height: 'calc(100vw - 200px)', padding: 1, backgroundColor: '#282D3d' }} >
+      <Paper className="react-flow-board" sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
         <Paper style={{ width: '100%', height: '100%' }}>
           <ReactFlow
             nodes={nodes}

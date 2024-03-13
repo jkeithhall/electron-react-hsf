@@ -51,29 +51,25 @@ export default function ScenarioParameters({activeStep, setActiveStep, simulatio
   // const valid = Object.keys(formErrors).length === 0;
 
   return (
-    <>
-      <Box sx={{ flexGrow: 1, padding: 5 }}>
-        <Grid container spacing={3} mt={5}>
-          <Grid item>
-            <Paper elevation={3} style={{ padding: '10px', backgroundColor: '#282D3D', width: 500 }}>
-              <Typography variant="h5" color='light.main' my={2}>Sources</Typography>
-              <ParameterGroup parameters={sources} setParameters={setSources} formErrors={formErrors} setFormErrors={setFormErrors}/>
-            </Paper>
-          </Grid>
-          <Grid item>
-            <Paper elevation={3} style={{ padding: '10px', backgroundColor: '#282D3D'  }}>
-              <Typography variant="h5" color="light.main" my={2}>Simulation Parameters</Typography>
-              <ParameterGroup parameters={simulationParameters} setParameters={setSimulationParameters} formErrors={formErrors} setFormErrors={setFormErrors}/>
-            </Paper>
-          </Grid>
-          <Grid item>
-            <Paper elevation={3} style={{ padding: '10px', backgroundColor: '#282D3D'  }}>
-              <Typography variant="h5" color="light.main" my={2}>Scheduler Parameters</Typography>
-              <ParameterGroup parameters={schedulerParameters} setParameters={setSchedulerParameters} formErrors={formErrors} setFormErrors={setFormErrors}/>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Box>
-    </>
+    <div className="scenario-parameters-container">
+        <div className='sources'>
+          <Paper elevation={3} sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
+            <Typography variant="h5" color='light.main' my={2}>Sources</Typography>
+            <ParameterGroup parameters={sources} setParameters={setSources} formErrors={formErrors} setFormErrors={setFormErrors}/>
+          </Paper>
+        </div>
+        <div className='simulation-parameters' >
+          <Paper elevation={3} sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
+            <Typography variant="h5" color="light.main" my={2}>Simulation Parameters</Typography>
+            <ParameterGroup parameters={simulationParameters} setParameters={setSimulationParameters} formErrors={formErrors} setFormErrors={setFormErrors}/>
+          </Paper>
+        </div>
+        <div className='scheduler-parameters'>
+          <Paper elevation={3} sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
+            <Typography variant="h5" color="light.main" my={2}>Scheduler Parameters</Typography>
+            <ParameterGroup parameters={schedulerParameters} setParameters={setSchedulerParameters} formErrors={formErrors} setFormErrors={setFormErrors}/>
+          </Paper>
+        </div>
+    </div>
   )
 }

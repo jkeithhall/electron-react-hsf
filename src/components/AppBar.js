@@ -26,7 +26,7 @@ export default function AppBar({ open, drawerWidth }) {
   return (
     <StyledAppBar position="fixed" open={open} >
       <Toolbar >
-        <Box component="img" alt="SimLabLogo" src="/SimLabLogo.png" sx={{ width: 80, height: 80, margin: '20px' }} />
+        <Box component="img" alt="SimLabLogo" src="/SimLabLogo.png" className="sim-lab-logo-header" />
         <Typography variant="h1" noWrap component="div" color="light">PICASSO &#8211; HSF Builder</Typography>
       </Toolbar>
     </StyledAppBar>

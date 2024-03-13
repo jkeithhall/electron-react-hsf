@@ -23,6 +23,7 @@ import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import SaveIcon from '@mui/icons-material/Save';
 
 const drawerWidth = 220;
+const headerHeight = 100;
 const navCategories = ['Scenario', 'Tasks', 'System Model', 'Dependencies', 'Constraints', 'Simulate', 'Analyze'];
 
 const openedMixin = (theme) => ({
@@ -50,8 +51,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'flex-end',
-  // padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
+  height: headerHeight,
   ...theme.mixins.toolbar,
 }));
 
@@ -159,10 +159,10 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
               }
         </List>
       </Drawer>
-      <Box component="main" className="App" sx={{ flexGrow: 1 }} mt={3}>
+      <div component="main" >
         <DrawerHeader />
         {children}
-      </Box>
+      </div>
     </Box>
   );
 }

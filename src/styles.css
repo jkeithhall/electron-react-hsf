@@ -1,6 +1,32 @@
-/*
-  CSS Reset
-*/
+:root {
+    --font-primary: 'Poppins', sans-serif;
+    --font-secondary: 'Roboto Mono', monospace;
+    --primary-background-color: #1f2330;
+    --secondary--background-color: #2f3e4e;
+    --default-border-radius: 5px;
+    --header-height: 100px;
+    --footer-height: 25px;
+    --header-logo-margin: 20px;
+    --nav-drawer-width-closed: 60px;
+    --nav-drawer-width-open: 220px;
+    --work-space-padding: 30px;
+    --work-space-height: calc(100vh - var(--header-height) -
+    - 2 * var(--work-space-padding) - var(--footer-height));
+    --sources-width: 500px;
+    --simulation-parameters-width: 300px;
+    --scheduler-parameters-width: 250px;
+    --parameters-container-gap: 20px;
+    --tasks-table-max-width: 1450px;
+    --overlay-background-color: rgba(128,128,128,0.20);
+    --map-container-height: 350px;
+    --map-container-min-height: 200px;
+    --confirm-close-margin: 20px;
+    --confirm-close-gap: 20px;
+    --calendar-stacking-context-width: 325px;
+    --calendar-stacking-context-height: 345px;
+}
+
+/* CSS Reset */
 *, *::before, *::after {
     box-sizing: border-box;
 }
@@ -13,6 +39,7 @@ html, body {
 body {
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    border-radius: var(--default-border-radius);
 }
 img, picture, video, canvas, svg {
     display: block;
@@ -33,19 +60,14 @@ p, h1, h2, h3, h4, h5, h6 {
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;600;800&family=VT323&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap');
 
-.App {
-    text-align: center;
-}
-
 body {
-    font-family: "Poppins, sans-serif";
-    background-color: #1f2330;
+    font-family: var(--font-primary);
+    background-color: var(--primary-background-color);
     margin: 0;
 }
 
 code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+    font-family: var(--font-secondary);
 }
 
 ul, li {
@@ -55,32 +77,112 @@ ul, li {
 
 header {
     width: 100%;
-    height: 100px;
+    height: var(--header-height);
+}
+
+.sim-lab-logo-header {
+    width: calc(var(--header-height) - var(--header-logo-margin));
+    height: calc(var(--header-height) - var(--header-logo-margin));
+    margin: var(--header-logo-margin);
 }
 
 .work-space {
-    padding: 30px;
+    overflow: scroll;
+    text-align: center;
     display: flex;
     flex-direction: column;
-    justify-content: flex-start;
+    justify-content: space-between;
     align-items: center;
-    background-color: #1f2330;
-    max-width: calc(100vw - 60px);
-    height: calc(100vh - 115px);
+    padding: var(--work-space-padding);
+    background-color: var(--primary-background-color);
+    height: var(--work-space-height);
 }
 
-.button-footer {
-    align-self: flex-end;
-    display: flex;
-    justify-content: space-evenly;
-    width: 400px;
+.work-space-nav-open {
+    width: calc(100vw - var(--nav-drawer-width-open));
+}
+
+.work-space-nav-closed {
+    width: calc(100vw - var(--nav-drawer-width-closed));
+};
+
+.scenario-parameters-container {
+    width: 100%;
+    height: 100%;
+}
+
+.sources {
+    grid-area: sources;
+    height: 'min-content';
+    width: var(--sources-width);
+}
+
+.simulation-parameters {
+    grid-area: simulation-parameters;
+    height: 'min-content';
+    width: var(--simulation-parameters-width);
+}
+
+.scheduler-parameters {
+    grid-area: scheduler-parameters;
+    height: 'min-content';
+    width: var(--scheduler-parameters-width);
+}
+
+@media (min-width: 1400px) {
+    .scenario-parameters-container {
+        display: grid;
+        grid-template-columns: 2.5fr 1.5fr 1fr;
+        grid-template-rows: 1fr;
+        grid-template-areas: 'sources simulation-parameters scheduler-parameters';
+        gap: var(--parameters-container-gap);
+    }
+}
+
+@media (max-width: 1399px) {
+    .scenario-parameters-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: 1fr 1fr;
+        grid-template-areas:
+            'sources simulation-parameters '
+            '. scheduler-parameters';
+        gap: var(--parameters-container-gap);
+    }
+    .sources {
+        width: calc(var(--sources-width) - 100px);
+    }
+    .simulation-parameters {
+        width: calc(var(--simulation-parameters-width) - 50px);
+    }
+}
+
+.tasks-table {
+    height: calc(100vh - var(--header-height) -
+    2 * var(--work-space-padding) - var(--footer-height));
+    max-width: var(--tasks-table-max-width);
+}
+
+.tasks-table-nav-open {
+    width: calc(100vw - var(--nav-drawer-width-open)
+    - 2 * var(--work-space-padding));
+}
+
+.tasks-table-nav-closed {
+    width: var(--tasks-table-max-width);
 }
 
 .stacking-context {
     position: absolute;
-    top: 100;
-    left: 500;
     z-index: 2;
+}
+
+.react-flow-board {
+    align-self: first baseline;
+    width: calc(100vh - var(--header-height) -
+    2 * var(--work-space-padding) - var(--footer-height));
+    height: calc(100vh - var(--header-height) -
+    2 * var(--work-space-padding) - var(--footer-height));
 }
 
 .location-inputs {
@@ -88,37 +190,36 @@ header {
     flex-direction: row;
     justify-content: space-evenly;
     align-items: center;
-    margin-bottom: 20px;
+    margin: var(--confirm-close-margin);
 }
 
 .map-container {
     position: relative;
     width: 100%;
-    height: 350px;
-    min-height: 200px;
+    height: var(--map-container-height);
+    min-height: var(--map-container-min-height);
     overflow: scroll;
-    border: 1px solid #555;
+    border: 1px solid var(--secondary--background-color);
 }
 
 .calendar-stacking-context {
     background-color: white;
-    border-radius: 5px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: space-between;
     position: absolute;
     z-index: 2;
-    height: 345px;
-    width: 325px;
+    height: var(--calendar-stacking-context-height);
+    width: var(--calendar-stacking-context-width);
 }
 
 .confirm-close-icons {
-    margin: 20px 20px;
+    margin: var(--confirm-close-margin);
     display: flex;
     align-self: flex-end;
     justify-content: space-evenly;
-    gap: 15px;
+    gap: var(--confirm-close-gap);
 }
 
 .overlay {
@@ -128,14 +229,16 @@ header {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: rgba(128,128,128,0.20);
+    background-color: var(--overlay-background-color);
     display: flex;
     justify-content: center;
     align-items: center;
   }
 
 footer {
-    height: 70px;
+    height: var(--footer-height);
+    position: absolute;
+    bottom: 0;
 }
 
 

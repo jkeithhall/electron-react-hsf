@@ -8,7 +8,6 @@ import ModelEditor from './components/ModelEditor';
 import ConfirmationModal from './components/ConfirmationModal';
 import SaveConfirmationModal from './components/SaveConfirmationModal';
 import ErrorModal from './components/ErrorModal';
-import Box from '@mui/material/Box';
 
 import { initSimulationInput, aeolusSimulationInput } from './aeolus_config/initSimulationInput';
 import flattenedInitTasks from './aeolus_config/initTaskList';
@@ -174,9 +173,7 @@ export default function App() {
       hasUnsavedChanges={hasUnsavedChanges}
       setStateMethods={setStateMethods}
     >
-      <Box
-        className='work-space'
-        sx={{ width: `calc(100vw - ${navOpen ? 220 : 60}px)`, maxWidth: `calc(100vw - ${navOpen ? 220 : 60}px)`}}>
+      <div className={`work-space ${navOpen ? 'work-space-nav-open' : 'work-space-nav-closed'}`} >
         {{'Scenario':
             <ScenarioParameters
               activeStep={activeStep}
@@ -244,8 +241,8 @@ export default function App() {
               />
             </div>)
           }
-      </Box>
       <Footer/>
+      </div>
     </NavDrawer>
   );
 }
