@@ -1,3 +1,4 @@
+// Currently deprecated: no download button on the frontend
 export default function buildDownloadBlob(fileType, activeStepState) {
   switch (fileType) {
     case 'Scenario':

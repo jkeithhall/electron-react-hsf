@@ -185,6 +185,12 @@ header {
     2 * var(--work-space-padding) - var(--footer-height));
 }
 
+.editing-palette-workspace {
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+}
+
 .location-inputs {
     display: flex;
     flex-direction: row;
@@ -223,7 +229,7 @@ header {
 }
 
 .overlay {
-    z-index: 1;
+    z-index: 2;
     position: fixed;
     top: 0;
     left: 0;

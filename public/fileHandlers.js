@@ -1,8 +1,9 @@
-const { app, dialog, ipcMain } = require('electron');
+const { app, dialog } = require('electron');
 const { readFile, writeFile } = require('fs').promises;
 const { basename } = require('path');
 
 const currentFile = { content: '', filePath: null };
+const directorySeparator = process.platform === 'win32' ? '\\' : '/';
 
 const getFilePath = () => {
   return currentFile.filePath;
@@ -15,6 +16,7 @@ const filters = {
   JSON: { name: 'JSON', extensions: ['json'] },
   CSV: { name: 'CSV', extensions: ['csv'] },
   SIM: { name: 'Sim File', extensions: ['sim'] },
+  Python: { name: 'Python', extensions: ['py'] },
 };
 
 const updateCurrentFile = (browserWindow, filePath, content) => {
@@ -75,6 +77,26 @@ const showSaveDialog = async (browserWindow, fileType, content) => {
   saveFile(browserWindow, fileType, filePath, content);
 };
 
+const showFileSelectDialog = async (browserWindow, directory, fileType) => {
+  const result = await dialog.showOpenDialog(browserWindow, {
+    defaultPath: directory,
+    properties: ['openFile'],
+    filters: [filters[fileType]],
+  });
+
+  if (result.canceled) return;
+
+  const { filePaths } = result;
+  if (!filePaths) return;
+
+  const filePath = filePaths[0];
+  const fileName = filePath.split(directorySeparator).pop();
+  // Read file contents
+  const content = await readFile(filePath, { encoding: 'utf-8' });
+
+  browserWindow.webContents.send('file-selected', filePath, fileName, content);
+}
+
 const showDirectorySelectDialog = async (browserWindow) => {
   const result = await dialog.showOpenDialog(browserWindow, {
     properties: ['openDirectory']
@@ -90,7 +112,7 @@ const showDirectorySelectDialog = async (browserWindow) => {
 };
 
 const openFile = async (browserWindow, fileType, filePath) => {
-  const fileName = filePath.split('/').pop();
+  const fileName = filePath.split(directorySeparator).pop();
   // Read file contents
   const content = await readFile(filePath, { encoding: 'utf-8' });
 
@@ -110,6 +132,6 @@ const saveFile = async (browserWindow, fileType, filePath, content) => {
   }
 };
 
-module.exports = { getFilePath, getContent, saveFile, handleNewFileClick, handleOpenFileClick, handleSaveFileClick, handleFileDownloadClick, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges };
+module.exports = { getFilePath, getContent, saveFile, handleNewFileClick, handleOpenFileClick, handleSaveFileClick, handleFileDownloadClick, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges, showFileSelectDialog };
 
 

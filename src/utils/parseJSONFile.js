@@ -1,7 +1,8 @@
 import { flattenTasks } from './parseTasks';
+import { parseModel } from './parseModel';
 
 export default function parseJSONFile(fileType, content, setStateMethods) {
-  const { setSimulationInput, setTaskList, setModel } = setStateMethods;
+  const { setSimulationInput, setTaskList, setComponentList, setDependencyList, setConstraints, setEvaluator } = setStateMethods;
   try {
     const parsedJSON = JSON.parse(content);
     const { tasks, model, ...rest } = parsedJSON;
@@ -14,12 +15,20 @@ export default function parseJSONFile(fileType, content, setStateMethods) {
         setTaskList(flattenTasks(tasks));
         break;
       case 'System Model':
-        setModel(model);
+        let parsedModel = parseModel(model);
+        setComponentList(parsedModel.systemComponents);
+        setDependencyList(parsedModel.systemDependencies);
+        setConstraints(parsedModel.systemConstraints);
+        setEvaluator(parsedModel.systemEvaluator);
         break;
       case 'SIM':
         setSimulationInput(rest);
         setTaskList(flattenTasks(tasks));
-        setModel(model);
+        parsedModel = parseModel(model);
+        setComponentList(parsedModel.systemComponents);
+        setDependencyList(parsedModel.systemDependencies);
+        setConstraints(parsedModel.systemConstraints);
+        setEvaluator(parsedModel.systemEvaluator);
         break;
       default:
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -9,24 +9,17 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { DateCalendar } from '@mui/x-date-pickers/DateCalendar';
 import dayjs from 'dayjs';
-
+import { shortenPath } from '../utils/shortenPath.js';
+import { findInvalidPythonFiles } from '../utils/validatePythonFiles';
+import { convertDisplayName } from '../utils/displayNames';
 import { validateScenarioParametersAt } from '../utils/validateParameters';
 import { julianToDate, dateToJulian } from '../utils/julianConversion.js';
-
-const convertDisplayName = (camelCaseName) => {
-  if (camelCaseName === 'startJD') return 'Start Julian Date';
-  if (camelCaseName === 'pythonSrc') return 'Python Source';
-  const words = camelCaseName.split(/(?=[A-Z])/);
-  const firstWord = words[0];
-  words[0] = firstWord[0].toUpperCase() + firstWord.slice(1);
-  return words.join(' ');
-}
 
 const parametersWithSeconds = ['startSeconds', 'endSeconds', 'stepSeconds'];
 const numericalParameters = parametersWithSeconds.concat(['version', 'maxSchedules', 'cropTo']);
 const fileParameters = ['pythonSrc', 'outputPath'];
 
-export default function ParameterGroup ({parameters, setParameters, formErrors, setFormErrors}) {
+export default function ParameterGroup ({parameters, setParameters, formErrors, setFormErrors, pythonSourceFiles}) {
   const [showCalendar, setShowCalendar] = useState(false);
 
   const handleChange = (e) => {
@@ -36,21 +29,62 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
 
   const handleBlur = async (e) => {
     const { name } = e.target;
-    try {
-      await validateScenarioParametersAt(parameters, name);
-      const newFormErrors = { ...formErrors };
-      delete newFormErrors[name];
-      setFormErrors(newFormErrors);
-    } catch (error) {
-      const { message } = error;
-      setFormErrors({ ...formErrors, [name]: message });
+    if (name === 'pythonSrc') {
+      const invalidSources = findInvalidPythonFiles(parameters[name], pythonSourceFiles);
+      if (invalidSources.length > 0) {
+        setFormErrors({ ...formErrors, [name]: 'Python source files for one or more system components not found in the selected directory.' });
+      } else {
+        // Remove error message from the pythonSrc key of the object
+        setFormErrors(formErrors => {
+          const newFormErrors = { ...formErrors };
+          delete newFormErrors[name];
+          return newFormErrors;
+        });
+      }
+    } else {
+      try {
+        await validateScenarioParametersAt(parameters, name);
+        const newFormErrors = { ...formErrors };
+        delete newFormErrors[name];
+        setFormErrors(newFormErrors);
+      } catch (error) {
+        const { message } = error;
+        setFormErrors({ ...formErrors, [name]: message });
+      }
     }
   }
 
   const handleFileClick = (key) => async (e) => {
     if (window.electronApi) {
-      window.electronApi.onDirectorySelect((absolutePath) => {
+      window.electronApi.onDirectorySelect(async (absolutePath) => {
+        // Update the state with the new path
         setParameters({ ...parameters, [key]: absolutePath });
+        // If the key is pythonSrc, check that all files are present in the directory
+        if (key === 'pythonSrc') {
+          const invalidSources = findInvalidPythonFiles(absolutePath, pythonSourceFiles);
+          if (invalidSources.length > 0) {
+            setFormErrors({ ...formErrors, [key]: 'Python source files for one or more system components not found in the selected directory.' });
+          } else {
+            // Remove error message from the pythonSrc key of the object
+            setFormErrors(formErrors => {
+              const newFormErrors = { ...formErrors };
+              delete newFormErrors[key];
+              return newFormErrors;
+            });
+          }
+        }
+        // If the key is outputPath and the path is empty, set an error message
+        if (key === 'outputPath') {
+          if (absolutePath === '') {
+            setFormErrors({ ...formErrors, [key]: 'Output Path is required' });
+          } else {
+            setFormErrors(formErrors => {
+              const newFormErrors = { ...formErrors };
+              delete newFormErrors[key];
+              return newFormErrors;
+            });
+          }
+        }
       });
     } else {
       try {
@@ -75,12 +109,6 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
     const currentDate = dayjs(new Date())
     const newJD = dateToJulian(currentDate);
     setParameters({ ...parameters, startJD: newJD });
-  }
-
-  const shortenPath = (path) => {
-    const parts = path.split('/');
-    if (path.length < 50) return path;
-    return '/.../' + parts.slice(-4).join('/');
   }
 
   return(
@@ -114,7 +142,7 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
               variant="outlined"
               color='primary'
               name={key}
-              value={isFile ? shortenPath(value) : value}
+              value={isFile ? shortenPath(value, 50) : value}
               type={type}
               onChange={isFile ? () => {} : handleChange}
               onClick={isFile ? handleFileClick(key) : () => {}}

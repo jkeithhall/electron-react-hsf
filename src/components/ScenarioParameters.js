@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // import { validateScenarioParametersAt } from '../utils/validateParameters';
 import ParameterGroup from './ParameterGroup';
 import Box from '@mui/material/Box';
@@ -6,14 +6,16 @@ import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
+import { validateAllScenarioParameters } from '../utils/validateParameters';
 
-export default function ScenarioParameters({activeStep, setActiveStep, simulationInput, setSimulationInput, setHasUnsavedChanges}) {
+export default function ScenarioParameters({activeStep, setActiveStep, simulationInput, setSimulationInput, setHasUnsavedChanges, componentList}) {
   // State variables for form validation and errors
   const [ formErrors, setFormErrors] = useState({});
 
   const { name, version, dependencies, simulationParameters, schedulerParameters } = simulationInput;
   const { pythonSrc, outputPath, ...otherDependencies } = dependencies;
   const sources = { name, version, pythonSrc, outputPath };
+  const pythonSourceFiles = componentList.filter((component) => component.className !== 'asset').map((component) => component.src);
 
   const setSources = (newSources) => {
     const { name, version, pythonSrc, outputPath } = newSources;
@@ -50,12 +52,17 @@ export default function ScenarioParameters({activeStep, setActiveStep, simulatio
 
   // const valid = Object.keys(formErrors).length === 0;
 
+  useEffect(() => {
+    const flattenedParameters = { ...sources, ...simulationParameters, ...schedulerParameters };
+    validateAllScenarioParameters(flattenedParameters, setFormErrors, pythonSourceFiles);
+  }, []); // Only run on initial render; subsequent verification is handled by handleBlur and handleFileClick
+
   return (
     <div className="scenario-parameters-container">
         <div className='sources'>
           <Paper elevation={3} sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
             <Typography variant="h5" color='light.main' my={2}>Sources</Typography>
-            <ParameterGroup parameters={sources} setParameters={setSources} formErrors={formErrors} setFormErrors={setFormErrors}/>
+            <ParameterGroup parameters={sources} setParameters={setSources} formErrors={formErrors} setFormErrors={setFormErrors} pythonSourceFiles={pythonSourceFiles}/>
           </Paper>
         </div>
         <div className='simulation-parameters' >

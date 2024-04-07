@@ -13,17 +13,24 @@ import { initSimulationInput, aeolusSimulationInput } from './aeolus_config/init
 import flattenedInitTasks from './aeolus_config/initTaskList';
 import initModel from './aeolus_config/initModel';
 
+import { parseModel } from './utils/parseModel';
 import parseJSONFile from './utils/parseJSONFile';
 import parseCSVFile from './utils/parseCSVFile';
 import buildDownloadJSON from './utils/buildDownloadJSON';
 import downloadCSV from './utils/downloadCSV';
+
+const { systemComponents, systemDependencies, systemEvaluator, systemConstraints, componentIds } = parseModel(initModel);
 
 export default function App() {
   // State variables
   const [activeStep, setActiveStep] = useState('Scenario');
   const [simulationInput, setSimulationInput] = useState(aeolusSimulationInput);
   const [taskList, setTaskList] = useState(flattenedInitTasks);
-  const [model, setModel] = useState(initModel);
+
+  const [componentList, setComponentList] = useState(systemComponents);
+  const [dependencyList, setDependencyList] = useState(systemDependencies);
+  const [evaluator, setEvaluator] = useState(systemEvaluator);
+  const [constraints, setConstraints] = useState(systemConstraints);
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
   const [selectedFileName, setSelectedFileName] = useState(null);
@@ -32,14 +39,19 @@ export default function App() {
   const [selectedFilePath, setSelectedFilePath] = useState(null);
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [saveConfirmationModalOpen, setSaveConfirmationModalOpen] = useState(false);
+
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(false);
+  const [modelErrors, setModelErrors] = useState({});
 
   // Bundling state methods
   const setStateMethods = {
     setSimulationInput,
     setTaskList,
-    setModel
+    setComponentList,
+    setDependencyList,
+    setEvaluator,
+    setConstraints,
   };
 
   const navDrawerWidth = 220;
@@ -77,8 +89,12 @@ export default function App() {
 
   const resetFile = () => {
     setSimulationInput(initSimulationInput);
-    setTaskList([]);
-    setModel({assets: [], dependencies: [], evaluator: []});
+    setTaskList(flattenedInitTasks);
+    setComponentList(systemComponents);
+    setDependencyList(systemDependencies);
+    setEvaluator(systemEvaluator);
+    setConstraints(systemConstraints);
+    setActiveStep('Scenario');
     setSaveConfirmationModalOpen(false);
     setHasUnsavedChanges(true);
     if (window.electronApi) {
@@ -182,6 +198,7 @@ export default function App() {
               setSimulationInput={setSimulationInput}
               setStateMethods={setStateMethods}
               setHasUnsavedChanges={setHasUnsavedChanges}
+              componentList={componentList}
             />,
           'Tasks':
             <TaskTable
@@ -198,10 +215,16 @@ export default function App() {
               navOpen={navOpen}
               activeStep={activeStep}
               setActiveStep={setActiveStep}
+              pythonSrc={simulationInput.dependencies.pythonSrc}
               setStateMethods={setStateMethods}
-              model={model}
-              setModel={setModel}
+              componentList={componentList}
+              setComponentList={setComponentList}
+              dependencyList={dependencyList}
+              setDependencyList={setDependencyList}
               setHasUnsavedChanges={setHasUnsavedChanges}
+              modelErrors={modelErrors}
+              setModelErrors={setModelErrors}
+              componentIds={componentIds}
             />,
           'Dependencies': <></>,
           'Constraints': <></>,

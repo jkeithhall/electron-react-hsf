@@ -59,7 +59,7 @@ const initModel = {
             ]
           },
           {
-            type: "Scripted",
+            type: "scripted",
             name: "EOSensor",
             src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\eosensor.py",
             className: "eosensor",
@@ -152,7 +152,7 @@ const initModel = {
             ]
           },
           {
-            type: "Scripted",
+            type: "scripted",
             name: "Power",
             src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\power.py",
             className: "power",
@@ -248,7 +248,7 @@ const initModel = {
             ]
           },
           {
-            type: "Scripted",
+            type: "scripted",
             name: "EOSensor",
             src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\eosensor.py",
             className: "eosensor",
@@ -341,7 +341,7 @@ const initModel = {
             ]
           },
           {
-            type: "Scripted",
+            type: "scripted",
             name: "Power",
             src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\power.py",
             className: "power",
