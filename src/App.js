@@ -8,6 +8,7 @@ import ModelEditor from './components/ModelEditor';
 import ConfirmationModal from './components/ConfirmationModal';
 import SaveConfirmationModal from './components/SaveConfirmationModal';
 import ErrorModal from './components/ErrorModal';
+import  { useNodesState, useEdgesState } from 'reactflow';
 
 import { initSimulationInput, aeolusSimulationInput } from './aeolus_config/initSimulationInput';
 import flattenedInitTasks from './aeolus_config/initTaskList';
@@ -18,6 +19,7 @@ import parseJSONFile from './utils/parseJSONFile';
 import parseCSVFile from './utils/parseCSVFile';
 import buildDownloadJSON from './utils/buildDownloadJSON';
 import downloadCSV from './utils/downloadCSV';
+import createNodesEdges from './utils/createNodesEdges';
 
 const { systemComponents, systemDependencies, systemEvaluator, systemConstraints, componentIds } = parseModel(initModel);
 
@@ -31,6 +33,10 @@ export default function App() {
   const [dependencyList, setDependencyList] = useState(systemDependencies);
   const [evaluator, setEvaluator] = useState(systemEvaluator);
   const [constraints, setConstraints] = useState(systemConstraints);
+
+  const { initialNodes, initialEdges } = createNodesEdges(componentList, dependencyList);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
   const [selectedFileName, setSelectedFileName] = useState(null);
@@ -221,6 +227,12 @@ export default function App() {
               setComponentList={setComponentList}
               dependencyList={dependencyList}
               setDependencyList={setDependencyList}
+              nodes={nodes}
+              edges={edges}
+              setNodes={setNodes}
+              setEdges={setEdges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
               setHasUnsavedChanges={setHasUnsavedChanges}
               modelErrors={modelErrors}
               setModelErrors={setModelErrors}

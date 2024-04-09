@@ -56,7 +56,7 @@ export default function EditingPalette ({
     if (!validatePythonFile(pythonSrc, src)) {
       const message = 'Source File must be in the Python source directory listed in the scenario parameters.';
       currentNodeErrors['src'] = message;
-      console.log({currentNodeErrors});
+
       setModelErrors((prevErrors) => {
         // Add error message to the src key of the object with the id key
         return { ...prevErrors, [id]: {...currentNodeErrors} };

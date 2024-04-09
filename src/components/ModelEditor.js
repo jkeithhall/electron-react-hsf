@@ -1,14 +1,8 @@
-import { useState, useCallback, useEffect } from 'react';
-import ReactFlow, {
-  MiniMap,
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-} from 'reactflow';
+import { useState } from 'react';
+import { ReactFlowProvider } from 'reactflow';
 
-import createNodesEdges from '../utils/createNodesEdges';
+import LayoutFlow from './LayoutFlow';
+
 import Paper from '@mui/material/Paper';
 import 'reactflow/dist/style.css';
 import ModelEditorDrawer from './ModelEditorDrawer';
@@ -22,21 +16,19 @@ export default function ModelEditor({
   activeStep,
   setActiveStep,
   pythonSrc,
+  nodes,
+  edges,
+  setNodes,
+  setEdges,
+  onNodesChange,
+  onEdgesChange,
   modelErrors,
   setModelErrors,
   componentIds,
 }) {
-  const { initialNodes, initialEdges } = createNodesEdges(componentList, dependencyList);
-  const [ nodes, setNodes, onNodesChange ] = useNodesState(initialNodes);
-  const [ edges, setEdges, onEdgesChange ] = useEdgesState(initialEdges);
   const [ selectedNodeId, setSelectedNodeId ] = useState(null);
   const [ selectedNodeData, setSelectedNodeData ] = useState({});
   const [ paletteOpen, setPaletteOpen ] = useState(false);
-
-  const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges],
-  );
 
   const handlePaletteOpen = () => {
     setPaletteOpen(true);
@@ -53,44 +45,24 @@ export default function ModelEditor({
     setPaletteOpen(true);
   }
 
-  useEffect(() => {
-    componentList.forEach((component) => {
-      if (component.id === selectedNodeId) {
-        setNodes((prevNodes) => {
-          const newNodes = prevNodes.map((node) => {
-            if (node.id === selectedNodeId) {
-              return {
-                ...node,
-                data: { ...node.data, label: component.name, data: component },
-              };
-            }
-            return node;
-          });
-          return newNodes;
-        });
-        setSelectedNodeData(component);
-      }
-    });
-  }, [componentList]);
-
   return (
     <>
       <Paper className="react-flow-board" sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
         <Paper style={{ width: '100%', height: '100%' }}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            onNodeClick={handleNodeClick}
-            deleteKeyCode={0}
-            onError={console.log}
-          >
-            <Controls />
-            <MiniMap />
-            <Background variant="dots" gap={12} size={1} />
-          </ReactFlow>
+          <ReactFlowProvider>
+            <LayoutFlow
+              nodes={nodes}
+              edges={edges}
+              setNodes={setNodes}
+              setEdges={setEdges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              handleNodeClick={handleNodeClick}
+              componentList={componentList}
+              selectedNodeId={selectedNodeId}
+              setSelectedNodeData={setSelectedNodeData}
+            />
+          </ReactFlowProvider>
         </Paper>
       </Paper>
       {paletteOpen &&

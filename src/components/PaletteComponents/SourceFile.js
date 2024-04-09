@@ -6,7 +6,6 @@ import { shortenPath } from '../../utils/shortenPath';
 
 export default function SourceFile({ src, errorMessage, setComponentList, id, pythonSrc, validateSrc }) {
   const handleFileSelected = (filePath) => {
-    console.log('handleFileSelected:', filePath);
     setComponentList((prevList) => {
       return prevList.map((component) => {
         if (component.id === id) {
