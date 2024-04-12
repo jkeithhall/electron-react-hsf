@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -15,15 +15,7 @@ import { convertDisplayName } from '../../utils/displayNames';
 export default function SubsystemParameters({data, id, setComponentList }) {
   const [hovered, setHovered] = useState(-1);
   const [markedForDeletion, setMarkedForDeletion] = useState(-1);
-  const buttonRef = useRef(null);
   const [modalOpen, setModalOpen] = useState(false);
-
-  const handleClickOutside = (e) => {
-    if (buttonRef.current && !buttonRef.current.contains(e.target)) {
-      setHovered(-1);
-      setMarkedForDeletion(-1);
-    }
-  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,7 +53,7 @@ export default function SubsystemParameters({data, id, setComponentList }) {
       setComponentList((prevList) => {
         return prevList.map((component) => {
           if (component.id === id) {
-            const newParameters = component.parameters.filter((parameter, i) => i !== index);
+            const newParameters = component.parameters.filter((_, i) => i !== index);
             return { ...component, parameters: newParameters };
           } else {
             return component;
@@ -73,7 +65,7 @@ export default function SubsystemParameters({data, id, setComponentList }) {
     }
   }
 
-  const handleAddParameter = (name, type, value) => {
+  const handleAddParameter = (name, value, type) => {
     setComponentList((prevList) => {
       return prevList.map((component) => {
         if (component.id === id) {
@@ -85,13 +77,6 @@ export default function SubsystemParameters({data, id, setComponentList }) {
       });
     });
   }
-
-  useEffect(() => {
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    }
-  }, []);
 
 
   return (
@@ -116,10 +101,10 @@ export default function SubsystemParameters({data, id, setComponentList }) {
               />
               <DeleteParameterButton
                 index={index}
-                buttonRef={buttonRef}
                 markedForDeletion={markedForDeletion}
                 hovered={hovered}
                 setHovered={setHovered}
+                setMarkedForDeletion={setMarkedForDeletion}
                 handleDeleteClicked={handleDeleteClicked}
               />
             </Stack>
@@ -145,10 +130,10 @@ export default function SubsystemParameters({data, id, setComponentList }) {
               </TextField>
               <DeleteParameterButton
                 index={index}
-                buttonRef={buttonRef}
                 markedForDeletion={markedForDeletion}
                 hovered={hovered}
                 setHovered={setHovered}
+                setMarkedForDeletion={setMarkedForDeletion}
                 handleDeleteClicked={handleDeleteClicked}
               />
             </Stack>
@@ -158,32 +143,31 @@ export default function SubsystemParameters({data, id, setComponentList }) {
             <>
               <Typography variant='body2' color="secondary" my={2}>{convertDisplayName(name)}</Typography>
               <Stack key={name} direction="row" mt={2}>
-              <Grid container spacing={2} key={name}>
-                {value.map((component, index) => {
-                  const componentKey = name+ '_' + index;
-                  return (
-                    <Grid item xs={4} key={componentKey}>
-                      <TextField
-                        id={componentKey}
-                        label={`Component_${index}`}
-                        variant="outlined"
-                        color="primary"
-                        name={componentKey}
-                        value={component}
-                        type="text"
-                        fullWidth
-                        onChange={handleChange}
-                      />
-                    </Grid>
-                  )
+                <Grid container spacing={2} key={name}>
+                  {value.map((component, index) => {
+                    const componentKey = name+ '_' + index;
+                    return (
+                      <Grid item xs={4} key={componentKey}>
+                        <TextField
+                          id={componentKey}
+                          label={`Component ${index}`}
+                          variant="outlined"
+                          color="primary"
+                          name={componentKey}
+                          value={component}
+                          type="text"
+                          fullWidth
+                          onChange={handleChange}
+                        />
+                    </Grid>)
                   })}
                 </Grid>
                 <DeleteParameterButton
                   index={index}
-                  buttonRef={buttonRef}
                   markedForDeletion={markedForDeletion}
                   hovered={hovered}
                   setHovered={setHovered}
+                  setMarkedForDeletion={setMarkedForDeletion}
                   handleDeleteClicked={handleDeleteClicked}
                 />
               </Stack>

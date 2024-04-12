@@ -12,7 +12,7 @@ export default function AssetGroup({ name }) {
         variant="outlined"
         color='primary'
         name='parent'
-        value={name}
+        value={name ? name : 'None'}
         align='left'
         disabled
       />

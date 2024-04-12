@@ -39,11 +39,13 @@ export default function recenterAssets(nodes, edges) {
       node.style.width = assetWidth;
     } else {
       const { parentNode } = node;
-      const { minX, minY } = assets[parentNode];
-      node.position.x -= minX;
-      node.position.y -= minY;
-      node.x = node.position.x;
-      node.y = node.position.y;
+      if (parentNode) {
+        const { minX, minY } = assets[parentNode];
+        node.position.x -= minX;
+        node.position.y -= minY;
+        node.x = node.position.x;
+        node.y = node.position.y;
+      }
     }
   });
   return { nodes, edges };

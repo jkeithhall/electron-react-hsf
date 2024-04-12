@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -15,15 +15,7 @@ import { convertDisplayName } from '../../utils/displayNames';
 export default function SubsystemStates({ data, id, setComponentList }) {
   const [hovered, setHovered] = useState(-1);
   const [markedForDeletion, setMarkedForDeletion] = useState(-1);
-  const buttonRef = useRef(null);
   const [modalOpen, setModalOpen] = useState(false);
-
-  const handleClickOutside = (e) => {
-    if (buttonRef.current && !buttonRef.current.contains(e.target)) {
-      setHovered(-1);
-      setMarkedForDeletion(-1);
-    }
-  }
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,7 +53,7 @@ export default function SubsystemStates({ data, id, setComponentList }) {
       setComponentList((prevList) => {
         return prevList.map((component) => {
           if (component.id === id) {
-            const newStates = component.states.filter((state, i) => i !== index);
+            const newStates = component.states.filter((_, i) => i !== index);
             return { ...component, states: newStates };
           } else {
             return component;
@@ -73,7 +65,7 @@ export default function SubsystemStates({ data, id, setComponentList }) {
     }
   }
 
-  const handleAddState = (name, type, value) => {
+  const handleAddState = (name, value, type) => {
     setComponentList((prevList) => {
       return prevList.map((component) => {
         if (component.id === id) {
@@ -85,13 +77,6 @@ export default function SubsystemStates({ data, id, setComponentList }) {
       });
     });
   }
-
-  useEffect(() => {
-    document.addEventListener('click', handleClickOutside);
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
-    }
-  }, []);
 
   return (
     <>
@@ -115,10 +100,10 @@ export default function SubsystemStates({ data, id, setComponentList }) {
               />
               <DeleteParameterButton
                 index={index}
-                buttonRef={buttonRef}
                 markedForDeletion={markedForDeletion}
                 hovered={hovered}
                 setHovered={setHovered}
+                setMarkedForDeletion={setMarkedForDeletion}
                 handleDeleteClicked={handleDeleteClicked}
               />
             </Stack>
@@ -144,10 +129,10 @@ export default function SubsystemStates({ data, id, setComponentList }) {
               </TextField>
               <DeleteParameterButton
                 index={index}
-                buttonRef={buttonRef}
                 markedForDeletion={markedForDeletion}
                 hovered={hovered}
                 setHovered={setHovered}
+                setMarkedForDeletion={setMarkedForDeletion}
                 handleDeleteClicked={handleDeleteClicked}
               />
             </Stack>
@@ -179,10 +164,10 @@ export default function SubsystemStates({ data, id, setComponentList }) {
                 </Grid>
                 <DeleteParameterButton
                   index={index}
-                  buttonRef={buttonRef}
                   markedForDeletion={markedForDeletion}
                   hovered={hovered}
                   setHovered={setHovered}
+                  setMarkedForDeletion={setMarkedForDeletion}
                   handleDeleteClicked={handleDeleteClicked}
                 />
               </Stack>

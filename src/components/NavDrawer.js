@@ -15,6 +15,7 @@ import SatelliteAltIcon from '@mui/icons-material/SatelliteAlt';
 import GpsFixedIcon from '@mui/icons-material/GpsFixed';
 import AccountTreeIcon from '@mui/icons-material/AccountTree';
 import LayersIcon from '@mui/icons-material/Layers';
+import AppsOutageIcon from '@mui/icons-material/AppsOutage';
 import RuleIcon from '@mui/icons-material/Rule';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
@@ -118,7 +119,7 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
                         'Scenario': <SatelliteAltIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
                         'Tasks': <GpsFixedIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
                         'System Model': <AccountTreeIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
-                        'Dependencies': <LayersIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
+                        'Dependencies': <AppsOutageIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
                         'Constraints': <RuleIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
                         'Simulate': <PlayCircleIcon color={activeStep === step ? 'primary' : 'inherit'}/>,
                         'Analyze': <AnalyticsOutlinedIcon color={activeStep === step ? 'primary' : 'inherit'}/>

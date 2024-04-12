@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 
 import NameField from './PaletteComponents/NameField';
 import ClassName from './PaletteComponents/ClassName';
@@ -18,6 +18,7 @@ import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 
 import { validatePythonFile } from '../utils/validatePythonFiles';
+import { validateAssetParameter, validateAllAssetParameters } from '../utils/validateParameters';
 
 export default function EditingPalette ({
   data,
@@ -27,11 +28,7 @@ export default function EditingPalette ({
   pythonSrc,
   modelErrors,
   setModelErrors,
-  componentIds,
 }) {
-  const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
-
 
   const {
     id,
@@ -49,7 +46,10 @@ export default function EditingPalette ({
     src,
     parent,
   } = data;
-  let parentName = componentIds.getName(parent);
+
+  let parentName = componentList.find((component) => component.id === parent)?.name;
+
+  console.log({modelErrors});
 
   const validateSrc = (src) => {
     const currentNodeErrors = modelErrors[id] ? modelErrors[id] : {};
@@ -75,31 +75,42 @@ export default function EditingPalette ({
     }
   }
 
+  const onBlur = (e) => {
+    const { name, value } = e.target;
+    if (className === 'asset') {
+      validateAssetParameter(name, value, setModelErrors, id);
+    }
+  }
+
   useEffect(() => {
     // TO DO: Add validation for other fields
     if (className !== 'asset') {
       validateSrc(src);
+    } else {
+      console.log(`Validating asset parameters for ${name} with data:`, data);
+      validateAllAssetParameters(data, setModelErrors, id);
     }
   }, [id, src]);
 
   const stateComponents = ['x', 'y', 'z', 'v_x', 'v_y', 'v_z'];
+  const currentNodeErrors = modelErrors[id] ? modelErrors[id] : {};
 
   return (
     <>
       <Box sx={{ margin: '0 20px', padding: '10px', backgroundColor: '#eeeeee', borderRadius: '5px' }}>
         <Typography variant="h4" color="secondary" mt={2}>{`${name ? name : ' '}`}</Typography>
         <Grid container spacing={2} my={2}>
-          <NameField name={name} setComponentList={setComponentList} id={id}/>
-          <ClassName className={className} setcompid={id}/>
+          <NameField name={name} setComponentList={setComponentList} id={id} errors={currentNodeErrors} setModelErrors={setModelErrors}/>
+          <ClassName className={className} setcompid={id} />
         </Grid>
         {className === 'asset' && <>
           <Grid container spacing={2}>
             <DynamicStateType value={dynamicStateType} setComponentList={setComponentList} id={id}/>
             <EomsType value={eomsType} setComponentList={setComponentList} id={id}/>
           </Grid>
-          <StateData data={stateData} id={id} setComponentList={setComponentList} stateComponents={stateComponents} />
-          <IntegratorOptions data={integratorOptions} id={id} setComponentList={setComponentList} />
-          <IntegratorParameters data={integratorParameters} id={id} setComponentList={setComponentList} stateComponents={stateComponents} />
+          <StateData data={stateData} id={id} setComponentList={setComponentList} stateComponents={stateComponents} errors={currentNodeErrors}/>
+          <IntegratorOptions data={integratorOptions} id={id} setComponentList={setComponentList} errors={currentNodeErrors} />
+          <IntegratorParameters data={integratorParameters} id={id} setComponentList={setComponentList} stateComponents={stateComponents} errors={currentNodeErrors} />
         </>}
         {className !== 'asset' && <>
           <Grid container spacing={2}>

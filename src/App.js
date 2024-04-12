@@ -21,7 +21,7 @@ import buildDownloadJSON from './utils/buildDownloadJSON';
 import downloadCSV from './utils/downloadCSV';
 import createNodesEdges from './utils/createNodesEdges';
 
-const { systemComponents, systemDependencies, systemEvaluator, systemConstraints, componentIds } = parseModel(initModel);
+const { systemComponents, systemDependencies, systemEvaluator, systemConstraints } = parseModel(initModel);
 
 export default function App() {
   // State variables
@@ -236,7 +236,6 @@ export default function App() {
               setHasUnsavedChanges={setHasUnsavedChanges}
               modelErrors={modelErrors}
               setModelErrors={setModelErrors}
-              componentIds={componentIds}
             />,
           'Dependencies': <></>,
           'Constraints': <></>,

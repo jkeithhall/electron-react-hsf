@@ -1,11 +1,7 @@
-import getLayoutedElements from './getLayoutedElements';
+import randomColor from 'randomcolor';
+// import getLayoutedElements from './getLayoutedElements';
 
-const assetColors = [
-  'rgba(2, 136, 209, 0.4)',
-  'rgb(2,209,75, 0.4)',
-  'rgb(209,2,136, 0.4)',
-  'rgb(209,75,2, 0.4)',
-];
+const BASE_COLORS = [ 'blue', 'green', 'red', 'purple', 'orange', 'yellow', 'pink' ];
 
 const assetHeight = 400;
 const assetWidth = 500;
@@ -28,12 +24,17 @@ const createNodesEdges = function(componentList, dependencyList) {
     }
     if (component.className === 'asset') {
       node.position = { x: assetCount * (assetWidth + 50), y: 0 };
-      node.style = { backgroundColor: assetColors[assetCount], width: assetWidth, height: assetHeight };
+      const backgroundColor = randomColor({
+        hue: BASE_COLORS[assetCount % BASE_COLORS.length],
+        luminosity: 'light',
+        format: 'rgba',
+        alpha: 0.5,
+     });
+      node.style = { backgroundColor, width: assetWidth, height: assetHeight };
       assetCount++;
       subsystemCount[component.id] = 0;
     } else {
       const subsystemNum = subsystemCount[component.parent];
-      // node.position = component.name === 'Power' ? { x: 0, y: -100 * subsystemNum + assetSize } : { x: 90 * subsystemNum, y: -90 * subsystemNum + (assetSize - 40) };
       node.position = { x: 87 * subsystemNum, y: -90 * subsystemNum + (assetHeight - 40) };
       node.extent = 'parent';
       node.parentNode = component.parent;

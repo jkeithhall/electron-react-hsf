@@ -24,7 +24,6 @@ export default function ModelEditor({
   onEdgesChange,
   modelErrors,
   setModelErrors,
-  componentIds,
 }) {
   const [ selectedNodeId, setSelectedNodeId ] = useState(null);
   const [ selectedNodeData, setSelectedNodeData ] = useState({});
@@ -74,10 +73,11 @@ export default function ModelEditor({
           componentList={componentList}
           setComponentList={setComponentList}
           setDependencyList={setDependencyList}
+          setNodes={setNodes}
+          setEdges={setEdges}
           pythonSrc={pythonSrc}
           modelErrors={modelErrors}
           setModelErrors={setModelErrors}
-          componentIds={componentIds}
         />}
     </>
   );

@@ -46,8 +46,13 @@ export default function LayoutFlow ({
     [nodes, edges]
   );
 
-  const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
+  const onConnect = useCallback((params) => {
+    // If the source and target are the same, don't add the edge (no self-loops allowed)
+    if (params.source === params.target) {
+      return;
+    }
+    setEdges((eds) => addEdge(params, eds))
+  },
     [setEdges],
   );
 

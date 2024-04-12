@@ -20,11 +20,13 @@ export default function AddParameterModalModal({ label, handleAddParameter, hand
 
   const typeOptions = ['double', 'int', 'bool', 'vector'];
 
+  const titleCase = (str) => str[0].toUpperCase() + str.slice(1);
+
   const handleConfirm = () => {
     if (parameterType === 'vector') {
-      handleAddParameter(parameterName, parameterType, parameterVector);
+      handleAddParameter(parameterName, parameterVector, parameterType);
     } else {
-      handleAddParameter(parameterName, parameterType, parameterValue);
+      handleAddParameter(parameterName, parameterValue, parameterType);
     }
     handleClose();
   }
@@ -78,14 +80,11 @@ export default function AddParameterModalModal({ label, handleAddParameter, hand
         }
       });
 
+      setInvalidComponents(nonNumberComponents);
       if (nonNumberComponents.length > 1) {
-        setInvalidComponents(nonNumberComponents);
         setValueErrorMessage(`Vector components ${nonNumberComponents.join(', ')} are not numbers`);
       } else if (nonNumberComponents.length === 1) {
-        setInvalidComponents(nonNumberComponents);
         setValueErrorMessage(`Vector component ${nonNumberComponents[0]} is not a number`);
-      } else {
-        setValueErrorMessage('');
       }
     }
   }
@@ -129,7 +128,7 @@ export default function AddParameterModalModal({ label, handleAddParameter, hand
           value={parameterName}
           onChange={(e) => setParameterName(e.target.value)}
         />
-        <TextField
+        {label !== "Integrator Option" && <TextField // Integrator Options default to double only
           id="parameterType"
           key="parameterType"
           fullWidth
@@ -143,9 +142,9 @@ export default function AddParameterModalModal({ label, handleAddParameter, hand
           onChange={handleChangeType}
         >
           {typeOptions.map((option) => (
-            <MenuItem key={option} value={option}>{option}</MenuItem>
+            <MenuItem key={option} value={option}>{titleCase(option)}</MenuItem>
           ))}
-        </TextField>
+        </TextField>}
         {(parameterType === 'int' || parameterType === 'double') && <TextField
           id="parameterValue"
           key="parameterValue"

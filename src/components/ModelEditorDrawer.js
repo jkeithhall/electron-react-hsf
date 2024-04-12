@@ -1,9 +1,12 @@
+import { useState } from 'react';
 import EditingPalette from './EditingPalette';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
+
+import ConfirmationModal from './ConfirmationModal';
 
 const drawerWidth = 600;
 const headerHeight = 100;
@@ -15,19 +18,94 @@ export default function ModelEditorDrawer({
   handlePaletteClose,
   setComponentList,
   setDependencyList,
+  setNodes,
+  setEdges,
   pythonSrc,
   modelErrors,
   setModelErrors,
-  componentIds
  }) {
-  const handleDelete = () => {
-    // setComponentList((prevList) => {
-    //   return prevList.filter((component) => component.id !== data.id);
-    // });
-    // setDependencyList((prevList) => {
-    //   return prevList.filter((dependency) => dependency.source !== data.id && dependency.target !== data.id);
-    // });
-    // handlePaletteClose();
+  const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+
+  const handleDeleteClick = () => {
+    setConfirmationModalOpen(true);
+    setDeleteId(data.id);
+  }
+
+  const handleDeleteSubComponent = () => {
+    setComponentList((prevList) => prevList.filter((component) => component.id !== deleteId));
+    setDependencyList((prevList) => prevList.filter((dependency) => dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId));
+    setNodes((prevNodes) => prevNodes.filter((node) => node.id !== deleteId));
+    setEdges((prevEdges) => prevEdges.filter((edge) => edge.source !== deleteId && edge.target !== deleteId));
+    closePaletteAndModal();
+  }
+
+  const handleDeleteAsset = () => {
+    setComponentList((prevList) => {
+      const filteredList = prevList.filter((component) => component.id !== deleteId)
+      if (filteredList.length > 0) {
+        return filteredList.map((component) => {
+          if (component.parent === deleteId) {
+            return { ...component, parent: null };
+          } else {
+            return component;
+          }
+        });
+      } else {
+        return [];
+      }
+    });
+    setDependencyList((prevList) => {
+      const filteredList = prevList.filter((dependency) => dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId);
+      console.log({filteredList});
+      if (filteredList.length > 0) {
+        return filteredList.map((dependency) => {
+          let newDependency = { ...dependency };
+          if (newDependency.asset === deleteId) {
+            newDependency.asset = null;
+          }
+          if (newDependency.depAsset === deleteId) {
+            newDependency.depAsset = null;
+          }
+          return newDependency;
+        });
+      } else {
+        return [];
+      }
+    });
+    setNodes((prevNodes) => {
+      const filteredNodes = prevNodes.filter((node) => node.id !== deleteId);
+      if (filteredNodes.length > 0) {
+        return filteredNodes.map((node) => {
+          if (node.parentNode === deleteId) {
+            const newNode = { ...node };
+            newNode.parentNode = null;
+            delete newNode['extent'];
+            const newNodeData = { ...newNode.data };
+            newNodeData.data.parent = null;
+            newNode.data = newNodeData;
+            return newNode;
+          } else {
+            return node;
+          }
+        });
+      } else {
+        return [];
+      }
+    });
+    setEdges((prevEdges) => prevEdges.filter((edge) => edge.source !== deleteId && edge.target !== deleteId));
+    closePaletteAndModal();
+  }
+
+  const closePaletteAndModal = () => {
+    handlePaletteClose();
+    setConfirmationModalOpen(false);
+    setDeleteId(null);
+  }
+
+  const handleDeleteCancel = () => {
+    setConfirmationModalOpen(false);
+    setDeleteId(null);
   }
 
   return (
@@ -75,20 +153,28 @@ export default function ModelEditorDrawer({
           pythonSrc={pythonSrc}
           modelErrors={modelErrors}
           setModelErrors={setModelErrors}
-          componentIds={componentIds}
         />
       </div>
       <div className="confirm-close-icons" style={{ marginBottom: 120 }}>
-          <Button
-            onClick={handleDelete}
-            variant="contained"
-            color="error"
-            size="large"
-            startIcon={<DeleteIcon/>}
-            >
-              Delete Component
-          </Button>
-        </div>
+        <Button
+          onClick={handleDeleteClick}
+          variant="contained"
+          color="error"
+          size="large"
+          startIcon={<DeleteIcon/>}
+          >
+            Delete Component
+        </Button>
+      </div>
+      {confirmationModalOpen &&
+        <ConfirmationModal
+          onCancel={handleDeleteCancel}
+          onConfirm={data.className === 'asset' ? handleDeleteAsset : handleDeleteSubComponent }
+          title={`Delete ${data.name}?`}
+          message={`Are you sure you want to delete ${data.name}?`}
+          confirmText="Delete"
+          cancelText="Cancel"
+        />}
     </Drawer>
   );
 }
