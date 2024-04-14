@@ -2,7 +2,9 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 
-export default function StateData({ data, setComponentList, id, stateComponents, errors }) {
+const stateComponents = ['x', 'y', 'z', 'v_x', 'v_y', 'v_z'];
+
+export default function StateData({ data, setComponentList, id, errors, handleBlur }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setComponentList((prevList) => {
@@ -52,6 +54,7 @@ export default function StateData({ data, setComponentList, id, stateComponents,
                 fullWidth
                 onChange={handleChange}
                 error={stateDataError && stateDataErrorIndices.includes(index)}
+                onBlur={handleBlur}
               />
             </Grid>
           )

@@ -2,7 +2,7 @@ import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 
-export default function DynamicStateType({ value, setComponentList, id }) {
+export default function DynamicStateType({ value, setComponentList, id, errors, handleBlur}) {
   const typeOptions = ['STATIC_LLA', 'STATIC_ECI', 'PREDETERMINED_LLA', 'PREDETERMINED_ECI', 'DYNAMIC_LLA', 'DYNAMIC_ECI', 'STATIC_LVLH', 'NULL_STATE'];
   const handleChange = (e) => {
     let { name, value } = e.target;
@@ -29,6 +29,9 @@ export default function DynamicStateType({ value, setComponentList, id }) {
         label="Dyn. State Type"
         onChange={handleChange}
         align='left'
+        error={errors.dynamicStateType !== undefined}
+        helperText={errors.dynamicStateType}
+        onBlur={handleBlur}
       >
         {typeOptions.map((option) => <MenuItem key={option} value={option}>{option}</MenuItem>)}
       </TextField>

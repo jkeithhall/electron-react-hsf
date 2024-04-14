@@ -2,7 +2,7 @@ import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 
-export default function SubsystemType({ type, setComponentList, id }) {
+export default function SubsystemType({ type, setComponentList, id, errors, handleBlur }) {
   const typeOptions = ['scripted', 'unscripted']
 
   const handleChange = (e) => {
@@ -33,6 +33,9 @@ export default function SubsystemType({ type, setComponentList, id }) {
         select
         align='left'
         onChange={handleChange}
+        error={errors.type !== undefined}
+        helperText={errors.type}
+        onBlur={handleBlur}
       >
         {typeOptions.map((option) => <MenuItem key={option} value={option}>{option.toUpperCase()}</MenuItem>)}
       </TextField>

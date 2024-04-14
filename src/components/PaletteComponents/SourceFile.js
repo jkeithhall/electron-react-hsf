@@ -4,7 +4,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import { shortenPath } from '../../utils/shortenPath';
 
-export default function SourceFile({ src, errorMessage, setComponentList, id, pythonSrc, validateSrc }) {
+export default function SourceFile({ src, setComponentList, id, pythonSrc, errors, handleBlur }) {
   const handleFileSelected = (filePath) => {
     setComponentList((prevList) => {
       return prevList.map((component) => {
@@ -15,7 +15,7 @@ export default function SourceFile({ src, errorMessage, setComponentList, id, py
         }
       });
     });
-    validateSrc(filePath);
+    // validateSrc(filePath);
   }
 
   const handleClick = () => {
@@ -35,8 +35,9 @@ export default function SourceFile({ src, errorMessage, setComponentList, id, py
           placeholder="Select File"
           onClick={handleClick}
           readOnly
-          error={errorMessage ? true : false}
-          helperText={errorMessage ? errorMessage : ''}
+          error={errors.src !== undefined}
+          helperText={errors.src}
+          onBlur={handleBlur}
           InputProps={{ endAdornment: <InputAdornment position="end"><InsertDriveFileIcon /></InputAdornment> }}
         />
       </>
@@ -52,9 +53,10 @@ export default function SourceFile({ src, errorMessage, setComponentList, id, py
           placeholder="Select File"
           onClick={handleClick}
           readOnly
-          error={errorMessage ? true : false}
-          helperText={errorMessage ? errorMessage : ''}
+          error={errors.src !== undefined}
+          helperText={errors.src}
           InputProps={{ endAdornment: <InputAdornment position="end"><InsertDriveFileIcon /></InputAdornment> }}
+          onBlur={handleBlur}
         />
       </>
     )

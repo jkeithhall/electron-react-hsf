@@ -1,7 +1,7 @@
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 
-export default function NameField({ name, setComponentList, id, errors }) {
+export default function NameField({ name, setComponentList, id, errors, handleBlur }) {
   const handleChange = (e) => {
     let { name, value } = e.target;
 
@@ -16,8 +16,6 @@ export default function NameField({ name, setComponentList, id, errors }) {
     });
   }
 
-  const valid = errors.name === undefined;
-
   return (
     <Grid item xs={6}>
       <TextField
@@ -31,8 +29,9 @@ export default function NameField({ name, setComponentList, id, errors }) {
         name='name'
         type='text'
         onChange={handleChange}
-        error={!valid}
+        error={errors.name !== undefined}
         helperText={errors.name}
+        onBlur={handleBlur}
       />
     </Grid>
   )

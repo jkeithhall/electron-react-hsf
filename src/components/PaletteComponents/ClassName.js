@@ -10,7 +10,7 @@ function titleCase(str) {
   }).join(' ');
 }
 
-export default function ClassName({ className, id, setComponentList }) {
+export default function ClassName({ className, id, setComponentList, errors, handleBlur }) {
   const classNames = className === 'asset' ? ['asset'] : ['adcs', 'power', 'comm', 'eosensor', 'ssdr'];
 
   const handleChange = (e) => {
@@ -40,6 +40,9 @@ export default function ClassName({ className, id, setComponentList }) {
         select
         align='left'
         onChange={handleChange}
+        error={errors.className !== undefined}
+        helperText={errors.className}
+        onBlur={handleBlur}
       >
         {classNames.map((option) => <MenuItem key={option} value={option}>{titleCase(option)}</MenuItem>)}
       </TextField>

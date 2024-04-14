@@ -12,7 +12,7 @@ import DeleteParameterButton from './DeleteButton';
 import AddParameterModal from './AddParameterModal';
 import { convertDisplayName } from '../../utils/displayNames';
 
-export default function SubsystemStates({ data, id, setComponentList }) {
+export default function SubsystemStates({ data, id, setComponentList, componentKeys, errors, handleBlur }) {
   const [hovered, setHovered] = useState(-1);
   const [markedForDeletion, setMarkedForDeletion] = useState(-1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -97,6 +97,9 @@ export default function SubsystemStates({ data, id, setComponentList }) {
                 value={value}
                 type='text'
                 onChange={handleChange}
+                error={errors[key] !== undefined}
+                helperText={errors[key]}
+                onBlur={handleBlur}
               />
               <DeleteParameterButton
                 index={index}
@@ -123,6 +126,9 @@ export default function SubsystemStates({ data, id, setComponentList }) {
                 select
                 align='left'
                 onChange={handleChange}
+                error={errors[key] !== undefined}
+                helperText={errors[key]}
+                onBlur={handleBlur}
               >
                 <MenuItem key='true' value='true'>True</MenuItem>
                 <MenuItem key='false' value='false'>False</MenuItem>
@@ -138,9 +144,20 @@ export default function SubsystemStates({ data, id, setComponentList }) {
             </Stack>
           );
         } else { // 'Matrix' or 'Vector'
+          const errorMessage = errors[key];
+          const invalidComponents = [];
+          if (errorMessage) {
+            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach((component, index) => {
+              if (errorMessage.indexOf(component) !== -1) {
+                invalidComponents.push(index);
+              }
+            });
+          }
+
           return (
             <>
               <Typography variant='body2' color="secondary" my={2}>{convertDisplayName(key)}</Typography>
+              {errorMessage && <Typography variant="body2" color="error" sx={{ my: 1 }}>{errorMessage}</Typography>}
               <Stack direction="row" mt={2}>
                 <Grid container spacing={2} key={key}>
                   {value.map((component, index) => {
@@ -157,6 +174,8 @@ export default function SubsystemStates({ data, id, setComponentList }) {
                           type="text"
                           fullWidth
                           onChange={handleChange}
+                          error={errorMessage && invalidComponents.includes(index)}
+                          onBlur={handleBlur}
                         />
                       </Grid>
                     )
@@ -184,6 +203,7 @@ export default function SubsystemStates({ data, id, setComponentList }) {
       </IconButton>
       {modalOpen && <AddParameterModal
         label='State'
+        componentKeys={componentKeys}
         handleClose={() => {setModalOpen(false)}}
         handleAddParameter={handleAddState}
       />}

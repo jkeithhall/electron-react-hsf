@@ -9,18 +9,28 @@ import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 
-export default function AddParameterModalModal({ label, handleAddParameter, handleClose }) {
+export default function AddParameterModalModal({ label, handleAddParameter, handleClose, componentKeys }) {
   const [parameterName, setParameterName] = useState('');
   const [parameterType, setParameterType] = useState('double');
   const [parameterValue, setParameterValue] = useState(0);
   const [vectorLength, setVectorLength] = useState(3); // Only used if parameterType === 'vector'
   const [parameterVector, setParameterVector] = useState([0, 0, 0]);
+  const [nameErrorMessage, setNameErrorMessage] = useState(''); // Error message for parameter name
   const [valueErrorMessage, setValueErrorMessage] = useState('');
   const [invalidComponents, setInvalidComponents] = useState([]);
 
   const typeOptions = ['double', 'int', 'bool', 'vector'];
 
   const titleCase = (str) => str[0].toUpperCase() + str.slice(1);
+
+  const validateParameterName = (e) => {
+    const { value } = e.target;
+    if (componentKeys.includes(value)) {
+      setNameErrorMessage('Parameter name already exists');
+    } else {
+      setNameErrorMessage('');
+    }
+  }
 
   const handleConfirm = () => {
     if (parameterType === 'vector') {
@@ -127,6 +137,9 @@ export default function AddParameterModalModal({ label, handleAddParameter, hand
           sx={{ my: 1 }}
           value={parameterName}
           onChange={(e) => setParameterName(e.target.value)}
+          onBlur={validateParameterName}
+          error={nameErrorMessage !== ''}
+          helperText={nameErrorMessage}
         />
         {label !== "Integrator Option" && <TextField // Integrator Options default to double only
           id="parameterType"
@@ -222,7 +235,7 @@ export default function AddParameterModalModal({ label, handleAddParameter, hand
             variant="contained"
             onClick={handleConfirm}
             startIcon={<AddIcon/>}
-            disabled={parameterName === '' || parameterValue === '' || valueErrorMessage !== ''}
+            disabled={parameterName === '' || parameterValue === '' || valueErrorMessage !== '' || nameErrorMessage !== ''}
           >
             Add Parameter
           </Button>

@@ -9,7 +9,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteParameterButton from './DeleteButton';
 import AddParameterModal from './AddParameterModal';
 
-export default function IntegratorOptions({ data, setComponentList, id }) {
+export default function IntegratorOptions({ data, setComponentList, id, errors, componentKeys, handleBlur }) {
   const [hovered, setHovered] = useState(-1);
   const [markedForDeletion, setMarkedForDeletion] = useState(-1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -85,6 +85,9 @@ export default function IntegratorOptions({ data, setComponentList, id }) {
             value={value}
             type='text'
             onChange={handleChange}
+            error={errors[key] !== undefined}
+            helperText={errors[key]}
+            onBlur={handleBlur}
           />
           <DeleteParameterButton
             index={index}
@@ -105,6 +108,7 @@ export default function IntegratorOptions({ data, setComponentList, id }) {
       </IconButton>
       {modalOpen && <AddParameterModal
         label="Integrator Option"
+        componentKeys={componentKeys}
         handleClose={() => {setModalOpen(false)}}
         handleAddParameter={handleAddOption}
       />}

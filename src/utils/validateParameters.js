@@ -1,5 +1,5 @@
 import { string, number, object } from 'yup';
-import { findInvalidPythonFiles } from './validatePythonFiles';
+import { validatePythonFile, findInvalidPythonFiles } from './validatePythonFiles';
 
 const scenarioSchema = object({
   name: string().required('Simulation name is required'),
@@ -31,8 +31,7 @@ const taskSchema = object({
 });
 
 // Returns an error message if the state data components are not numbers
-const validateStateData = (parameters) => {
-  const { stateData } = parameters;
+const validateStateData = (stateData) => {
   const nonNumberComponents = [];
   stateData.forEach((component, index) => {
     if (Number(component) !== parseFloat(component)) {
@@ -48,6 +47,7 @@ const validateStateData = (parameters) => {
   }
 };
 
+// Returns an error message if the integrator option is not a number
 const validateIntegratorOption = (key, value) => {
   if (Number(value) !== parseFloat(value)) {
     return `${key} must be a number`;
@@ -56,9 +56,14 @@ const validateIntegratorOption = (key, value) => {
   }
 };
 
-const validateIntegratorParameter = (parameter) => {
-  console.log(`Validating integrator parameter: ${JSON.stringify(parameter)}`)
-  const { key, value, type } = parameter;
+// Returns an error message if the integrator parameter is not a number
+const validateParameter = (parameter, label) => {
+  const { value, type } = parameter;
+  let { key } = parameter;
+  if (label === 'name') {
+    const { name } = parameter;
+    key = name;
+  }
   switch (type) {
     case 'int':
       if (!Number.isInteger(parseFloat(value))) {
@@ -86,6 +91,14 @@ const validateIntegratorParameter = (parameter) => {
   return null;
 };
 
+const validateSrc = (src, pythonSrc) => {
+  if (!validatePythonFile(pythonSrc, src)) {
+    return 'Source File must be in the Python source directory listed in the scenario parameters.';
+  } else {
+    return null;
+  }
+}
+
 async function validateScenarioParametersAt(parameters, name) {
   try {
     await scenarioSchema.validateAt(name, parameters);
@@ -104,48 +117,14 @@ async function validateTaskParametersAt(parameters, name) {
   }
 }
 
-function validateAssetParameter(name, value, setModelErrors, id) {
+// TO DO: Add validation for other fields (id, className, dynamicStateType, eomsType, type, parent)
+function validateAssetParameters(assetParameters, setModelErrors, pythonSrc) {
+  const { id } = assetParameters;
   setModelErrors((modelErrors) => {
     const currentNodeErrors = modelErrors[id] ? modelErrors[id] : {};
     const newModelErrors = { ...modelErrors };
-    switch (name) {
-      case 'name':
-        if (value === '' || value === null || value === undefined) {
-          return 'Name is required';
-        } else {
-          return null;
-        }
-      case 'stateData':
-        return validateStateData({ stateData: value });
-      case 'integratorOptions':
-        const { integratorOptions } = value;
-        Object.entries(integratorOptions).forEach(([key, value]) => {
-          return validateIntegratorOption(key, value);
-        });
-        break;
-      case 'integratorParameters':
-        const { integratorParameters } = value;
-        integratorParameters.forEach((parameter) => {
-          const errorMessage = validateIntegratorParameter(parameter);
-          if (errorMessage) {
-            currentNodeErrors[parameter.key] = errorMessage;
-          } else {
-            delete currentNodeErrors[parameter.key];
-          }
-        });
-        break;
-      default:
-        break;
-    }
-  });
-}
-
-function validateAllAssetParameters(parameters, setModelErrors) {
-  const { id } = parameters;
-  setModelErrors((modelErrors) => {
-    const currentNodeErrors = modelErrors[id] ? modelErrors[id] : {};
-    const newModelErrors = { ...modelErrors };
-    Object.entries(parameters).forEach(([name, value]) => {
+    Object.entries(assetParameters).forEach(([name, value]) => {
+      let errorMessage;
       switch (name) {
         case 'name':
           if (value === '' || value === null || value === undefined) {
@@ -155,7 +134,7 @@ function validateAllAssetParameters(parameters, setModelErrors) {
           }
           break;
         case 'stateData':
-          const errorMessage = validateStateData(parameters);
+          errorMessage = validateStateData(value);
           if (errorMessage) {
             currentNodeErrors[name] = errorMessage;
           } else {
@@ -163,8 +142,7 @@ function validateAllAssetParameters(parameters, setModelErrors) {
           }
           break;
         case 'integratorOptions':
-          const { integratorOptions } = parameters;
-          Object.entries(integratorOptions).forEach(([key, value]) => {
+          Object.entries(value).forEach(([key, value]) => {
             const errorMessage = validateIntegratorOption(key, value);
             if (errorMessage) {
               currentNodeErrors[key] = errorMessage;
@@ -174,9 +152,8 @@ function validateAllAssetParameters(parameters, setModelErrors) {
           });
           break;
         case 'integratorParameters':
-          const { integratorParameters } = parameters;
-          integratorParameters.forEach((parameter) => {
-            const errorMessage = validateIntegratorParameter(parameter);
+          value.forEach((parameter) => {
+            const errorMessage = validateParameter(parameter, 'key');
             if (errorMessage) {
               currentNodeErrors[parameter.key] = errorMessage;
             } else {
@@ -184,11 +161,39 @@ function validateAllAssetParameters(parameters, setModelErrors) {
             }
           });
           break;
+        case 'src':
+          errorMessage = validateSrc(value, pythonSrc);
+          if (errorMessage) {
+            currentNodeErrors[name] = errorMessage;
+          } else {
+            delete currentNodeErrors[name];
+          }
+          break;
+        case 'states':
+          value.forEach((state) => {
+            const errorMessage = validateParameter(state, 'key');
+            if (errorMessage) {
+              currentNodeErrors[state.key] = errorMessage;
+            } else {
+              delete currentNodeErrors[state.key];
+            }
+          });
+          break;
+        case 'parameters':
+          value.forEach((parameter) => {
+            const errorMessage = validateParameter(parameter, 'name');
+            if (errorMessage) {
+              currentNodeErrors[parameter.name] = errorMessage;
+            } else {
+              delete currentNodeErrors[parameter.name];
+            }
+          });
+          break;
         default:
           break;
       }
     });
-    console.log('Current node errors:', currentNodeErrors);
+
     if (Object.keys(currentNodeErrors).length > 0) {
       newModelErrors[id] = { ...currentNodeErrors };
     } else {
@@ -231,4 +236,4 @@ async function validateAllScenarioParameters(parameters, setFormErrors, pythonSo
   });
 }
 
-export { validateScenarioParametersAt, validateTaskParametersAt, validateAllScenarioParameters, validateAssetParameter, validateAllAssetParameters };
+export { validateScenarioParametersAt, validateTaskParametersAt, validateAllScenarioParameters, validateAssetParameters };

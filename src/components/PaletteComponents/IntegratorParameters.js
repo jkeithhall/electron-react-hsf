@@ -12,7 +12,7 @@ import DeleteParameterButton from './DeleteButton';
 import AddParameterModal from './AddParameterModal';
 import { convertDisplayName } from '../../utils/displayNames';
 
-export default function IntegratorParameters({data, id, setComponentList, errors }) {
+export default function IntegratorParameters({data, id, setComponentList, errors, componentKeys, handleBlur }) {
   const [hovered, setHovered] = useState(-1);
   const [markedForDeletion, setMarkedForDeletion] = useState(-1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -98,6 +98,9 @@ export default function IntegratorParameters({data, id, setComponentList, errors
                 value={value}
                 type='text'
                 onChange={handleChange}
+                error={errors[key] !== undefined}
+                helperText={errors[key]}
+                onBlur={handleBlur}
               />
               <DeleteParameterButton
                 index={index}
@@ -124,6 +127,9 @@ export default function IntegratorParameters({data, id, setComponentList, errors
                 name={key}
                 value={value}
                 onChange={handleChange}
+                error={errors[key] !== undefined}
+                helperText={errors[key]}
+                onBlur={handleBlur}
               >
                 <MenuItem key='true' value='true'>True</MenuItem>
                 <MenuItem key='false' value='false'>False</MenuItem>
@@ -139,9 +145,20 @@ export default function IntegratorParameters({data, id, setComponentList, errors
             </Stack>
           );
         } else { // type === 'vector'
+          const errorMessage = errors[key];
+          const invalidComponents = [];
+          if (errorMessage) {
+            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach((component, index) => {
+              if (errorMessage.indexOf(component) !== -1) {
+                invalidComponents.push(index);
+              }
+            });
+          }
+
           return (
             <>
               <Typography variant='body2' color="secondary" my={2}>{convertDisplayName(key)}</Typography>
+              {errorMessage && <Typography variant="body2" color="error" sx={{ my: 1 }}>{errorMessage}</Typography>}
               <Stack direction="row" mt={2}>
                 <Grid container spacing={2}>
                   {value.map((component, index) => {
@@ -159,6 +176,8 @@ export default function IntegratorParameters({data, id, setComponentList, errors
                           type="text"
                           fullWidth
                           onChange={handleChange}
+                          error={errorMessage && invalidComponents.includes(index)}
+                          onBlur={handleBlur}
                         />
                       </Grid>)
                   })}
@@ -185,6 +204,7 @@ export default function IntegratorParameters({data, id, setComponentList, errors
       </IconButton>
       {modalOpen && <AddParameterModal
         label="Integrator Parameter"
+        componentKeys={componentKeys}
         handleClose={() => {setModalOpen(false)}}
         handleAddParameter={handleAddParameter}
       />}
