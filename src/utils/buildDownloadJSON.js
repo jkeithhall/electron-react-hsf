@@ -28,13 +28,14 @@ function getModifiedTasks(currentState) {
 }
 
 function getCurrentState(stateSetters) {
-  let currentStates = [];
-  for (const setState of stateSetters) {
+  let currentStates = {};
+  Object.entries(stateSetters).forEach(([methodName, setState]) => {
     setState(currentState => {
-      currentStates.push(currentState);
+      const key = methodName.replace('set', 'curr');
+      currentStates[key] = currentState;
       return currentState;
     });
-  }
+  });
   return currentStates;
 }
 
@@ -47,30 +48,23 @@ export default function buildDownloadJSON(fileType, setStateMethods) {
     setEvaluator,
     setConstraints } = setStateMethods;
 
-  let currSimulationInput, currTaskList, currComponentList, currDependencyList, currConstraints, currEvaluator;
-
   switch (fileType) {
     case 'Scenario':
-      [currSimulationInput] = getCurrentState([setSimulationInput]);
+      let { currSimulationInput } = getCurrentState({ setSimulationInput });
       return JSON.stringify(getModifiedScenario(currSimulationInput), null, 2);
     case 'Tasks':
-      [currTaskList] = getCurrentState([setTaskList]);
+      let { currTaskList } = getCurrentState({ setTaskList });
       return JSON.stringify(getModifiedTasks(currTaskList), null, 2);
     case 'System Model':
-      [currComponentList, currDependencyList, currConstraints, currEvaluator] = getCurrentState([setComponentList, setDependencyList, setConstraints, setEvaluator]);
+      let { currComponentList, currDependencyList, currConstraints, currEvaluator } = getCurrentState({ setComponentList, setDependencyList, setConstraints, setEvaluator });
       const model = reformatModel(currComponentList, currDependencyList, currConstraints, currEvaluator);
       return JSON.stringify(model, null, 2);
     case 'SIM':
-      [ currSimulationInput,
-        currTaskList,
-        currComponentList,
-        currDependencyList,
-        currConstraints,
-        currEvaluator ] = getCurrentState(Object.values(setStateMethods));
+      const currentData = getCurrentState(setStateMethods);
       const simFileData = {
-        ...getModifiedScenario(currSimulationInput),
-        tasks: getModifiedTasks(currTaskList),
-        model: reformatModel(currComponentList, currDependencyList, currConstraints, currEvaluator),
+        ...getModifiedScenario(currentData.currSimulationInput),
+        tasks: getModifiedTasks(currentData.currTaskList),
+        model: reformatModel(currentData.currComponentList, currentData.currDependencyList, currentData.currConstraints, currentData.currEvaluator),
       }
       // Sim File is a json in compact format (no indentation)
       return JSON.stringify(simFileData);

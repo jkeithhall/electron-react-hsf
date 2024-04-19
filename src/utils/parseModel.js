@@ -22,6 +22,10 @@ class ComponentIds {
     this.ids[id] = name;
     return id;
   }
+  setId(name, id) {
+    this.ids[id] = name;
+    return id;
+  }
   getId(name) {
     for (const [id, n] of Object.entries(this.ids)) {
       if (n === name) return id;
@@ -44,7 +48,7 @@ function parseModel(model) {
   assets.forEach(asset => {
     const { name, dynamicState, subsystems, constraints } = asset;
     const { stateData, Eoms, integratorOptions, integratorParameters } = dynamicState;
-    const id = asset.id === undefined ? componentIds.createId(name) : asset.id;
+    const id = asset.id ? componentIds.setId(name, asset.id) : componentIds.createId(name);
     const parentID = id;
 
     systemComponents.push({
@@ -60,7 +64,7 @@ function parseModel(model) {
 
     subsystems.forEach(subsystem => {
       const { name, type, src, className, parameters, states } = subsystem;
-      const id = subsystem.id === undefined ? componentIds.createId(name) : subsystem.id;
+      const id = subsystem.id ? componentIds.setId(name, subsystem.id) : componentIds.createId(name);
 
       systemComponents.push({
         id,
@@ -76,7 +80,7 @@ function parseModel(model) {
 
     constraints.forEach(constraint => {
       const { name, subsystemName, type, state, value } = constraint;
-      const id = constraint.id === undefined ? randomId() : constraint.id;
+      const id = constraint.id ?? randomId();
       systemConstraints.push({
         id,
         name,
@@ -91,7 +95,7 @@ function parseModel(model) {
 
   dependencies.forEach(dependency => {
       const { subsystemName, assetName, depSubsystemName, depAssetName, fcnName } = dependency;
-      const id = dependency.id === undefined ? randomId() : dependency.id;
+      const id = dependency.id ?? randomId();
 
       // Assumes that asset names are unique
       const assetId = componentIds.getId(assetName);

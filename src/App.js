@@ -129,16 +129,29 @@ export default function App() {
     // Parse file content
     try {
       switch(fileType) {
+        case 'Scenario':
+          parseJSONFile(fileType, content, setStateMethods);
+          break;
+        case 'Tasks':
+          parseJSONFile(fileType, content, setStateMethods);
+          break;
+        case 'System Model':
+          const { systemComponents, systemDependencies } = parseJSONFile(fileType, content, setStateMethods);
+          resetModelNodesEdges(systemComponents, systemDependencies);
+          break;
         case 'SIM':
+          console.log(`Parsing SIM file: ${fileName}`, {content})
           const parsedContent = parseJSONFile(fileType, content, setStateMethods);
-          // If sim file, confirm file open
+          console.log({parsedContent});
+          // If sim file, reset model nodes and edges and confirm file opened
+          resetModelNodesEdges(parsedContent.model.systemComponents, parsedContent.model.systemDependencies);
           window.electronApi.confirmFileOpened(filePath, parsedContent);
           break;
         case 'CSV':
           parseCSVFile(content, setTaskList);
           break;
         default:
-          parseJSONFile(fileType, content, setStateMethods);
+          break;
       }
     } catch (error) {
       // If error, display error modal
@@ -170,6 +183,12 @@ export default function App() {
 
   const handleFileUpdate = (fileUpdateStatus) => {
     setHasUnsavedChanges(fileUpdateStatus);
+  }
+
+  const resetModelNodesEdges = (componentList, dependencyList) => {
+    const { initialNodes, initialEdges } = createNodesEdges(componentList, dependencyList);
+    setNodes(initialNodes);
+    setEdges(initialEdges);
   }
 
   useEffect(() => {

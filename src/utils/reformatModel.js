@@ -2,7 +2,6 @@ import { copyParameters } from './parseModel';
 
 export default function reformatModel(componentList, dependencyList, constraints, parsedEvaluator) {
   const assets = [];
-
   // Reconstruct assets and their constraints
   componentList.forEach((component) => {
     if (component.className === 'asset') {
@@ -22,18 +21,6 @@ export default function reformatModel(componentList, dependencyList, constraints
         constraints: [],
       };
 
-      constraints.forEach((constraint) => {
-        if (constraint.subsystem === component.id) {
-          asset.constraints.push({
-            id: constraint.id,
-            name: constraint.name,
-            subsystemName: component.name,
-            type: constraint.type,
-            value: constraint.value,
-            state: {type: constraint.stateType, key: constraint.stateKey},
-          });
-        }
-      });
       assets.push(asset);
     }
   });
@@ -56,16 +43,29 @@ export default function reformatModel(componentList, dependencyList, constraints
       }
       const parent = assets.find((asset) => asset.id === component.parent);
       parent.subsystems.push(subsystem);
+
+      constraints.forEach((constraint) => {
+        if (constraint.subsystem === component.id) {
+          parent.constraints.push({
+            id: constraint.id,
+            name: constraint.name,
+            subsystemName: component.name,
+            type: constraint.type,
+            value: constraint.value,
+            state: {type: constraint.stateType, key: constraint.stateKey},
+          });
+        }
+      });
     }
   });
 
   // Reconstruct dependencies
   const dependencies = dependencyList.map((dependency) => {
     const { fcnName, asset, subsystem, depSubsystem, depAsset } = dependency;
-    let subSystemName, assetName, depSubsystemName, depAssetName;
+    let subsystemName, assetName, depSubsystemName, depAssetName;
     componentList.forEach((component) => {
       if (component.id === subsystem) {
-        subSystemName = component.name;
+        subsystemName = component.name;
       }
       if (component.id === asset) {
         assetName = component.name;
@@ -80,7 +80,7 @@ export default function reformatModel(componentList, dependencyList, constraints
     return {
       fcnName,
       assetName,
-      subSystemName,
+      subsystemName,
       depAssetName,
       depSubsystemName,
     };

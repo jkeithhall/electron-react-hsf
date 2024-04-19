@@ -75,6 +75,11 @@ const validateParameter = (parameter, label) => {
         return `${key} must be a number`;
       }
       break;
+    case 'bool':
+      if (value !== 'true' && value !== 'false' && value !== true && value !== false) {
+        return `${key} must be true or false`;
+      }
+      break;
     default: // vector
       const nonNumberComponents = [];
       value.forEach((component, index) => {
