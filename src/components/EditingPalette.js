@@ -16,6 +16,8 @@ import SubsystemStates from './PaletteComponents/SubsystemStates';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 import { validateAssetParameters } from '../utils/validateParameters';
 
@@ -27,6 +29,7 @@ export default function EditingPalette ({
   pythonSrc,
   modelErrors,
   setModelErrors,
+  handleDeleteClick
 }) {
 
   const {
@@ -54,8 +57,6 @@ export default function EditingPalette ({
     validateAssetParameters(data, setModelErrors, pythonSrc);
   }, [id, src]);
 
-  let parentName = componentList.find((component) => component.id === parent)?.name;
-
   const componentKeys = ['id', 'name', 'className'];
   if (className === 'asset') {
     componentKeys.push('dynamicStateType', 'eomsType', 'stateData');
@@ -67,6 +68,7 @@ export default function EditingPalette ({
     parameters.forEach((parameter) => { componentKeys.push(parameter.name) });
   }
 
+  const parentName = componentList.find((component) => component.id === parent)?.name;
   const currentNodeErrors = modelErrors[id] ? modelErrors[id] : {};
 
   return (
@@ -75,7 +77,7 @@ export default function EditingPalette ({
         <Typography variant="h4" color="secondary" mt={2}>{`${name ? name : ' '}`}</Typography>
         <Grid container spacing={2} my={2}>
           <NameField name={name} setComponentList={setComponentList} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
-          <ClassName className={className} setcompid={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
+          <ClassName className={className} id={id} setComponentList={setComponentList} errors={currentNodeErrors} handleBlur={handleBlur}/>
         </Grid>
         {className === 'asset' && <>
           <Grid container spacing={2}>
@@ -103,6 +105,17 @@ export default function EditingPalette ({
           <SubsystemStates data={states} id={id} setComponentList={setComponentList} componentKeys={componentKeys} errors={currentNodeErrors} handleBlur={handleBlur}/>
         </>}
       </Box>
+      <div className="confirm-close-icons" style={{ marginBottom: 120 }}>
+        <Button
+          onClick={handleDeleteClick}
+          variant="contained"
+          color="error"
+          size="large"
+          startIcon={<DeleteIcon/>}
+          >
+            Delete Component
+        </Button>
+      </div>
     </>
   );
 }

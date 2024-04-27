@@ -15,7 +15,6 @@ export default function SourceFile({ src, setComponentList, id, pythonSrc, error
         }
       });
     });
-    // validateSrc(filePath);
   }
 
   const handleClick = () => {
@@ -49,7 +48,7 @@ export default function SourceFile({ src, setComponentList, id, pythonSrc, error
         <TextField
           id="src"
           fullWidth
-          value={shortenPath(src, 55)}
+          value={shortenPath(src, 45)}
           placeholder="Select File"
           onClick={handleClick}
           readOnly

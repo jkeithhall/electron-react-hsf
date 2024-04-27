@@ -140,9 +140,7 @@ export default function App() {
           resetModelNodesEdges(systemComponents, systemDependencies);
           break;
         case 'SIM':
-          console.log(`Parsing SIM file: ${fileName}`, {content})
           const parsedContent = parseJSONFile(fileType, content, setStateMethods);
-          console.log({parsedContent});
           // If sim file, reset model nodes and edges and confirm file opened
           resetModelNodesEdges(parsedContent.model.systemComponents, parsedContent.model.systemDependencies);
           window.electronApi.confirmFileOpened(filePath, parsedContent);
@@ -246,6 +244,10 @@ export default function App() {
               setComponentList={setComponentList}
               dependencyList={dependencyList}
               setDependencyList={setDependencyList}
+              constraints={constraints}
+              setConstraints={setConstraints}
+              evaluator={evaluator}
+              setEvaluator={setEvaluator}
               nodes={nodes}
               edges={edges}
               setNodes={setNodes}
@@ -255,6 +257,8 @@ export default function App() {
               setHasUnsavedChanges={setHasUnsavedChanges}
               modelErrors={modelErrors}
               setModelErrors={setModelErrors}
+              setErrorModalOpen={setErrorModalOpen}
+              setErrorMessage={setErrorMessage}
             />,
           'Dependencies': <></>,
           'Constraints': <></>,

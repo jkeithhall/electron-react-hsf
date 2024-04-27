@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-// import { validateScenarioParametersAt } from '../utils/validateParameters';
 import ParameterGroup from './ParameterGroup';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
@@ -28,27 +27,6 @@ export default function ScenarioParameters({activeStep, setActiveStep, simulatio
     setSimulationInput({ name, version, dependencies, simulationParameters, schedulerParameters: newParameters });
     setHasUnsavedChanges(true);
   }
-
-  // const handleNextButtonClick = async () => {
-  //   const parameters = { name, version, pythonSrc, outputPath, ...simulationParameters, ...schedulerParameters };
-  //   for (const parameter in parameters) {
-  //     try {
-  //       await validateScenarioParametersAt(parameters, parameter);
-  //       const newFormErrors = { ...formErrors };
-  //       delete newFormErrors[parameter];
-  //       setFormErrors(newFormErrors);
-  //     } catch (error) {
-  //       const { message } = error;
-  //       setFormErrors({ ...formErrors, [parameter]: message });
-  //     }
-  //   }
-
-  //   if (Object.keys(formErrors).length === 0) {
-  //     setActiveStep('Tasks');
-  //   }
-  // }
-
-  // const valid = Object.keys(formErrors).length === 0;
 
   useEffect(() => {
     const flattenedParameters = { ...sources, ...simulationParameters, ...schedulerParameters };

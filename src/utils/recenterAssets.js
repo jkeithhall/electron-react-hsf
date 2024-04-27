@@ -1,11 +1,16 @@
 export default function recenterAssets(nodes, edges) {
   const assets = {};
+  const disconnectedSubcomponents = [];
   let subComponentHeight, subComponentWidth;
 
   // Calculate the bounding box for each asset
   nodes.forEach((node) => {
-    const { position, height, width, parentNode } = node;
-    if (parentNode) {
+    const { id, position, height, width, parentNode } = node;
+    const connected = edges.some((edge) => edge.target === id || edge.source === id);
+    if (parentNode && !connected) {
+      disconnectedSubcomponents.push(id);
+    }
+    if (parentNode && connected) {
       if (!assets[parentNode]) {
         assets[parentNode] = {
             minX: Number.POSITIVE_INFINITY,
@@ -28,6 +33,8 @@ export default function recenterAssets(nodes, edges) {
   nodes.forEach((node) => {
     const { id, data } = node;
     if (data.data.className === 'asset') {
+      if (assets[id] === undefined) return; // Skip assets with no subcomponents
+
       const { minX, minY, maxX, maxY } = assets[id];
 
       const assetHeight = maxY - minY + subComponentHeight;
@@ -40,11 +47,19 @@ export default function recenterAssets(nodes, edges) {
     } else {
       const { parentNode } = node;
       if (parentNode) {
-        const { minX, minY } = assets[parentNode];
-        node.position.x -= minX;
-        node.position.y -= minY;
-        node.x = node.position.x;
-        node.y = node.position.y;
+        const index = disconnectedSubcomponents.indexOf(node.id);
+        if (index > -1) {
+          node.position.x = 0;
+          node.position.y = index * (subComponentHeight + 10);
+          node.x = 0;
+          node.y = 0;
+        } else {
+          const { minX, minY } = assets[parentNode];
+          node.position.x -= minX;
+          node.position.y -= minY;
+          node.x = node.position.x;
+          node.y = node.position.y;
+        }
       }
     }
   });

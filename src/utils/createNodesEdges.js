@@ -1,5 +1,5 @@
 import randomColor from 'randomcolor';
-// import getLayoutedElements from './getLayoutedElements';
+import { MarkerType } from 'reactflow';
 
 const BASE_COLORS = [ 'blue', 'green', 'red', 'purple', 'orange', 'yellow', 'pink' ];
 
@@ -37,6 +37,7 @@ const createNodesEdges = function(componentList, dependencyList) {
       const subsystemNum = subsystemCount[component.parent];
       node.position = { x: 87 * subsystemNum, y: -90 * subsystemNum + (assetHeight - 40) };
       node.extent = 'parent';
+      // parentNode has been renamed to parentId in in version 11.11.0 and will be removed in version 12
       node.parentNode = component.parent;
       subsystemCount[component.parent]++;
     };
@@ -51,11 +52,12 @@ const createNodesEdges = function(componentList, dependencyList) {
       target: dependency.depSubsystem,
       data: dependency.fcnName,
       type: 'smoothstep',
+      markerEnd: {
+        type: MarkerType.Arrow,
+      },
     });
   });
 
-  // const { nodes: initialNodes, edges: initialEdges } = getLayoutedElements(nodes, edges, { direction: 'TB' });
-  // return { initialNodes, initialEdges };
   return { initialNodes: nodes, initialEdges: edges };
 }
 

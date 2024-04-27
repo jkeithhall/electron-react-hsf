@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -7,9 +7,8 @@ import ReactFlow, {
   useReactFlow,
   Panel,
 } from 'reactflow';
-import IconButton from '@mui/material/IconButton';
-import AutoFixHighIcon from '@mui/icons-material/AutoFixHigh';
-import Tooltip from '@mui/material/Tooltip';
+import { randomId } from '@mui/x-data-grid-generator';
+import AddComponentDial from './AddComponentDial';
 import getLayoutedElements from '../utils/getLayoutedElements';
 import recenterAssets from '../utils/recenterAssets';
 
@@ -22,12 +21,18 @@ export default function LayoutFlow ({
   onEdgesChange,
   handleNodeClick,
   componentList,
+  setComponentList,
+  dependencyList,
   selectedNodeId,
-  setSelectedNodeData }) {
+  setSelectedNodeData,
+  setErrorModalOpen,
+  setErrorMessage,
+  handleNewNodeClick,
+  handlePaletteClose,
+}) {
+  const [reactFlowInstance, setReactFlowInstance] = useState(null);
+
   const { fitView } = useReactFlow();
-  window.requestAnimationFrame(() => {
-    fitView();
-  });
 
   const onLayout = useCallback(
     (direction) => {
@@ -47,14 +52,60 @@ export default function LayoutFlow ({
   );
 
   const onConnect = useCallback((params) => {
+    const { source, target } = params;
     // If the source and target are the same, don't add the edge (no self-loops allowed)
-    if (params.source === params.target) {
+    if (source === target) {
+      setErrorModalOpen(true);
+      setErrorMessage('Self-dependencies are not allowed');
       return;
     }
-    setEdges((eds) => addEdge(params, eds))
+    // If the source or target are assets, don't add the edge
+    if (componentList.find((component) => component.className === 'asset' && (component.id === source || component.id === target))) {
+      setErrorModalOpen(true);
+      setErrorMessage('Cannot create dependencies between assets');
+      return;
+    }
+    // TO DO: Add check for circular dependencies (and other constraints?)
+
+    setEdges((eds) => {
+      // Make all new edges smoothstep
+      return addEdge(params, eds).map((edge) => { return { ...edge, type: 'smoothstep' }});
+    })
   },
     [setEdges],
   );
+
+  const onDragOver = useCallback((e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  }, []);
+
+  const onDrop = useCallback((e) => {
+    e.preventDefault();
+
+    const { data, backgroundColor } = JSON.parse(e.dataTransfer.getData('application/reactflow'));
+    const { className } = data;
+
+    const position = reactFlowInstance.screenToFlowPosition({
+      x: e.clientX,
+      y: e.clientY,
+    });
+    const newNode = {
+      id: data.id,
+      data: { label: data.name, data },
+      position,
+    }
+    if (className === 'asset') {
+      newNode.style = { backgroundColor, width: 200, height: 200 };
+    } else if (data.parent) {
+      newNode.extent = 'parent';
+      newNode.parentNode = data.parent;
+    }
+
+    setComponentList((prevList) => prevList.concat(data));
+    setNodes((nodes) => nodes.concat(newNode));
+    handlePaletteClose();
+  }, [reactFlowInstance]);
 
   useEffect(() => {
     componentList.forEach((component) => {
@@ -86,16 +137,15 @@ export default function LayoutFlow ({
       onNodeClick={handleNodeClick}
       deleteKeyCode={0}
       onError={console.log}
+      snapToGrid={true}
+      snapGrid={[15, 15]}
+      onInit={setReactFlowInstance}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
+      fitView
     >
-      <Panel position="top-right">
-        <Tooltip title="Autolayout">
-          <IconButton
-            color="primary"
-            onClick={() => onLayout('TB')}
-          >
-            <AutoFixHighIcon />
-          </IconButton>
-        </Tooltip>
+      <Panel position="top-left">
+        <AddComponentDial onLayout={onLayout} handleNewNodeClick={handleNewNodeClick} />
       </Panel>
       <Controls />
       <MiniMap />

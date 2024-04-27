@@ -1,23 +1,29 @@
 import { useState } from 'react';
+
 import EditingPalette from './EditingPalette';
+import NewAssetPalette from './NewAssetPalette';
+import NewSubComponentPalette from './NewSubComponentPalette';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
-import Button from '@mui/material/Button';
-import DeleteIcon from '@mui/icons-material/Delete';
 import CloseIcon from '@mui/icons-material/Close';
 
 import ConfirmationModal from './ConfirmationModal';
 
-const drawerWidth = 600;
+const drawerWidth = 500;
 const headerHeight = 100;
 
 export default function ModelEditorDrawer({
   data,
+  newNodeType,
   componentList,
   paletteOpen,
   handlePaletteClose,
   setComponentList,
   setDependencyList,
+  constraints,
+  setConstraints,
+  evaluator,
+  setEvaluator,
   setNodes,
   setEdges,
   pythonSrc,
@@ -35,6 +41,12 @@ export default function ModelEditorDrawer({
   const handleDeleteSubComponent = () => {
     setComponentList((prevList) => prevList.filter((component) => component.id !== deleteId));
     setDependencyList((prevList) => prevList.filter((dependency) => dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId));
+    setConstraints((prevConstraints) => prevConstraints.filter((constraint) => constraint.subsystem !== deleteId));
+    setEvaluator((prevEvaluator) => {
+      const { keyRequests } = prevEvaluator;
+      const newKeyRequests = keyRequests.filter((keyRequest) => keyRequest.subsystem !== deleteId);
+      return { ...prevEvaluator, keyRequests: newKeyRequests };
+    })
     setNodes((prevNodes) => prevNodes.filter((node) => node.id !== deleteId));
     setEdges((prevEdges) => prevEdges.filter((edge) => edge.source !== deleteId && edge.target !== deleteId));
     closePaletteAndModal();
@@ -57,7 +69,6 @@ export default function ModelEditorDrawer({
     });
     setDependencyList((prevList) => {
       const filteredList = prevList.filter((dependency) => dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId);
-      console.log({filteredList});
       if (filteredList.length > 0) {
         return filteredList.map((dependency) => {
           let newDependency = { ...dependency };
@@ -73,6 +84,11 @@ export default function ModelEditorDrawer({
         return [];
       }
     });
+    setEvaluator((prevEvaluator) => {
+      const { keyRequests } = prevEvaluator;
+      const newKeyRequests = keyRequests.filter((keyRequest) => keyRequest.asset !== deleteId);
+      return { ...prevEvaluator, keyRequests: newKeyRequests };
+    })
     setNodes((prevNodes) => {
       const filteredNodes = prevNodes.filter((node) => node.id !== deleteId);
       if (filteredNodes.length > 0) {
@@ -144,28 +160,25 @@ export default function ModelEditorDrawer({
       >
         <CloseIcon/>
       </IconButton>
-      <div className="editing-palette-content">
-        <EditingPalette
-          data={data}
-          componentList={componentList}
-          setComponentList={setComponentList}
-          setDependencyList={setDependencyList}
-          pythonSrc={pythonSrc}
-          modelErrors={modelErrors}
-          setModelErrors={setModelErrors}
-        />
-      </div>
-      <div className="confirm-close-icons" style={{ marginBottom: 120 }}>
-        <Button
-          onClick={handleDeleteClick}
-          variant="contained"
-          color="error"
-          size="large"
-          startIcon={<DeleteIcon/>}
-          >
-            Delete Component
-        </Button>
-      </div>
+      {data && <EditingPalette
+        data={data}
+        componentList={componentList}
+        setComponentList={setComponentList}
+        setDependencyList={setDependencyList}
+        pythonSrc={pythonSrc}
+        modelErrors={modelErrors}
+        setModelErrors={setModelErrors}
+        handleDeleteClick={handleDeleteClick}
+      />}
+      {!data && newNodeType === 'asset' && <NewAssetPalette
+        componentList={componentList}
+        setComponentList={setComponentList}
+      />}
+      {!data && newNodeType === 'subComponent' && <NewSubComponentPalette
+        componentList={componentList}
+        setComponentList={setComponentList}
+        pythonSrc={pythonSrc}
+      />}
       {confirmationModalOpen &&
         <ConfirmationModal
           onCancel={handleDeleteCancel}

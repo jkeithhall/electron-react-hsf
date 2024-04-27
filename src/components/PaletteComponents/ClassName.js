@@ -43,6 +43,7 @@ export default function ClassName({ className, id, setComponentList, errors, han
         error={errors.className !== undefined}
         helperText={errors.className}
         onBlur={handleBlur}
+        disabled={className === 'asset'}
       >
         {classNames.map((option) => <MenuItem key={option} value={option}>{titleCase(option)}</MenuItem>)}
       </TextField>

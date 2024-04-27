@@ -1,4 +1,4 @@
-function getDirectorySeparator() {
+function getOSDirectorySeparator() {
   if (window.electronApi) {
     return window.electronApi.directorySeparator;
   }
@@ -6,11 +6,15 @@ function getDirectorySeparator() {
   return userAgent.indexOf('Windows') !== -1 ? '\\' : '/';
 }
 
+function getCommonDirectorySeparator(path) {
+  return (path.match(/\\/g) || []).length > (path.match(/\//g) || []).length ? '\\' : '/';
+}
+
 function shortenPath(path, maxLength) {
   if (path === undefined) return path;
   if (path.length < maxLength) return path;
 
-  const directorySeparator = getDirectorySeparator();
+  const directorySeparator = getCommonDirectorySeparator(path);
   const parts = path.split(directorySeparator);
   let shortenedPath = path;
   while (shortenedPath.length > maxLength) {
@@ -20,4 +24,4 @@ function shortenPath(path, maxLength) {
   return shortenedPath;
 }
 
-export { shortenPath, getDirectorySeparator };
+export { shortenPath, getOSDirectorySeparator };
