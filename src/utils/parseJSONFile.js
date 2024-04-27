@@ -14,7 +14,7 @@ export default function parseJSONFile(fileType, content, setStateMethods) {
         setTaskList(flattenTasks(parsedJSON));
         return parsedJSON;
       case 'System Model':
-        let parsedModel = parseModel(parsedJSON);
+        const parsedModel = parseModel(parsedJSON);
         setComponentList(parsedModel.systemComponents);
         setDependencyList(parsedModel.systemDependencies);
         setConstraints(parsedModel.systemConstraints);
