@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -86,10 +86,9 @@ export default function IntegratorParameters({data, id, setComponentList, errors
         const { key, value, type } = integratorParameter;
         if (type === 'double' || type === 'int') {
           return (
-            <Stack direction="row" mt={2}>
+            <Stack direction="row" mt={2} key={key}>
               <TextField
                 id={key}
-                key={key}
                 fullWidth
                 label={convertDisplayName(key)}
                 variant="outlined"
@@ -114,10 +113,9 @@ export default function IntegratorParameters({data, id, setComponentList, errors
           );
         } else if (type === 'bool') {
           return (
-            <Stack direction="row" mt={2}>
+            <Stack direction="row" mt={2} key={key}>
               <TextField
                 id={key}
-                key={key}
                 fullWidth
                 label={convertDisplayName(key)}
                 variant="outlined"
@@ -156,7 +154,7 @@ export default function IntegratorParameters({data, id, setComponentList, errors
           }
 
           return (
-            <>
+            <Fragment key={key}>
               <Typography variant='body2' color="secondary" my={2}>{convertDisplayName(key)}</Typography>
               {errorMessage && <Typography variant="body2" color="error" sx={{ my: 1 }}>{errorMessage}</Typography>}
               <Stack direction="row" mt={2}>
@@ -167,7 +165,6 @@ export default function IntegratorParameters({data, id, setComponentList, errors
                       <Grid item xs={4} key={componentKey}>
                         <TextField
                           id={componentKey}
-                          key={componentKey}
                           label={`Component ${index}`}
                           variant="outlined"
                           color="primary"
@@ -191,7 +188,7 @@ export default function IntegratorParameters({data, id, setComponentList, errors
                   handleDeleteClicked={handleDeleteClicked}
                 />
               </Stack>
-            </>
+            </Fragment>
           )
         }
       })}

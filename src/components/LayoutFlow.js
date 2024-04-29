@@ -7,7 +7,7 @@ import ReactFlow, {
   useReactFlow,
   Panel,
 } from 'reactflow';
-import { randomId } from '@mui/x-data-grid-generator';
+
 import AddComponentDial from './AddComponentDial';
 import getLayoutedElements from '../utils/getLayoutedElements';
 import recenterAssets from '../utils/recenterAssets';

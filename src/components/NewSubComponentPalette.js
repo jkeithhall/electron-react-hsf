@@ -92,7 +92,7 @@ export default function NewSubComponentPalette({
         <SubsystemParameters data={parameters} id={id} setComponentList={updateNewComponent} componentKeys={componentKeys} errors={currentNodeErrors} handleBlur={handleBlur}/>
         <SubsystemStates data={states} id={id} setComponentList={updateNewComponent} componentKeys={componentKeys} errors={currentNodeErrors} handleBlur={handleBlur}/>
       </Box>
-      <div className="drag-drop-container">
+      <div className="drag-drop-container" style={{ marginBottom: 120 }}>
         {name && Object.keys(currentNodeErrors).length === 0 && <>
           <Typography variant="body2" color="light" mt={2} >{'Drag and drop this component into the model.'}</Typography>
           <div className="new-node-origin">

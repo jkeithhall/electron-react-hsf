@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, Fragment } from 'react';
 
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
@@ -88,7 +88,6 @@ export default function SubsystemStates({ data, id, setComponentList, componentK
             <Stack key={key} direction="row" mt={2}>
               <TextField
                 id={key}
-                key={key}
                 fullWidth
                 label={convertDisplayName(key)}
                 variant="outlined"
@@ -116,7 +115,6 @@ export default function SubsystemStates({ data, id, setComponentList, componentK
             <Stack key={key} direction="row" mt={2}>
               <TextField
                 id={key}
-                key={key}
                 fullWidth
                 label={convertDisplayName(key)}
                 variant="outlined"
@@ -155,7 +153,7 @@ export default function SubsystemStates({ data, id, setComponentList, componentK
           }
 
           return (
-            <>
+            <Fragment key={key}>
               <Typography variant='body2' color="secondary" my={2}>{convertDisplayName(key)}</Typography>
               {errorMessage && <Typography variant="body2" color="error" sx={{ my: 1 }}>{errorMessage}</Typography>}
               <Stack direction="row" mt={2}>
@@ -190,7 +188,7 @@ export default function SubsystemStates({ data, id, setComponentList, componentK
                   handleDeleteClicked={handleDeleteClicked}
                 />
               </Stack>
-            </>
+            </Fragment>
           )
         }
       })}

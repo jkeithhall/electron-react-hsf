@@ -119,7 +119,7 @@ export default function NewAssetPalette({
         <IntegratorOptions data={integratorOptions} id={id} setComponentList={updateNewComponent} errors={currentNodeErrors} componentKeys={componentKeys} handleBlur={handleBlur}/>
         <IntegratorParameters data={integratorParameters} id={id} setComponentList={updateNewComponent} errors={currentNodeErrors} componentKeys={componentKeys} handleBlur={handleBlur}/>
       </Box>
-      <div className="drag-drop-container">
+      <div className="drag-drop-container" style={{ marginBottom: 120 }}>
         {name && Object.keys(currentNodeErrors).length === 0 && <>
           <Typography variant="body2" color="light" mt={2} >{'Drag and drop this asset into the model.'}</Typography>
           <div className="new-node-origin">

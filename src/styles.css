@@ -22,7 +22,7 @@
     --map-container-min-height: 200px;
     --confirm-close-margin: 20px;
     --confirm-close-gap: 20px;
-    --drag-drop-gap: 10px;
+    --drag-drop-gap: 20px;
     --calendar-stacking-context-width: 325px;
     --calendar-stacking-context-height: 345px;
 }
