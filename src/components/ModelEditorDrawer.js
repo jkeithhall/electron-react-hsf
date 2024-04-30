@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
 import EditingPalette from './EditingPalette';
 import NewAssetPalette from './NewAssetPalette';
@@ -38,7 +38,7 @@ export default function ModelEditorDrawer({
     setDeleteId(data.id);
   }
 
-  const handleDeleteSubComponent = () => {
+  const handleDeleteSubComponent = useCallback(() => {
     setComponentList((prevList) => prevList.filter((component) => component.id !== deleteId));
     setDependencyList((prevList) => prevList.filter((dependency) => dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId));
     setConstraints((prevConstraints) => prevConstraints.filter((constraint) => constraint.subsystem !== deleteId));
@@ -50,27 +50,22 @@ export default function ModelEditorDrawer({
     setNodes((prevNodes) => prevNodes.filter((node) => node.id !== deleteId));
     setEdges((prevEdges) => prevEdges.filter((edge) => edge.source !== deleteId && edge.target !== deleteId));
     closePaletteAndModal();
-  }
+  }, [deleteId]);
 
-  const handleDeleteAsset = () => {
+  const handleDeleteAsset = useCallback(() => {
     setComponentList((prevList) => {
-      const filteredList = prevList.filter((component) => component.id !== deleteId)
-      if (filteredList.length > 0) {
-        return filteredList.map((component) => {
+      return prevList.filter((component) => component.id !== deleteId)
+        .map((component) => {
           if (component.parent === deleteId) {
             return { ...component, parent: null };
-          } else {
-            return component;
           }
+          return component;
         });
-      } else {
-        return [];
-      }
     });
     setDependencyList((prevList) => {
-      const filteredList = prevList.filter((dependency) => dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId);
-      if (filteredList.length > 0) {
-        return filteredList.map((dependency) => {
+      return prevList
+        .filter((dependency) => dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId)
+        .map((dependency) => {
           let newDependency = { ...dependency };
           if (newDependency.asset === deleteId) {
             newDependency.asset = null;
@@ -80,9 +75,6 @@ export default function ModelEditorDrawer({
           }
           return newDependency;
         });
-      } else {
-        return [];
-      }
     });
     setEvaluator((prevEvaluator) => {
       const { keyRequests } = prevEvaluator;
@@ -90,9 +82,8 @@ export default function ModelEditorDrawer({
       return { ...prevEvaluator, keyRequests: newKeyRequests };
     })
     setNodes((prevNodes) => {
-      const filteredNodes = prevNodes.filter((node) => node.id !== deleteId);
-      if (filteredNodes.length > 0) {
-        return filteredNodes.map((node) => {
+      return prevNodes.filter((node) => node.id !== deleteId)
+        .map((node) => {
           if (node.parentNode === deleteId) {
             const newNode = { ...node };
             newNode.parentNode = null;
@@ -105,13 +96,10 @@ export default function ModelEditorDrawer({
             return node;
           }
         });
-      } else {
-        return [];
-      }
     });
     setEdges((prevEdges) => prevEdges.filter((edge) => edge.source !== deleteId && edge.target !== deleteId));
     closePaletteAndModal();
-  }
+  }, [deleteId]);
 
   const closePaletteAndModal = () => {
     handlePaletteClose();

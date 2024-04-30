@@ -24,16 +24,18 @@ import createNodesEdges from './utils/createNodesEdges';
 const { systemComponents, systemDependencies, systemEvaluator, systemConstraints } = parseModel(initModel);
 
 export default function App() {
-  // State variables
+  // Scenario and Tasks state variables
   const [activeStep, setActiveStep] = useState('Scenario');
   const [simulationInput, setSimulationInput] = useState(aeolusSimulationInput);
   const [taskList, setTaskList] = useState(flattenedInitTasks);
 
+  // Model state variables
   const [componentList, setComponentList] = useState(systemComponents);
   const [dependencyList, setDependencyList] = useState(systemDependencies);
   const [evaluator, setEvaluator] = useState(systemEvaluator);
   const [constraints, setConstraints] = useState(systemConstraints);
 
+  // React Flow state variables
   const { initialNodes, initialEdges } = createNodesEdges(componentList, dependencyList);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -46,6 +48,7 @@ export default function App() {
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [saveConfirmationModalOpen, setSaveConfirmationModalOpen] = useState(false);
 
+  // TO DO: Create context provider for all errors
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(false);
   const [modelErrors, setModelErrors] = useState({});
