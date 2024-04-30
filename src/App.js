@@ -8,23 +8,37 @@ import ModelEditor from './components/ModelEditor';
 import ConfirmationModal from './components/ConfirmationModal';
 import SaveConfirmationModal from './components/SaveConfirmationModal';
 import ErrorModal from './components/ErrorModal';
-import Box from '@mui/material/Box';
+import  { useNodesState, useEdgesState } from 'reactflow';
 
 import { initSimulationInput, aeolusSimulationInput } from './aeolus_config/initSimulationInput';
 import flattenedInitTasks from './aeolus_config/initTaskList';
 import initModel from './aeolus_config/initModel';
 
+import { parseModel } from './utils/parseModel';
 import parseJSONFile from './utils/parseJSONFile';
 import parseCSVFile from './utils/parseCSVFile';
 import buildDownloadJSON from './utils/buildDownloadJSON';
 import downloadCSV from './utils/downloadCSV';
+import createNodesEdges from './utils/createNodesEdges';
+
+const { systemComponents, systemDependencies, systemEvaluator, systemConstraints } = parseModel(initModel);
 
 export default function App() {
-  // State variables
+  // Scenario and Tasks state variables
   const [activeStep, setActiveStep] = useState('Scenario');
   const [simulationInput, setSimulationInput] = useState(aeolusSimulationInput);
   const [taskList, setTaskList] = useState(flattenedInitTasks);
-  const [model, setModel] = useState(initModel);
+
+  // Model state variables
+  const [componentList, setComponentList] = useState(systemComponents);
+  const [dependencyList, setDependencyList] = useState(systemDependencies);
+  const [evaluator, setEvaluator] = useState(systemEvaluator);
+  const [constraints, setConstraints] = useState(systemConstraints);
+
+  // React Flow state variables
+  const { initialNodes, initialEdges } = createNodesEdges(componentList, dependencyList);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
   const [selectedFileName, setSelectedFileName] = useState(null);
@@ -33,14 +47,20 @@ export default function App() {
   const [selectedFilePath, setSelectedFilePath] = useState(null);
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [saveConfirmationModalOpen, setSaveConfirmationModalOpen] = useState(false);
+
+  // TO DO: Create context provider for all errors
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(false);
+  const [modelErrors, setModelErrors] = useState({});
 
   // Bundling state methods
   const setStateMethods = {
     setSimulationInput,
     setTaskList,
-    setModel
+    setComponentList,
+    setDependencyList,
+    setEvaluator,
+    setConstraints,
   };
 
   const navDrawerWidth = 220;
@@ -78,8 +98,12 @@ export default function App() {
 
   const resetFile = () => {
     setSimulationInput(initSimulationInput);
-    setTaskList([]);
-    setModel({assets: [], dependencies: [], evaluator: []});
+    setTaskList(flattenedInitTasks);
+    setComponentList(systemComponents);
+    setDependencyList(systemDependencies);
+    setEvaluator(systemEvaluator);
+    setConstraints(systemConstraints);
+    setActiveStep('Scenario');
     setSaveConfirmationModalOpen(false);
     setHasUnsavedChanges(true);
     if (window.electronApi) {
@@ -108,16 +132,27 @@ export default function App() {
     // Parse file content
     try {
       switch(fileType) {
+        case 'Scenario':
+          parseJSONFile(fileType, content, setStateMethods);
+          break;
+        case 'Tasks':
+          parseJSONFile(fileType, content, setStateMethods);
+          break;
+        case 'System Model':
+          const { systemComponents, systemDependencies } = parseJSONFile(fileType, content, setStateMethods);
+          resetModelNodesEdges(systemComponents, systemDependencies);
+          break;
         case 'SIM':
           const parsedContent = parseJSONFile(fileType, content, setStateMethods);
-          // If sim file, confirm file open
+          // If sim file, reset model nodes and edges and confirm file opened
+          resetModelNodesEdges(parsedContent.model.systemComponents, parsedContent.model.systemDependencies);
           window.electronApi.confirmFileOpened(filePath, parsedContent);
           break;
         case 'CSV':
           parseCSVFile(content, setTaskList);
           break;
         default:
-          parseJSONFile(fileType, content, setStateMethods);
+          break;
       }
     } catch (error) {
       // If error, display error modal
@@ -151,6 +186,12 @@ export default function App() {
     setHasUnsavedChanges(fileUpdateStatus);
   }
 
+  const resetModelNodesEdges = (componentList, dependencyList) => {
+    const { initialNodes, initialEdges } = createNodesEdges(componentList, dependencyList);
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+  }
+
   useEffect(() => {
     // If running in Electron, register event handlers for menu bar file selection
     if (window.electronApi) {
@@ -174,9 +215,7 @@ export default function App() {
       hasUnsavedChanges={hasUnsavedChanges}
       setStateMethods={setStateMethods}
     >
-      <Box
-        className='work-space'
-        sx={{ width: `calc(100vw - ${navOpen ? 220 : 60}px)`, maxWidth: `calc(100vw - ${navOpen ? 220 : 60}px)`}}>
+      <div className={`work-space ${navOpen ? 'work-space-nav-open' : 'work-space-nav-closed'}`} >
         {{'Scenario':
             <ScenarioParameters
               activeStep={activeStep}
@@ -185,6 +224,7 @@ export default function App() {
               setSimulationInput={setSimulationInput}
               setStateMethods={setStateMethods}
               setHasUnsavedChanges={setHasUnsavedChanges}
+              componentList={componentList}
             />,
           'Tasks':
             <TaskTable
@@ -201,10 +241,27 @@ export default function App() {
               navOpen={navOpen}
               activeStep={activeStep}
               setActiveStep={setActiveStep}
+              pythonSrc={simulationInput.dependencies.pythonSrc}
               setStateMethods={setStateMethods}
-              model={model}
-              setModel={setModel}
+              componentList={componentList}
+              setComponentList={setComponentList}
+              dependencyList={dependencyList}
+              setDependencyList={setDependencyList}
+              constraints={constraints}
+              setConstraints={setConstraints}
+              evaluator={evaluator}
+              setEvaluator={setEvaluator}
+              nodes={nodes}
+              edges={edges}
+              setNodes={setNodes}
+              setEdges={setEdges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
               setHasUnsavedChanges={setHasUnsavedChanges}
+              modelErrors={modelErrors}
+              setModelErrors={setModelErrors}
+              setErrorModalOpen={setErrorModalOpen}
+              setErrorMessage={setErrorMessage}
             />,
           'Dependencies': <></>,
           'Constraints': <></>,
@@ -244,8 +301,8 @@ export default function App() {
               />
             </div>)
           }
-      </Box>
       <Footer/>
+      </div>
     </NavDrawer>
   );
 }

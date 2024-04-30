@@ -1,4 +1,5 @@
 import { string, number, object } from 'yup';
+import { validatePythonFile, findInvalidPythonFiles } from './validatePythonFiles';
 
 const scenarioSchema = object({
   name: string().required('Simulation name is required'),
@@ -29,6 +30,80 @@ const taskSchema = object({
   nonzeroValCapTime: number().required().positive('Nonzero Value Cap Time must be ≥0'),
 });
 
+// Returns an error message if the state data components are not numbers
+const validateStateData = (stateData) => {
+  const nonNumberComponents = [];
+  stateData.forEach((component, index) => {
+    if (Number(component) !== parseFloat(component)) {
+      nonNumberComponents.push(index);
+    }
+  });
+  if (nonNumberComponents.length > 1) {
+    return `State Data components ${nonNumberComponents.join(', ')} are not numbers`;
+  } else if (nonNumberComponents.length === 1) {
+    return `State Data component ${nonNumberComponents[0]} is not a number`;
+  } else {
+    return null;
+  }
+};
+
+// Returns an error message if the integrator option is not a number
+const validateIntegratorOption = (key, value) => {
+  if (Number(value) !== parseFloat(value)) {
+    return `${key} must be a number`;
+  } else {
+    return null;
+  }
+};
+
+// Returns an error message if the integrator parameter is not a number
+const validateParameter = (parameter, label) => {
+  const { value, type } = parameter;
+  let { key } = parameter;
+  if (label === 'name') {
+    const { name } = parameter;
+    key = name;
+  }
+  switch (type) {
+    case 'int':
+      if (!Number.isInteger(parseFloat(value))) {
+        return `${key} must be an integer`;
+      }
+      break;
+    case 'double':
+      if (Number(value) !== parseFloat(value)) {
+        return `${key} must be a number`;
+      }
+      break;
+    case 'bool':
+      if (value !== 'true' && value !== 'false' && value !== true && value !== false) {
+        return `${key} must be true or false`;
+      }
+      break;
+    default: // vector
+      const nonNumberComponents = [];
+      value.forEach((component, index) => {
+        if (Number(component) !== parseFloat(component)) {
+          nonNumberComponents.push(index);
+        }
+      });
+      if (nonNumberComponents.length > 1) {
+        return `${key} components ${nonNumberComponents.join(', ')} are not numbers`;
+      } else if (nonNumberComponents.length === 1) {
+        return `${key} component ${nonNumberComponents[0]} is not a number`;
+      }
+  }
+  return null;
+};
+
+const validateSrc = (src, pythonSrc) => {
+  if (!validatePythonFile(pythonSrc, src)) {
+    return 'Source File must be in the Python source directory listed in the scenario parameters.';
+  } else {
+    return null;
+  }
+}
+
 async function validateScenarioParametersAt(parameters, name) {
   try {
     await scenarioSchema.validateAt(name, parameters);
@@ -47,13 +122,123 @@ async function validateTaskParametersAt(parameters, name) {
   }
 }
 
-async function validateAllScenarioParameters(parameters) {
-  try {
-    await scenarioSchema.validate(parameters);
-  } catch (error) {
-    console.log(error);
-    throw error;
-  }
+// TO DO: Add validation for other fields (id, className, dynamicStateType, eomsType, type, parent)
+function validateAssetParameters(assetParameters, setModelErrors, pythonSrc) {
+  const { id } = assetParameters;
+  setModelErrors((modelErrors) => {
+    const currentNodeErrors = modelErrors[id] ? modelErrors[id] : {};
+    const newModelErrors = { ...modelErrors };
+    Object.entries(assetParameters).forEach(([name, value]) => {
+      let errorMessage;
+      switch (name) {
+        case 'name':
+          if (value === '' || value === null || value === undefined) {
+            currentNodeErrors[name] = 'Name is required';
+          } else {
+            delete currentNodeErrors[name];
+          }
+          break;
+        case 'stateData':
+          errorMessage = validateStateData(value);
+          if (errorMessage) {
+            currentNodeErrors[name] = errorMessage;
+          } else {
+            delete currentNodeErrors[name];
+          }
+          break;
+        case 'integratorOptions':
+          Object.entries(value).forEach(([key, value]) => {
+            const errorMessage = validateIntegratorOption(key, value);
+            if (errorMessage) {
+              currentNodeErrors[key] = errorMessage;
+            } else {
+              delete currentNodeErrors[key];
+            }
+          });
+          break;
+        case 'integratorParameters':
+          value.forEach((parameter) => {
+            const errorMessage = validateParameter(parameter, 'key');
+            if (errorMessage) {
+              currentNodeErrors[parameter.key] = errorMessage;
+            } else {
+              delete currentNodeErrors[parameter.key];
+            }
+          });
+          break;
+        case 'src':
+          errorMessage = validateSrc(value, pythonSrc);
+          if (errorMessage) {
+            currentNodeErrors[name] = errorMessage;
+          } else {
+            delete currentNodeErrors[name];
+          }
+          break;
+        case 'states':
+          value.forEach((state) => {
+            const errorMessage = validateParameter(state, 'key');
+            if (errorMessage) {
+              currentNodeErrors[state.key] = errorMessage;
+            } else {
+              delete currentNodeErrors[state.key];
+            }
+          });
+          break;
+        case 'parameters':
+          value.forEach((parameter) => {
+            const errorMessage = validateParameter(parameter, 'name');
+            if (errorMessage) {
+              currentNodeErrors[parameter.name] = errorMessage;
+            } else {
+              delete currentNodeErrors[parameter.name];
+            }
+          });
+          break;
+        default:
+          break;
+      }
+    });
+
+    if (Object.keys(currentNodeErrors).length > 0) {
+      newModelErrors[id] = { ...currentNodeErrors };
+    } else {
+      delete newModelErrors[id];
+    }
+    return newModelErrors;
+  });
+
 }
 
-export { validateScenarioParametersAt, validateTaskParametersAt, validateAllScenarioParameters };
+async function validateAllScenarioParameters(parameters, setFormErrors, pythonSourceFiles) {
+  setFormErrors((formErrors) => {
+    const newFormErrors = { ...formErrors };
+    Object.entries(parameters).forEach(async ([name, value]) => {
+      if (name === 'pythonSrc') {
+        try {
+          if (value === '' || value === null || value === undefined) throw new Error('Python Source is required');
+
+          const invalidSources = findInvalidPythonFiles(value, pythonSourceFiles);
+          if (invalidSources.length > 0) throw new Error('Python source files for one or more system components not found in the selected directory.');
+
+          // Remove error message from the name key of the object
+          delete newFormErrors[name];
+        } catch (error) {
+          const { message } = error;
+          newFormErrors[name] = message;
+        }
+       } else {
+          try {
+            await validateScenarioParametersAt(parameters, name);
+            // Remove error message from the name key of the object
+            delete newFormErrors[name];
+          } catch (error) {
+            const { message } = error;
+            newFormErrors[name] = message;
+          }
+        }
+    });
+    return newFormErrors;
+  });
+}
+
+export { validateScenarioParametersAt, validateTaskParametersAt, validateAllScenarioParameters, validateAssetParameters };

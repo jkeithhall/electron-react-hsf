@@ -2,6 +2,7 @@ const electron = require('electron');
 const { ipcRenderer, contextBridge } = electron;
 
 const api = {
+  directorySeparator: process.platform === 'win32' ? '\\' : '/',
   onNewFile: (handleNewFile) => {
     ipcRenderer.on('new-file-click', async (_) => {
       handleNewFile();
@@ -42,6 +43,12 @@ const api = {
     ipcRenderer.send('show-directory-select-dialog');
     ipcRenderer.on('directory-selected', (_, filePath) => {
       handleDirectorySelect(filePath);
+    });
+  },
+  selectFile: (directory, fileType, handleFileSelected) => {
+    ipcRenderer.send('show-file-select-dialog', directory, fileType);
+    ipcRenderer.on('file-selected', (_, filePath, fileName, content) => {
+      handleFileSelected(filePath, fileName, content);
     });
   },
   onSaveFileClick: (handleSaveFile) => {

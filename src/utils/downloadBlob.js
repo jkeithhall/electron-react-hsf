@@ -1,3 +1,4 @@
+// Currently deprecated: no download button on the frontend
 export default function downloadBlob(blob, fileName) {
   const link = document.createElement('a');
   link.href = window.URL.createObjectURL(blob);

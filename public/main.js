@@ -3,7 +3,7 @@ const path = require('path');
 const { join } = require('path');
 const isDev = require('electron-is-dev');
 const { initializeMenu } = require('./menu');
-const { getFilePath, getContent, saveFile, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges } = require('./fileHandlers');
+const { getFilePath, getContent, saveFile, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges, showFileSelectDialog } = require('./fileHandlers');
 
 function createWindow() {
   // Create the browser window.
@@ -56,6 +56,14 @@ ipcMain.on('show-directory-select-dialog', (event) => {
   if (!browserWindow) return;
 
   showDirectorySelectDialog(browserWindow);
+});
+
+ipcMain.on('show-file-select-dialog', (event, directory, fileType) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  if (!browserWindow) return;
+
+  showFileSelectDialog(browserWindow, directory, fileType);
 });
 
 ipcMain.on('update-open-file', (event, filePath, content) => {

@@ -1,44 +1,109 @@
-import { useCallback } from 'react';
-import ReactFlow, {
-  MiniMap,
-  Controls,
-  Background,
-  useNodesState,
-  useEdgesState,
-  addEdge,
-} from 'reactflow';
+import { useState } from 'react';
+import { ReactFlowProvider } from 'reactflow';
+import LayoutFlow from './LayoutFlow';
 
-import createNodesEdges from '../utils/createNodesEdges';
+import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import 'reactflow/dist/style.css';
+import ModelEditorDrawer from './ModelEditorDrawer';
 
-export default function ModelEditor({navOpen, model, setModel, activeStep, setActiveStep, setStateMethods}) {
-  const { initialNodes, initialEdges } = createNodesEdges(model);
-  const [ nodes, setNodes, onNodesChange ] = useNodesState(initialNodes);
-  const [ edges, setEdges, onEdgesChange ] = useEdgesState(initialEdges);
+export default function ModelEditor({
+  navOpen,
+  componentList,
+  setComponentList,
+  dependencyList,
+  setDependencyList,
+  constraints,
+  setConstraints,
+  evaluator,
+  setEvaluator,
+  activeStep,
+  setActiveStep,
+  pythonSrc,
+  nodes,
+  edges,
+  setNodes,
+  setEdges,
+  onNodesChange,
+  onEdgesChange,
+  modelErrors,
+  setModelErrors,
+  setErrorModalOpen,
+  setErrorMessage
+}) {
+  const [ selectedNodeId, setSelectedNodeId ] = useState(null);
+  const [ selectedNodeData, setSelectedNodeData ] = useState(null);
+  const [ paletteOpen, setPaletteOpen ] = useState(false);
+  const [ newNodeType, setNewNodeType ] = useState(null);
 
-  const onConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges],
-  );
+  const handlePaletteOpen = () => {
+    setPaletteOpen(true);
+  }
+
+  const handlePaletteClose = () => {
+    setPaletteOpen(false);
+  }
+
+  const handleNodeClick = (event, node) => {
+    const { id, data } = node;
+    setSelectedNodeId(id);
+    setSelectedNodeData(data.data);
+    setPaletteOpen(true);
+  }
+
+  const handleNewNodeClick = (type) => {
+    setSelectedNodeData(null);
+    setNewNodeType(type);
+    setPaletteOpen(true);
+  }
 
   return (
     <>
-      <Paper sx={{ alignSelf: 'flex-start', margin: '25px', minWidth: '1000px', maxWidth: 'calc(100vw - 280px)', height: 'calc(100vw - 200px)', padding: 1, backgroundColor: '#282D3d' }} >
-        <Paper style={{ width: '100%', height: '100%' }}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-          >
-            <Controls />
-            <MiniMap />
-            <Background variant="dots" gap={12} size={1} />
-          </ReactFlow>
+      <Box className="model-editor">
+        <Paper className="react-flow-board" sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
+          <Paper style={{ width: '100%', height: '100%' }}>
+            <ReactFlowProvider>
+              <LayoutFlow
+                nodes={nodes}
+                edges={edges}
+                setNodes={setNodes}
+                setEdges={setEdges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                handleNodeClick={handleNodeClick}
+                componentList={componentList}
+                setComponentList={setComponentList}
+                dependencyList={dependencyList}
+                selectedNodeId={selectedNodeId}
+                setSelectedNodeData={setSelectedNodeData}
+                setErrorModalOpen={setErrorModalOpen}
+                setErrorMessage={setErrorMessage}
+                handleNewNodeClick={handleNewNodeClick}
+                handlePaletteClose={handlePaletteClose}
+              />
+            </ReactFlowProvider>
+          </Paper>
         </Paper>
-      </Paper>
+      </Box>
+      {paletteOpen &&
+        <ModelEditorDrawer
+          data={selectedNodeData}
+          newNodeType={newNodeType}
+          paletteOpen={paletteOpen}
+          handlePaletteOpen={handlePaletteOpen}
+          handlePaletteClose={handlePaletteClose}
+          componentList={componentList}
+          setComponentList={setComponentList}
+          setDependencyList={setDependencyList}
+          constraints={constraints}
+          setConstraints={setConstraints}
+          setEvaluator={setEvaluator}
+          setNodes={setNodes}
+          setEdges={setEdges}
+          pythonSrc={pythonSrc}
+          modelErrors={modelErrors}
+          setModelErrors={setModelErrors}
+        />}
     </>
   );
 }
