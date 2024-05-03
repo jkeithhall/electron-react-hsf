@@ -18,10 +18,12 @@ import { parseModel } from './utils/parseModel';
 import parseJSONFile from './utils/parseJSONFile';
 import parseCSVFile from './utils/parseCSVFile';
 import buildDownloadJSON from './utils/buildDownloadJSON';
+import buildSimFile from './utils/buildSimFile';
 import downloadCSV from './utils/downloadCSV';
 import createNodesEdges from './utils/createNodesEdges';
 
 const { systemComponents, systemDependencies, systemEvaluator, systemConstraints } = parseModel(initModel);
+const { initialNodes, initialEdges } = createNodesEdges(systemComponents, systemDependencies);
 
 export default function App() {
   // Scenario and Tasks state variables
@@ -36,7 +38,6 @@ export default function App() {
   const [constraints, setConstraints] = useState(systemConstraints);
 
   // React Flow state variables
-  const { initialNodes, initialEdges } = createNodesEdges(componentList, dependencyList);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
@@ -61,6 +62,15 @@ export default function App() {
     setDependencyList,
     setEvaluator,
     setConstraints,
+  };
+
+  const savedStateMethods = {
+    ...setStateMethods,
+    setNodes,
+    setEdges,
+    setErrorMessage,
+    setModelErrors,
+    setHasUnsavedChanges,
   };
 
   const navDrawerWidth = 220;
@@ -140,19 +150,19 @@ export default function App() {
           break;
         case 'System Model':
           const { systemComponents, systemDependencies } = parseJSONFile(fileType, content, setStateMethods);
-          resetModelNodesEdges(systemComponents, systemDependencies);
+          updateNodesEdges(systemComponents, systemDependencies);
           break;
         case 'SIM':
           const parsedContent = parseJSONFile(fileType, content, setStateMethods);
           // If sim file, reset model nodes and edges and confirm file opened
-          resetModelNodesEdges(parsedContent.model.systemComponents, parsedContent.model.systemDependencies);
+          updateNodesEdges(parsedContent.model.systemComponents, parsedContent.model.systemDependencies);
           window.electronApi.confirmFileOpened(filePath, parsedContent);
           break;
         case 'CSV':
           parseCSVFile(content, setTaskList);
           break;
         default:
-          break;
+          throw new Error('Invalid file type');
       }
     } catch (error) {
       // If error, display error modal
@@ -176,7 +186,7 @@ export default function App() {
 
   const handleSaveFile = async (callback) => {
     if (window.electronApi) {
-      const content = await buildDownloadJSON('SIM', setStateMethods);
+      const content = buildSimFile(savedStateMethods);
       window.electronApi.saveCurrentFile(content);
       window.electronApi.onSaveConfirm(callback);
     }
@@ -186,7 +196,7 @@ export default function App() {
     setHasUnsavedChanges(fileUpdateStatus);
   }
 
-  const resetModelNodesEdges = (componentList, dependencyList) => {
+  const updateNodesEdges = (componentList, dependencyList) => {
     const { initialNodes, initialEdges } = createNodesEdges(componentList, dependencyList);
     setNodes(initialNodes);
     setEdges(initialEdges);
@@ -203,6 +213,11 @@ export default function App() {
       window.electronApi.onFileUpdate(handleFileUpdate);
     }
   }, []);  // Register event handlers only once: do not remove empty dependency array
+
+  useEffect(() => {
+    // Update React Flow nodes and edges when componentList or dependencyList changes
+    updateNodesEdges(componentList, dependencyList);
+  }, [componentList, dependencyList])
 
   return (
     <NavDrawer
