@@ -19,11 +19,11 @@ import parseJSONFile from './utils/parseJSONFile';
 import parseCSVFile from './utils/parseCSVFile';
 import buildDownloadJSON from './utils/buildDownloadJSON';
 import buildSimFile from './utils/buildSimFile';
+import parseSimFile from './utils/parseSimFile';
 import downloadCSV from './utils/downloadCSV';
 import createNodesEdges from './utils/createNodesEdges';
 
 const { systemComponents, systemDependencies, systemEvaluator, systemConstraints } = parseModel(initModel);
-const { initialNodes, initialEdges } = createNodesEdges(systemComponents, systemDependencies);
 
 export default function App() {
   // Scenario and Tasks state variables
@@ -38,15 +38,13 @@ export default function App() {
   const [constraints, setConstraints] = useState(systemConstraints);
 
   // React Flow state variables
+  const { initialNodes, initialEdges } = createNodesEdges(componentList, dependencyList);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
-  const [selectedFileName, setSelectedFileName] = useState(null);
-  const [selectedFileType, setSelectedFileType] = useState(null);
-  const [selectedFileContent, setSelectedFileContent] = useState(null);
-  const [selectedFilePath, setSelectedFilePath] = useState(null);
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
+  const [confirmationHandler, setConfirmationHandler] = useState(() => {});
   const [saveConfirmationModalOpen, setSaveConfirmationModalOpen] = useState(false);
 
   // TO DO: Create context provider for all errors
@@ -82,17 +80,14 @@ export default function App() {
 
   // Called when user selects a file to open OR upload using the Electron File Menu
   const handleFileUpload = (fileType, fileName, content) => {
-    setSelectedFileType(fileType);
-    setSelectedFileContent(content);
-    setSelectedFileName(fileName);
+    setConfirmationHandler(() => {
+      return () => handleUploadConfirm(fileType, null, fileName, content);
+  });
     setConfirmationModalOpen(true);
   };
 
   const handleFileOpen = (filePath, fileName, content) => {
-    setSelectedFileType('SIM');
-    setSelectedFileContent(content);
-    setSelectedFileName(fileName);
-    setSelectedFilePath(filePath);
+    setConfirmationHandler(() => () => openSimFile(filePath, content));
     setConfirmationModalOpen(true);
   }
 
@@ -152,12 +147,6 @@ export default function App() {
           const { systemComponents, systemDependencies } = parseJSONFile(fileType, content, setStateMethods);
           updateNodesEdges(systemComponents, systemDependencies);
           break;
-        case 'SIM':
-          const parsedContent = parseJSONFile(fileType, content, setStateMethods);
-          // If sim file, reset model nodes and edges and confirm file opened
-          updateNodesEdges(parsedContent.model.systemComponents, parsedContent.model.systemDependencies);
-          window.electronApi.confirmFileOpened(filePath, parsedContent);
-          break;
         case 'CSV':
           parseCSVFile(content, setTaskList);
           break;
@@ -170,8 +159,6 @@ export default function App() {
       setErrorModalOpen(true);
     } finally {
       // Always close modal and reset selected file
-      setSelectedFileContent(null);
-      setSelectedFileName(null);
       setConfirmationModalOpen(false);
     }
   }
@@ -179,9 +166,21 @@ export default function App() {
   // Called when user cancels file selection
   const handleUploadCancel = () => {
     // Close modal and reset selected file
-    setSelectedFileContent(null);
-    setSelectedFileName(null);
     setConfirmationModalOpen(false);
+  }
+
+  const openSimFile = (filePath, content) => {
+    try {
+      parseSimFile(content, savedStateMethods);
+      window.electronApi.confirmFileOpened(filePath, content);
+    } catch (error) {
+      // If error, display error modal
+      setErrorMessage(error.message);
+      setErrorModalOpen(true);
+    } finally {
+      // Always close modal and reset selected file
+      setConfirmationModalOpen(false);
+    }
   }
 
   const handleSaveFile = async (callback) => {
@@ -213,11 +212,6 @@ export default function App() {
       window.electronApi.onFileUpdate(handleFileUpdate);
     }
   }, []);  // Register event handlers only once: do not remove empty dependency array
-
-  useEffect(() => {
-    // Update React Flow nodes and edges when componentList or dependencyList changes
-    updateNodesEdges(componentList, dependencyList);
-  }, [componentList, dependencyList])
 
   return (
     <NavDrawer
@@ -289,7 +283,7 @@ export default function App() {
               <ConfirmationModal
                 title={'Overwrite parameters?'}
                 message={'Are you sure you want to overwrite with current file?'}
-                onConfirm={() => handleUploadConfirm(selectedFileType, selectedFilePath, selectedFileName, selectedFileContent)}
+                onConfirm={confirmationHandler}
                 onCancel={handleUploadCancel}
                 confirmText={'Confirm'}
                 cancelText={'Cancel'}
