@@ -1,7 +1,13 @@
 const { app, Menu } = require('electron');
-const { handleNewFileClick, handleOpenFileClick, handleSaveFileClick, handleFileDownloadClick } = require('./fileHandlers');
+const {
+  handleNewFileClick,
+  handleOpenFileClick,
+  handleSaveFileClick,
+  handleAutosaveClick,
+  handleFileDownloadClick
+} = require('./fileHandlers');
 
-const initializeMenu = (window) => {
+const createMenu = (window, autosaveStatus = 'disabled') => {
   const template = [
     {
       label: app.name,
@@ -30,8 +36,20 @@ const initializeMenu = (window) => {
         },
         {
           label: 'Save',
-          click() { handleSaveFileClick(window, 'SIM'); }
+          click() { handleSaveFileClick(window); }
         },
+        { type: 'separator' },
+        { id: 'autosave',
+          label: autosaveStatus === 'active' ? 'Autosave 🟢' : 'Autosave',
+          click() { handleAutosaveClick(window); },
+          enabled: autosaveStatus !== 'disabled'
+        },
+        // { type: 'separator' },
+        // { id: 'revert-changes',
+        //   label: 'Revert to Last Save',
+        //   click() { handleRevertToLastSaveClick(window); },
+        //   enabled: false
+        // },
         { type: 'separator' },
         {
           label: 'Upload \t\t\t',
@@ -129,4 +147,4 @@ const initializeMenu = (window) => {
   Menu.setApplicationMenu(menu);
 }
 
-module.exports = { initializeMenu };
+module.exports = { createMenu };

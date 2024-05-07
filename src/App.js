@@ -160,6 +160,7 @@ export default function App() {
     } finally {
       // Always close modal and reset selected file
       setConfirmationModalOpen(false);
+      setConfirmationHandler(() => {});
     }
   }
 
@@ -167,6 +168,7 @@ export default function App() {
   const handleUploadCancel = () => {
     // Close modal and reset selected file
     setConfirmationModalOpen(false);
+    setConfirmationHandler(() => {});
   }
 
   const openSimFile = (filePath, content) => {
@@ -180,19 +182,24 @@ export default function App() {
     } finally {
       // Always close modal and reset selected file
       setConfirmationModalOpen(false);
+      setConfirmationHandler(() => {});
+      setActiveStep('Scenario');
     }
   }
 
-  const handleSaveFile = async (callback) => {
+  const handleSaveFile = async (callback, updateCache = false) => {
     if (window.electronApi) {
       const content = buildSimFile(savedStateMethods);
-      window.electronApi.saveCurrentFile(content);
+      window.electronApi.saveCurrentFile(content, updateCache);
       window.electronApi.onSaveConfirm(callback);
     }
   };
 
   const handleFileUpdate = (fileUpdateStatus) => {
     setHasUnsavedChanges(fileUpdateStatus);
+    if (window.electronApi) {
+      window.electronApi.hasUnsavedChanges(fileUpdateStatus);
+    }
   }
 
   const updateNodesEdges = (componentList, dependencyList) => {
@@ -209,6 +216,7 @@ export default function App() {
       window.electronApi.onFileUpload(handleFileUpload);
       window.electronApi.onFileDownload(handleFileDownload);
       window.electronApi.onSaveFileClick(handleSaveFile);
+      window.electronApi.onAutoSave(handleSaveFile);
       window.electronApi.onFileUpdate(handleFileUpdate);
     }
   }, []);  // Register event handlers only once: do not remove empty dependency array

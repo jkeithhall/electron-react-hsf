@@ -4,6 +4,8 @@ const { basename } = require('path');
 
 const currentFile = { content: '', filePath: null };
 const directorySeparator = process.platform === 'win32' ? '\\' : '/';
+let autosaveIntervalId = null;
+let autosaveStatus = 'disabled';
 
 const getFilePath = () => {
   return currentFile.filePath;
@@ -22,10 +24,14 @@ const filters = {
 const updateCurrentFile = (browserWindow, filePath, content) => {
   currentFile.filePath = filePath;
   currentFile.content = content;
+  if (autosaveStatus === 'disabled') {
+    browserWindow.webContents.send('set-autosave-status', 'inactive');
+  }
 
   if (filePath === null) {
     browserWindow.setRepresentedFilename('');
     browserWindow.setTitle(app.name);
+    browserWindow.webContents.send('set-autosave-status', 'disabled');
   } else {
     browserWindow.setRepresentedFilename(filePath);
     browserWindow.setTitle(`${basename(filePath)} - ${app.name}`);
@@ -58,11 +64,24 @@ const handleSaveFileClick = async (browserWindow) => {
   browserWindow.webContents.send('file-save-click');
 };
 
+const handleAutosaveClick = async (browserWindow) => {
+  if (!autosaveIntervalId) {
+    autosaveIntervalId = setInterval(() => { browserWindow.webContents.send('autosave'); }, 30000);
+    autosaveStatus = 'active';
+    browserWindow.webContents.send('set-autosave-status', 'active');
+  } else {
+    clearInterval(autosaveIntervalId);
+    autosaveStatus = 'inactive';
+    browserWindow.webContents.send('set-autosave-status', 'inactive');
+  }
+};
+
+
 const handleFileDownloadClick = async (browserWindow, fileType) => {
   browserWindow.webContents.send('file-download-click', fileType);
 };
 
-const showSaveDialog = async (browserWindow, fileType, content) => {
+const showSaveDialog = async (browserWindow, fileType, content, updateCache) => {
   const result = await dialog.showSaveDialog(browserWindow, {
     properties: ['showOverwriteConfirmation'],
     filters: [filters[fileType]],
@@ -74,7 +93,7 @@ const showSaveDialog = async (browserWindow, fileType, content) => {
 
   if (!filePath) return;
 
-  saveFile(browserWindow, fileType, filePath, content);
+  saveFile(browserWindow, fileType, filePath, content, updateCache);
 };
 
 const showFileSelectDialog = async (browserWindow, directory, fileType) => {
@@ -123,15 +142,29 @@ const openFile = async (browserWindow, fileType, filePath) => {
   }
 };
 
-const saveFile = async (browserWindow, fileType, filePath, content) => {
+const saveFile = async (browserWindow, fileType, filePath, content, updateCache = false) => {
   await writeFile(filePath, content);
   browserWindow.webContents.send('file-save-confirmed');
 
-  if (fileType === 'SIM') {
+  if (fileType === 'SIM' && updateCache) {
     updateCurrentFile(browserWindow, filePath, content);
   }
 };
 
-module.exports = { getFilePath, getContent, saveFile, handleNewFileClick, handleOpenFileClick, handleSaveFileClick, handleFileDownloadClick, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges, showFileSelectDialog };
+module.exports = {
+  getFilePath,
+  getContent,
+  saveFile,
+  handleNewFileClick,
+  handleOpenFileClick,
+  handleSaveFileClick,
+  handleAutosaveClick,
+  handleFileDownloadClick,
+  showSaveDialog,
+  showDirectorySelectDialog,
+  updateCurrentFile,
+  checkUnsavedChanges,
+  showFileSelectDialog,
+};
 
 

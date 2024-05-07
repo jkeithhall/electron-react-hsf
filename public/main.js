@@ -2,13 +2,24 @@ const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const { join } = require('path');
 const isDev = require('electron-is-dev');
-const { initializeMenu } = require('./menu');
-const { getFilePath, getContent, saveFile, showSaveDialog, showDirectorySelectDialog, updateCurrentFile, checkUnsavedChanges, showFileSelectDialog } = require('./fileHandlers');
+const { createMenu } = require('./menu');
+const {
+  getFilePath,
+  getContent,
+  saveFile,
+  showSaveDialog,
+  showDirectorySelectDialog,
+  updateCurrentFile,
+  checkUnsavedChanges,
+  showFileSelectDialog } = require('./fileHandlers');
+
+let mainWindow;
 
 function createWindow() {
   // Create the browser window.
-  const win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     fullscreen: true,
+    backgroundColor: '#1f2330',
     show: false,
     webPreferences: {
       nodeIntegration: true,
@@ -17,37 +28,37 @@ function createWindow() {
     }
   });
 
-  win.loadURL(
+  mainWindow.loadURL(
     isDev
       ? 'http://localhost:3000'
       : `file://${path.join(__dirname, '../build/index.html')}`
   );
 
-  win.once('ready-to-show', () => {
-    win.show();
-    win.focus();
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+    mainWindow.focus();
   });
 
   // Initialize menu
-  initializeMenu(win);
+  createMenu(mainWindow);
 }
 
 app.on('ready', createWindow);
 
-ipcMain.on('show-save-dialog', (event, fileType, content) => {
+ipcMain.on('show-save-dialog', (event, fileType, content, updateCache) => {
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
   if (!browserWindow) return;
 
-  showSaveDialog(browserWindow, fileType, content);
+  showSaveDialog(browserWindow, fileType, content, updateCache);
 });
 
-ipcMain.on('save-current-file', (event, filePath, content) => {
+ipcMain.on('save-current-file', (event, filePath, content, updateCache) => {
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
   if (!browserWindow) return;
 
-  saveFile(browserWindow, 'SIM', filePath, content);
+  saveFile(browserWindow, 'SIM', filePath, content, updateCache);
 });
 
 ipcMain.on('show-directory-select-dialog', (event) => {
@@ -89,6 +100,10 @@ ipcMain.on('reset-current-file', (event) => {
   if (!browserWindow) return;
 
   updateCurrentFile(browserWindow, null, '');
+});
+
+ipcMain.on('set-autosave-status', (event, status) => {
+  createMenu(mainWindow, status);
 });
 
 ipcMain.handle('get-current-filepath', async (event) => {

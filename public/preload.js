@@ -1,6 +1,10 @@
 const electron = require('electron');
 const { ipcRenderer, contextBridge } = electron;
 
+ipcRenderer.on('set-autosave-status', (_, status) => {
+  ipcRenderer.send('set-autosave-status', status);
+});
+
 const api = {
   directorySeparator: process.platform === 'win32' ? '\\' : '/',
   onNewFile: (handleNewFile) => {
@@ -53,21 +57,29 @@ const api = {
   },
   onSaveFileClick: (handleSaveFile) => {
     ipcRenderer.on('file-save-click', () => {
-      handleSaveFile(() => {});
+      handleSaveFile(() => {}, true); // true indicates to update the cache for reverting changes to last saved state
     })
   },
-  saveCurrentFile: (content) => {
+  onAutoSave: (handleSaveFile) => {
+    ipcRenderer.on('autosave', () => {
+      handleSaveFile(() => {}, false); // false indicates to not update the cache for reverting changes to last saved state
+    });
+  },
+  saveCurrentFile: (content, updateCache) => {
     ipcRenderer.invoke('get-current-filepath').then((filePath) => {
       if (filePath === null) {
-        ipcRenderer.send('show-save-dialog', 'SIM', content);
+        ipcRenderer.send('show-save-dialog', 'SIM', content, updateCache);
       } else {
-        ipcRenderer.send('save-current-file', filePath, content);
+        ipcRenderer.send('save-current-file', filePath, content, updateCache);
       }
     });
   },
   onSaveConfirm: (callback) => {
     ipcRenderer.on('file-save-confirmed', callback);
   },
+  hasUnsavedChanges: (updateStatus) => {
+    ipcRenderer.send('has-unsaved-changes', updateStatus);
+  }
 }
 /*
   contextBridge exposes methods to the window object (accessed on a given API name).
