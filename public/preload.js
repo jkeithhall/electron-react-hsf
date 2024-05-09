@@ -1,6 +1,13 @@
 const electron = require('electron');
 const { ipcRenderer, contextBridge } = electron;
 
+ipcRenderer.on('set-autosave-status', (_, status) => {
+  ipcRenderer.send('set-autosave-status', status);
+});
+ipcRenderer.on('set-revert-status', (_, status) => {
+  ipcRenderer.send('set-revert-status', status);
+});
+
 const api = {
   directorySeparator: process.platform === 'win32' ? '\\' : '/',
   onNewFile: (handleNewFile) => {
@@ -53,21 +60,38 @@ const api = {
   },
   onSaveFileClick: (handleSaveFile) => {
     ipcRenderer.on('file-save-click', () => {
-      handleSaveFile(() => {});
+      handleSaveFile(() => {}, true); // true indicates to update the cache
     })
   },
-  saveCurrentFile: (content) => {
+  onAutoSave: (handleSaveFile) => {
+    ipcRenderer.on('autosave', () => {
+      handleSaveFile(() => {}, false); // false indicates to not update the cache
+    });
+  },
+  onRevert: (handleRevert) => {
+    ipcRenderer.on('revert-changes', (_, filePath, content) => {
+      handleRevert(filePath, content);
+    });
+  },
+  saveCurrentFile: (content, updateCache) => {
     ipcRenderer.invoke('get-current-filepath').then((filePath) => {
       if (filePath === null) {
-        ipcRenderer.send('show-save-dialog', 'SIM', content);
+        ipcRenderer.send('show-save-dialog', 'SIM', content, updateCache);
       } else {
-        ipcRenderer.send('save-current-file', filePath, content);
+        ipcRenderer.send('save-current-file', filePath, content, updateCache);
       }
     });
   },
-  onSaveConfirm: (callback) => {
-    ipcRenderer.on('file-save-confirmed', callback);
+  onSaveConfirm: (setFilePath, setHasUnsavedChanges, callback) => {
+    ipcRenderer.on('file-save-confirmed', (_, filePath) => {
+      setFilePath(filePath);
+      setHasUnsavedChanges(false);
+      callback();
+    });
   },
+  hasUnsavedChanges: (updateStatus) => {
+    ipcRenderer.send('set-revert-status', updateStatus);
+  }
 }
 /*
   contextBridge exposes methods to the window object (accessed on a given API name).

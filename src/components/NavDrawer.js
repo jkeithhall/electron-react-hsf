@@ -72,7 +72,20 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 
 
-export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveStep, childComponents, hasUnsavedChanges, handleSaveFile, setStateMethods, children }) {
+export default function NavDrawer({
+  navOpen,
+  toggleNav,
+  activeStep,
+  setActiveStep,
+  childComponents,
+  filePath,
+  hasUnsavedChanges,
+  handleSaveFile,
+  setStateMethods,
+  children
+ }) {
+  const saveDisabled = filePath !== '' && !hasUnsavedChanges;
+
   return (
     <Box sx={{ display: 'flex', className: "App" }}>
       <AppBar open={navOpen} drawerWidth={drawerWidth} />
@@ -134,7 +147,7 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
               {window.electronApi &&
                 <ListItem key={'save'} disablePadding sx={{ display: 'block' }}>
                   <ListItemButton
-                    disabled={!hasUnsavedChanges}
+                    disabled={saveDisabled}
                     sx={{
                       minHeight: 50,
                       px: 2.5,
@@ -149,7 +162,7 @@ export default function NavDrawer({ navOpen, toggleNav, activeStep, setActiveSte
                         justifyContent: 'center',
                       }}
                     >
-                      <SaveIcon color={hasUnsavedChanges ? 'inherit' : 'light'}/>
+                      <SaveIcon color={saveDisabled ? 'light' : 'inherit'}/>
                     </ListItemIcon>
                     <ListItemText primary={'Save'} sx={{ opacity: navOpen ? 1 : 0 }} />
                   </ListItemButton>
