@@ -76,6 +76,9 @@ const handleAutosaveClick = async (browserWindow) => {
   }
 };
 
+const handleRevertClick = async (browserWindow) => {
+  browserWindow.webContents.send('revert-changes', currentFile.filePath, currentFile.content);
+};
 
 const handleFileDownloadClick = async (browserWindow, fileType) => {
   browserWindow.webContents.send('file-download-click', fileType);
@@ -144,7 +147,7 @@ const openFile = async (browserWindow, fileType, filePath) => {
 
 const saveFile = async (browserWindow, fileType, filePath, content, updateCache = false) => {
   await writeFile(filePath, content);
-  browserWindow.webContents.send('file-save-confirmed');
+  browserWindow.webContents.send('file-save-confirmed', filePath);
 
   if (fileType === 'SIM' && updateCache) {
     updateCurrentFile(browserWindow, filePath, content);
@@ -165,6 +168,7 @@ module.exports = {
   updateCurrentFile,
   checkUnsavedChanges,
   showFileSelectDialog,
+  handleRevertClick,
 };
 
 

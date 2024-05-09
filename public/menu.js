@@ -4,7 +4,8 @@ const {
   handleOpenFileClick,
   handleSaveFileClick,
   handleAutosaveClick,
-  handleFileDownloadClick
+  handleFileDownloadClick,
+  handleRevertClick
 } = require('./fileHandlers');
 
 const createMenu = (window, autosaveStatus = 'disabled') => {
@@ -44,12 +45,12 @@ const createMenu = (window, autosaveStatus = 'disabled') => {
           click() { handleAutosaveClick(window); },
           enabled: autosaveStatus !== 'disabled'
         },
-        // { type: 'separator' },
-        // { id: 'revert-changes',
-        //   label: 'Revert to Last Save',
-        //   click() { handleRevertToLastSaveClick(window); },
-        //   enabled: false
-        // },
+        { type: 'separator' },
+        { id: 'revert-changes',
+          label: autosaveStatus === 'active' ? 'Revert to Last Manual Save' : 'Revert Changes',
+          click() { handleRevertClick(window); },
+          enabled: false
+        },
         { type: 'separator' },
         {
           label: 'Upload \t\t\t',

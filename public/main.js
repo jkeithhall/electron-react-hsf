@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 const { join } = require('path');
 const isDev = require('electron-is-dev');
@@ -102,8 +102,14 @@ ipcMain.on('reset-current-file', (event) => {
   updateCurrentFile(browserWindow, null, '');
 });
 
-ipcMain.on('set-autosave-status', (event, status) => {
-  createMenu(mainWindow, status);
+ipcMain.on('set-autosave-status', (event, autosaveStatus) => {
+  const revertStatus = Menu.getApplicationMenu().getMenuItemById('revert-changes').enabled;
+  createMenu(mainWindow, autosaveStatus);
+  Menu.getApplicationMenu().getMenuItemById('revert-changes').enabled = revertStatus;
+});
+
+ipcMain.on('set-revert-status', (event, status) => {
+  Menu.getApplicationMenu().getMenuItemById('revert-changes').enabled = status;
 });
 
 ipcMain.handle('get-current-filepath', async (event) => {

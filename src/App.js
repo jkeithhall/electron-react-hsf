@@ -42,7 +42,8 @@ export default function App() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
 
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(true);
+  const [filePath, setFilePath] = useState('');
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [confirmationHandler, setConfirmationHandler] = useState(() => {});
   const [saveConfirmationModalOpen, setSaveConfirmationModalOpen] = useState(false);
@@ -68,7 +69,6 @@ export default function App() {
     setEdges,
     setErrorMessage,
     setModelErrors,
-    setHasUnsavedChanges,
   };
 
   const navDrawerWidth = 220;
@@ -80,9 +80,7 @@ export default function App() {
 
   // Called when user selects a file to open OR upload using the Electron File Menu
   const handleFileUpload = (fileType, fileName, content) => {
-    setConfirmationHandler(() => {
-      return () => handleUploadConfirm(fileType, null, fileName, content);
-  });
+    setConfirmationHandler(() => () => handleUploadConfirm(fileType, null, fileName, content));
     setConfirmationModalOpen(true);
   };
 
@@ -110,7 +108,8 @@ export default function App() {
     setConstraints(systemConstraints);
     setActiveStep('Scenario');
     setSaveConfirmationModalOpen(false);
-    setHasUnsavedChanges(true);
+    setFilePath('');
+    setHasUnsavedChanges(false);
     if (window.electronApi) {
       window.electronApi.resetCurrentFile();
     }
@@ -174,6 +173,8 @@ export default function App() {
   const openSimFile = (filePath, content) => {
     try {
       parseSimFile(content, savedStateMethods);
+      setFilePath(filePath);
+      setHasUnsavedChanges(false);
       window.electronApi.confirmFileOpened(filePath, content);
     } catch (error) {
       // If error, display error modal
@@ -191,7 +192,7 @@ export default function App() {
     if (window.electronApi) {
       const content = buildSimFile(savedStateMethods);
       window.electronApi.saveCurrentFile(content, updateCache);
-      window.electronApi.onSaveConfirm(callback);
+      window.electronApi.onSaveConfirm(setFilePath, setHasUnsavedChanges, callback);
     }
   };
 
@@ -218,8 +219,25 @@ export default function App() {
       window.electronApi.onSaveFileClick(handleSaveFile);
       window.electronApi.onAutoSave(handleSaveFile);
       window.electronApi.onFileUpdate(handleFileUpdate);
+      window.electronApi.onRevert(openSimFile);
     }
   }, []);  // Register event handlers only once: do not remove empty dependency array
+
+  useEffect(() => {
+    setHasUnsavedChanges(true);
+    if (window.electronApi) {
+      window.electronApi.hasUnsavedChanges(true);
+    }
+  }, [
+    simulationInput,
+    taskList,
+    componentList,
+    dependencyList,
+    evaluator,
+    constraints,
+    nodes,
+    edges
+  ]);
 
   return (
     <NavDrawer
@@ -229,6 +247,7 @@ export default function App() {
       setActiveStep={setActiveStep}
       drawerWidth={navDrawerWidth}
       handleSaveFile={handleSaveFile}
+      filePath={filePath}
       hasUnsavedChanges={hasUnsavedChanges}
       setStateMethods={setStateMethods}
     >
@@ -240,7 +259,6 @@ export default function App() {
               simulationInput={simulationInput}
               setSimulationInput={setSimulationInput}
               setStateMethods={setStateMethods}
-              setHasUnsavedChanges={setHasUnsavedChanges}
               componentList={componentList}
             />,
           'Tasks':
@@ -251,7 +269,6 @@ export default function App() {
               setStateMethods={setStateMethods}
               taskList={taskList}
               setTaskList={setTaskList}
-              setHasUnsavedChanges={setHasUnsavedChanges}
             />,
           'System Model':
             <ModelEditor
@@ -274,7 +291,6 @@ export default function App() {
               setEdges={setEdges}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
-              setHasUnsavedChanges={setHasUnsavedChanges}
               modelErrors={modelErrors}
               setModelErrors={setModelErrors}
               setErrorModalOpen={setErrorModalOpen}

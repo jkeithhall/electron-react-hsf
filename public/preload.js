@@ -4,6 +4,9 @@ const { ipcRenderer, contextBridge } = electron;
 ipcRenderer.on('set-autosave-status', (_, status) => {
   ipcRenderer.send('set-autosave-status', status);
 });
+ipcRenderer.on('set-revert-status', (_, status) => {
+  ipcRenderer.send('set-revert-status', status);
+});
 
 const api = {
   directorySeparator: process.platform === 'win32' ? '\\' : '/',
@@ -57,12 +60,17 @@ const api = {
   },
   onSaveFileClick: (handleSaveFile) => {
     ipcRenderer.on('file-save-click', () => {
-      handleSaveFile(() => {}, true); // true indicates to update the cache for reverting changes to last saved state
+      handleSaveFile(() => {}, true); // true indicates to update the cache
     })
   },
   onAutoSave: (handleSaveFile) => {
     ipcRenderer.on('autosave', () => {
-      handleSaveFile(() => {}, false); // false indicates to not update the cache for reverting changes to last saved state
+      handleSaveFile(() => {}, false); // false indicates to not update the cache
+    });
+  },
+  onRevert: (handleRevert) => {
+    ipcRenderer.on('revert-changes', (_, filePath, content) => {
+      handleRevert(filePath, content);
     });
   },
   saveCurrentFile: (content, updateCache) => {
@@ -74,11 +82,15 @@ const api = {
       }
     });
   },
-  onSaveConfirm: (callback) => {
-    ipcRenderer.on('file-save-confirmed', callback);
+  onSaveConfirm: (setFilePath, setHasUnsavedChanges, callback) => {
+    ipcRenderer.on('file-save-confirmed', (_, filePath) => {
+      setFilePath(filePath);
+      setHasUnsavedChanges(false);
+      callback();
+    });
   },
   hasUnsavedChanges: (updateStatus) => {
-    ipcRenderer.send('has-unsaved-changes', updateStatus);
+    ipcRenderer.send('set-revert-status', updateStatus);
   }
 }
 /*
