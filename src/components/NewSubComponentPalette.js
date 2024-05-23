@@ -24,7 +24,10 @@ export default function NewSubComponentPalette({
   const [ id, setId ] = useState(randomId());
   const [ name, setName ] = useState('');
   const [ className, setClassName ] = useState('power');
-  const [ parent, setParent ] = useState(null);
+  const [ parent, setParent ] = useState(() => {
+    const asset = componentList.find((component) => component.className === 'asset');
+    return asset ? asset.id : null;
+  });
   const [ type, setType ] = useState('scripted');
   const [ src, setSrc ] = useState(pythonSrc);
   const [ states, setStates ] = useState([]);

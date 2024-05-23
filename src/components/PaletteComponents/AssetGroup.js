@@ -12,7 +12,7 @@ export default function AssetGroup({ name, errors, handleBlur }) {
         variant="outlined"
         color='primary'
         name='parent'
-        value={name ? name : 'None'}
+        value={name}
         align='left'
         disabled
         error={errors.parent !== undefined}

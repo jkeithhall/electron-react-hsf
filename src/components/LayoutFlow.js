@@ -82,28 +82,47 @@ export default function LayoutFlow ({
 
   const onDrop = useCallback((e) => {
     e.preventDefault();
+    const dropPosition = reactFlowInstance.screenToFlowPosition({
+      x: e.clientX,
+      y: e.clientY,
+    });
 
     const { data, backgroundColor } = JSON.parse(e.dataTransfer.getData('application/reactflow'));
     const { className } = data;
 
-    const position = reactFlowInstance.screenToFlowPosition({
-      x: e.clientX,
-      y: e.clientY,
-    });
     const newNode = {
       id: data.id,
       data: { label: data.name, data },
-      position,
     }
     if (className === 'asset') {
       newNode.style = { backgroundColor, width: 200, height: 200 };
+      newNode.position = { x: dropPosition.x, y: dropPosition.y };
     } else if (data.parent) {
       newNode.extent = 'parent';
       newNode.parentNode = data.parent;
+      newNode.position = { x: 0, y: 0 };
     }
 
     setComponentList((prevList) => prevList.concat(data));
-    setNodes((nodes) => nodes.concat(newNode));
+    setNodes((nodes) => {
+      // Check if the new node overlaps with any existing nodes
+      let overlapped = false;
+      do {
+        overlapped = false;
+        for (let i = 0; i < nodes.length; i++) {
+          const node = nodes[i];
+          if (node.parentNode && node.parentNode === data.parent && node.id !== newNode.id) {
+            if (Math.abs(node.position.x - newNode.position.x) < 150 && Math.abs(node.position.y - newNode.position.y) < 40) {
+              overlapped = true;
+              newNode.position.x += 150;
+              newNode.position.y += 40;
+            }
+          }
+        }
+      } while (overlapped);
+
+      return [...nodes, newNode];
+    });
     handlePaletteClose();
   }, [reactFlowInstance]);
 
@@ -145,7 +164,7 @@ export default function LayoutFlow ({
       fitView
     >
       <Panel position="top-left">
-        <AddComponentDial onLayout={onLayout} handleNewNodeClick={handleNewNodeClick} />
+        <AddComponentDial componentList={componentList} onLayout={onLayout} handleNewNodeClick={handleNewNodeClick} />
       </Panel>
       <Controls />
       <MiniMap />
