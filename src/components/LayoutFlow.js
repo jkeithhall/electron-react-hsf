@@ -29,6 +29,7 @@ export default function LayoutFlow ({
   setErrorMessage,
   handleNewNodeClick,
   handlePaletteClose,
+  setClipboardData,
 }) {
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
 
@@ -123,6 +124,7 @@ export default function LayoutFlow ({
 
       return [...nodes, newNode];
     });
+    setClipboardData(null);
     handlePaletteClose();
   }, [reactFlowInstance]);
 

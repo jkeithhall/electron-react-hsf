@@ -35,6 +35,7 @@ export default function ModelEditor({
   const [ selectedNodeData, setSelectedNodeData ] = useState(null);
   const [ paletteOpen, setPaletteOpen ] = useState(false);
   const [ newNodeType, setNewNodeType ] = useState(null);
+  const [ clipboardData, setClipboardData ] = useState(null);
 
   const handlePaletteOpen = () => {
     setPaletteOpen(true);
@@ -52,6 +53,15 @@ export default function ModelEditor({
   }
 
   const handleNewNodeClick = (type) => {
+    if (window.electronApi) {
+      window.electronApi.copyFromClipboard((content) => {
+        const clipboardData = JSON.parse(content);
+        if ((type === 'asset' && clipboardData.className === 'asset') ||
+          (type === 'subComponent' && clipboardData.className !== 'asset')) {
+          setClipboardData(clipboardData);
+        }
+      });
+    }
     setSelectedNodeData(null);
     setNewNodeType(type);
     setPaletteOpen(true);
@@ -80,6 +90,7 @@ export default function ModelEditor({
                 setErrorMessage={setErrorMessage}
                 handleNewNodeClick={handleNewNodeClick}
                 handlePaletteClose={handlePaletteClose}
+                setClipboardData={setClipboardData}
               />
             </ReactFlowProvider>
           </Paper>
@@ -89,6 +100,7 @@ export default function ModelEditor({
         <ModelEditorDrawer
           data={selectedNodeData}
           newNodeType={newNodeType}
+          clipboardData={clipboardData}
           paletteOpen={paletteOpen}
           handlePaletteOpen={handlePaletteOpen}
           handlePaletteClose={handlePaletteClose}

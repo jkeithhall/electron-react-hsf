@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, Menu } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu, clipboard } = require('electron');
 const path = require('path');
 const { join } = require('path');
 const isDev = require('electron-is-dev');
@@ -117,6 +117,14 @@ ipcMain.handle('get-current-filepath', async (event) => {
 });
 ipcMain.handle('get-current-filecontent', async (event) => {
   return await getContent();
+});
+
+ipcMain.on('write-to-clipboard', (event, content) => {
+  clipboard.writeText(content);
+});
+
+ipcMain.handle('copy-from-clipboard', () => {
+  return clipboard.readText();
 });
 
 // Quit when all windows are closed.

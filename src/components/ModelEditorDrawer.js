@@ -15,6 +15,7 @@ const headerHeight = 100;
 export default function ModelEditorDrawer({
   data,
   newNodeType,
+  clipboardData,
   componentList,
   paletteOpen,
   handlePaletteClose,
@@ -137,11 +138,13 @@ export default function ModelEditorDrawer({
       {!data && newNodeType === 'asset' && <NewAssetPalette
         componentList={componentList}
         setComponentList={setComponentList}
+        clipboardData={clipboardData}
       />}
       {!data && newNodeType === 'subComponent' && <NewSubComponentPalette
         componentList={componentList}
         setComponentList={setComponentList}
         pythonSrc={pythonSrc}
+        clipboardData={clipboardData}
       />}
       {confirmationModalOpen &&
         <ConfirmationModal

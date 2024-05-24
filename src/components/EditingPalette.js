@@ -16,8 +16,12 @@ import SubsystemStates from './PaletteComponents/SubsystemStates';
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import IconButton from '@mui/material/IconButton';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
 import { validateAssetParameters } from '../utils/validateParameters';
 
@@ -53,6 +57,12 @@ export default function EditingPalette ({
     validateAssetParameters(data, setModelErrors, pythonSrc);
   }
 
+  const handleCopyClick = () => {
+    if (window.electronApi) {
+      window.electronApi.writeToClipboard(JSON.stringify(data, null, 2));
+    }
+  }
+
   useEffect(() => {
     validateAssetParameters(data, setModelErrors, pythonSrc);
   }, [id, src]);
@@ -74,7 +84,27 @@ export default function EditingPalette ({
   return (
     <>
       <Box sx={{ margin: '0 20px', padding: '10px', backgroundColor: '#eeeeee', borderRadius: '5px' }}>
-        <Typography variant="h4" color="secondary" mt={2}>{`${name ? name : ' '}`}</Typography>
+        <Stack direction="row" alignItems="center" sx={{ position: 'relative', width: '100%' }}>
+          <Typography
+            variant="h4"
+            color="secondary"
+            mt={2}
+            sx={{ flexGrow: 1, textAlign: 'center' }}
+          >
+            {name ? name : ' '}
+          </Typography>
+          <Box sx={{ position: 'absolute', right: 0 }}>
+            <Tooltip title="Copy component">
+              <IconButton
+                onClick={handleCopyClick}
+                color="secondary"
+                size="small"
+              >
+                <ContentCopyIcon />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Stack>
         <Grid container spacing={2} my={2}>
           <NameField name={name} setComponentList={setComponentList} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
           <ClassName className={className} id={id} setComponentList={setComponentList} errors={currentNodeErrors} handleBlur={handleBlur}/>

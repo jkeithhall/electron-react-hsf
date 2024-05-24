@@ -13,6 +13,10 @@ import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Stack from '@mui/material/Stack';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 
 import { randomId } from '@mui/x-data-grid-generator';
 import randomColor from 'randomcolor';
@@ -41,6 +45,7 @@ export default function NewAssetPalette({
   componentList,
   setComponentList,
   setDependencyList,
+  clipboardData,
 }) {
   const hue = BASE_COLORS[componentList.filter((component) => component.className === 'asset').length % BASE_COLORS.length];
   const initialBackgroundColor = rgbaToHexA(randomColor({
@@ -71,7 +76,7 @@ export default function NewAssetPalette({
   };
 
   const updateNewComponent = (updaterFunc) => {
-    // func is a function that takes the current state (componentList) and returns an updated state (componentList)
+    // updaterFunc is a function that takes the current state (componentList) and returns an updated state (componentList of one new component)
     const [ updatedData ] = updaterFunc([data]);
     setName(updatedData.name);
     setDynamicStateType(updatedData.dynamicStateType);
@@ -79,6 +84,18 @@ export default function NewAssetPalette({
     setStateData([...updatedData.stateData]);
     setIntegratorOptions({ ...updatedData.integratorOptions });
     setIntegratorParameters([ ...updatedData.integratorParameters ]);
+  }
+
+  const handlePasteClick = () => {
+    if (clipboardData) {
+      const { name, dynamicStateType, eomsType, stateData, integratorOptions, integratorParameters } = clipboardData;
+      setName(name);
+      setDynamicStateType(dynamicStateType);
+      setEomsType(eomsType);
+      setStateData([...stateData]);
+      setIntegratorOptions({ ...integratorOptions });
+      setIntegratorParameters([ ...integratorParameters ]);
+    }
   }
 
   const handleBlur = () => {
@@ -106,7 +123,29 @@ export default function NewAssetPalette({
   return (
     <>
       <Box sx={{ margin: '0 20px', padding: '10px', backgroundColor: '#eeeeee', borderRadius: '5px' }}>
-        <Typography variant="h4" color="secondary" mt={2}>{`Create New Asset`}</Typography>
+        {clipboardData && clipboardData.className === 'asset' ?
+          <Stack direction="row" alignItems="center" sx={{ position: 'relative', width: '100%' }}>
+            <Typography
+              variant="h4"
+              color="secondary"
+              mt={2}
+              sx={{ flexGrow: 1, textAlign: 'center' }}
+            >
+              {'Create New Asset'}
+            </Typography>
+            <Box sx={{ position: 'absolute', right: 0 }}>
+              <Tooltip title="Paste from clipboard">
+                <IconButton
+                  onClick={handlePasteClick}
+                  color="secondary"
+                  size="small"
+                >
+                  <ContentPasteIcon />
+                </IconButton>
+              </Tooltip>
+            </Box>
+          </Stack> : <Typography variant="h4" color="secondary" mt={2}>{'Create New Asset'}</Typography>
+        }
         <Grid container spacing={2} my={2}>
           <NameField name={name} setComponentList={updateNewComponent} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
           <ClassName className={'asset'} id={id} setComponentList={updateNewComponent} errors={currentNodeErrors} handleBlur={handleBlur}/>
