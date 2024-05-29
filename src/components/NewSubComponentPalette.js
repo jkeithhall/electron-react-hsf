@@ -23,10 +23,12 @@ import { randomId } from '@mui/x-data-grid-generator';
 export default function NewSubComponentPalette({
   componentList,
   setComponentList,
+  constraints,
+  setConstraints,
   pythonSrc,
   clipboardData,
 }) {
-  const [ id, setId ] = useState(randomId());
+  const [ id ] = useState(randomId());
   const [ name, setName ] = useState('');
   const [ className, setClassName ] = useState('power');
   const [ parent, setParent ] = useState(() => {
@@ -38,6 +40,7 @@ export default function NewSubComponentPalette({
   const [ states, setStates ] = useState([]);
   const [ parameters, setParameters ] = useState([]);
   const [ newNodeErrors, setNewNodeErrors ] = useState({});
+  const [ newConstraints, setNewConstraints ] = useState([]);
 
   const data = {
     id,
@@ -72,6 +75,14 @@ export default function NewSubComponentPalette({
       setSrc(src);
       setStates([...states]);
       setParameters([...parameters]);
+
+      // Copy constraints that are associated with the pasted component
+      const copiedConstraints = constraints.filter((constraint) => constraint.subsystem === clipboardData.id).map((constraint) => {
+        // Generate a new id for the copied constraint and use id of the new component as the subsystem id
+        return { ...constraint, subsystem: id, id: randomId() }
+      })
+      // Add the copied constraints to the list of new constraints
+      setNewConstraints([...copiedConstraints]);
     }
   }
 
@@ -133,7 +144,7 @@ export default function NewSubComponentPalette({
           handleBlur={handleBlur}
         />
         <SubsystemParameters data={parameters} id={id} setComponentList={updateNewComponent} componentKeys={componentKeys} errors={currentNodeErrors} handleBlur={handleBlur}/>
-        <SubsystemStates data={states} id={id} setComponentList={updateNewComponent} componentKeys={componentKeys} errors={currentNodeErrors} handleBlur={handleBlur}/>
+        <SubsystemStates states={states} id={id} setComponentList={updateNewComponent} componentKeys={componentKeys} constraints={newConstraints} setConstraints={setNewConstraints} errors={currentNodeErrors} handleBlur={handleBlur}/>
       </Box>
       <div className="drag-drop-container" style={{ marginBottom: 120 }}>
         {name && Object.keys(currentNodeErrors).length === 0 && <>

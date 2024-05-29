@@ -15,7 +15,6 @@ export default function ModelEditor({
   setDependencyList,
   constraints,
   setConstraints,
-  evaluator,
   setEvaluator,
   activeStep,
   setActiveStep,

@@ -283,7 +283,6 @@ export default function App() {
               setDependencyList={setDependencyList}
               constraints={constraints}
               setConstraints={setConstraints}
-              evaluator={evaluator}
               setEvaluator={setEvaluator}
               nodes={nodes}
               edges={edges}

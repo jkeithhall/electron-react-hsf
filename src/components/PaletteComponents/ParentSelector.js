@@ -9,7 +9,6 @@ export default function ParentSelector({ id, parent, componentList, setComponent
   const handleChange = (e) => {
     const { value } = e.target;
     const newParent = componentList.find((component) => component.name === value)?.id;
-    console.log({ newParent, value })
 
     setComponentList((prevList) => {
       return prevList.map((component) => {

@@ -1,18 +1,23 @@
 import { useState } from 'react';
 
 import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
-import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 
-import DeleteParameterButton from './DeleteButton';
-import AddParameterModal from './AddParameterModal';
-import { convertDisplayName } from '../../utils/displayNames';
+import NumericalState from './NumericalState';
+import BoolState from './BoolState';
+import VectorState from './VectorState';
 
-export default function SubsystemParameters({data, id, setComponentList, errors, componentKeys, handleBlur }) {
+import AddParameterModal from './AddParameterModal';
+
+export default function SubsystemParameters({
+  data,
+  id,
+  setComponentList,
+  errors,
+  componentKeys,
+  handleBlur
+}) {
   const [hovered, setHovered] = useState(-1);
   const [markedForDeletion, setMarkedForDeletion] = useState(-1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -86,63 +91,39 @@ export default function SubsystemParameters({data, id, setComponentList, errors,
         const { name, value, type } = parameter;
         if (type === 'double' || type === 'int') {
           return (
-            <Stack key={name} direction="row" mt={2}>
-              <TextField
-                id={name}
-                key={name}
-                fullWidth
-                label={convertDisplayName(name)}
-                variant="outlined"
-                color='primary'
-                name={name}
-                value={value}
-                type='text'
-                onChange={handleChange}
-                error={errors[name] !== undefined}
-                helperText={errors[name]}
-                onBlur={handleBlur}
-              />
-              <DeleteParameterButton
-                index={index}
-                markedForDeletion={markedForDeletion}
-                hovered={hovered}
-                setHovered={setHovered}
-                setMarkedForDeletion={setMarkedForDeletion}
-                handleDeleteClicked={handleDeleteClicked}
-              />
-            </Stack>
+            <NumericalState
+              key={name}
+              name={name}
+              value={value}
+              errors={errors}
+              constraint={null}
+              handleChange={handleChange}
+              handleBlur={handleBlur}
+              index={index}
+              markedForDeletion={markedForDeletion}
+              hovered={hovered}
+              setHovered={setHovered}
+              setMarkedForDeletion={setMarkedForDeletion}
+              handleDeleteClicked={handleDeleteClicked}
+            />
           );
         } else if (type === 'bool') {
           return (
-            <Stack key={name} direction="row" mt={2}>
-              <TextField
-                id={name}
-                key={name}
-                fullWidth
-                label={convertDisplayName(name)}
-                variant="outlined"
-                color='primary'
-                name={name}
-                value={value}
-                select
-                align='left'
-                onChange={handleChange}
-                error={errors[name] !== undefined}
-                helperText={errors[name]}
-                onBlur={handleBlur}
-              >
-                <MenuItem key='true' value='true'>True</MenuItem>
-                <MenuItem key='false' value='false'>False</MenuItem>
-              </TextField>
-              <DeleteParameterButton
-                index={index}
-                markedForDeletion={markedForDeletion}
-                hovered={hovered}
-                setHovered={setHovered}
-                setMarkedForDeletion={setMarkedForDeletion}
-                handleDeleteClicked={handleDeleteClicked}
-              />
-            </Stack>
+            <BoolState
+              key={name}
+              name={name}
+              value={value}
+              errors={errors}
+              constraint={null}
+              handleChange={handleChange}
+              handleBlur={handleBlur}
+              index={index}
+              markedForDeletion={markedForDeletion}
+              hovered={hovered}
+              setHovered={setHovered}
+              setMarkedForDeletion={setMarkedForDeletion}
+              handleDeleteClicked={handleDeleteClicked}
+            />
           );
         } else { // vector/matrix
           const errorMessage = errors[name];
@@ -156,41 +137,22 @@ export default function SubsystemParameters({data, id, setComponentList, errors,
           }
 
           return (
-            <>
-              <Typography variant='body2' color="secondary" my={2}>{convertDisplayName(name)}</Typography>
-              {errorMessage && <Typography variant="body2" color="error" sx={{ my: 1 }}>{errorMessage}</Typography>}
-              <Stack key={name} direction="row" mt={2}>
-                <Grid container spacing={2} key={name}>
-                  {value.map((component, index) => {
-                    const componentKey = name+ '_' + index;
-                    return (
-                      <Grid item xs={4} key={componentKey}>
-                        <TextField
-                          id={componentKey}
-                          label={`Component ${index}`}
-                          variant="outlined"
-                          color="primary"
-                          name={componentKey}
-                          value={component}
-                          type="text"
-                          fullWidth
-                          onChange={handleChange}
-                          error={errorMessage && invalidComponents.includes(index)}
-                          onBlur={handleBlur}
-                        />
-                    </Grid>)
-                  })}
-                </Grid>
-                <DeleteParameterButton
-                  index={index}
-                  markedForDeletion={markedForDeletion}
-                  hovered={hovered}
-                  setHovered={setHovered}
-                  setMarkedForDeletion={setMarkedForDeletion}
-                  handleDeleteClicked={handleDeleteClicked}
-                />
-              </Stack>
-            </>
+            <VectorState
+              key={name}
+              name={name}
+              value={value}
+              errorMessage={errorMessage}
+              constraint={null}
+              handleChange={handleChange}
+              handleBlur={handleBlur}
+              index={index}
+              markedForDeletion={markedForDeletion}
+              hovered={hovered}
+              setHovered={setHovered}
+              setMarkedForDeletion={setMarkedForDeletion}
+              handleDeleteClicked={handleDeleteClicked}
+              invalidComponents={invalidComponents}
+            />
           )
         }
       })}

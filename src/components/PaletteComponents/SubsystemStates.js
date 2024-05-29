@@ -1,21 +1,29 @@
-import { useState, Fragment } from 'react';
+import { useState, useRef, createRef, Fragment } from 'react';
 
 import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import Grid from '@mui/material/Grid';
-import Stack from '@mui/material/Stack';
 import IconButton from '@mui/material/IconButton';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
-import MenuItem from '@mui/material/MenuItem';
 
-import DeleteParameterButton from './DeleteButton';
+import NumericalState from './NumericalState';
+import BoolState from './BoolState';
+import VectorState from './VectorState';
+import Constraints from './Constraints';
 import AddParameterModal from './AddParameterModal';
-import { convertDisplayName } from '../../utils/displayNames';
 
-export default function SubsystemStates({ data, id, setComponentList, componentKeys, errors, handleBlur }) {
+export default function SubsystemStates({
+  states,
+  id,
+  setComponentList,
+  componentKeys,
+  constraints,
+  setConstraints,
+  errors,
+  handleBlur
+}) {
   const [hovered, setHovered] = useState(-1);
   const [markedForDeletion, setMarkedForDeletion] = useState(-1);
   const [modalOpen, setModalOpen] = useState(false);
+  const constraintRefs = useRef(constraints.map(() => createRef()));
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -78,29 +86,31 @@ export default function SubsystemStates({ data, id, setComponentList, componentK
     });
   }
 
+  const scrollToConstraint = (stateIndex) => {
+    const index = constraints.findIndex((constraint) => constraint.subsystem === id &&
+      constraint.stateKey === states[stateIndex].key);
+    if (constraintRefs.current[index]) {
+      constraintRefs.current[index].current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }
+
   return (
     <>
       <Typography variant="h6" color="secondary" mt={2}>States</Typography>
-      {data.map((state, index) => {
+      {states.map((state, index) => {
         const { key, value, type } = state;
+        const constraint = constraints.find((constraint) => constraint.subsystem === id && constraint.stateKey === key);
         if (type === 'double' || type === 'int') {
           return (
-            <Stack key={key} direction="row" mt={2}>
-              <TextField
-                id={key}
-                fullWidth
-                label={convertDisplayName(key)}
-                variant="outlined"
-                color='primary'
+            <Fragment key={key}>
+              <NumericalState
                 name={key}
                 value={value}
-                type='text'
-                onChange={handleChange}
-                error={errors[key] !== undefined}
-                helperText={errors[key]}
-                onBlur={handleBlur}
-              />
-              <DeleteParameterButton
+                errors={errors}
+                constraint={constraint}
+                scrollToConstraint={scrollToConstraint}
+                handleChange={handleChange}
+                handleBlur={handleBlur}
                 index={index}
                 markedForDeletion={markedForDeletion}
                 hovered={hovered}
@@ -108,30 +118,19 @@ export default function SubsystemStates({ data, id, setComponentList, componentK
                 setMarkedForDeletion={setMarkedForDeletion}
                 handleDeleteClicked={handleDeleteClicked}
               />
-            </Stack>
+            </Fragment>
           );
         } else if (type === 'bool') {
           return (
-            <Stack key={key} direction="row" mt={2}>
-              <TextField
-                id={key}
-                fullWidth
-                label={convertDisplayName(key)}
-                variant="outlined"
-                color='primary'
+            <Fragment key={key}>
+              <BoolState
                 name={key}
                 value={value}
-                select
-                align='left'
-                onChange={handleChange}
-                error={errors[key] !== undefined}
-                helperText={errors[key]}
-                onBlur={handleBlur}
-              >
-                <MenuItem key='true' value='true'>True</MenuItem>
-                <MenuItem key='false' value='false'>False</MenuItem>
-              </TextField>
-              <DeleteParameterButton
+                errors={errors}
+                constraint={constraint}
+                scrollToConstraint={scrollToConstraint}
+                handleChange={handleChange}
+                handleBlur={handleBlur}
                 index={index}
                 markedForDeletion={markedForDeletion}
                 hovered={hovered}
@@ -139,8 +138,8 @@ export default function SubsystemStates({ data, id, setComponentList, componentK
                 setMarkedForDeletion={setMarkedForDeletion}
                 handleDeleteClicked={handleDeleteClicked}
               />
-            </Stack>
-          );
+            </Fragment>
+          )
         } else { // 'Matrix' or 'Vector'
           const errorMessage = errors[key];
           const invalidComponents = [];
@@ -154,40 +153,22 @@ export default function SubsystemStates({ data, id, setComponentList, componentK
 
           return (
             <Fragment key={key}>
-              <Typography variant='body2' color="secondary" my={2}>{convertDisplayName(key)}</Typography>
-              {errorMessage && <Typography variant="body2" color="error" sx={{ my: 1 }}>{errorMessage}</Typography>}
-              <Stack direction="row" mt={2}>
-                <Grid container spacing={2} key={key}>
-                  {value.map((component, index) => {
-                    const componentKey = key + '_' + index;
-                    return (
-                      <Grid item xs={4} key={componentKey}>
-                        <TextField
-                          id={componentKey}
-                          label={`Component ${index}`}
-                          variant="outlined"
-                          color="primary"
-                          name={componentKey}
-                          value={component}
-                          type="text"
-                          fullWidth
-                          onChange={handleChange}
-                          error={errorMessage && invalidComponents.includes(index)}
-                          onBlur={handleBlur}
-                        />
-                      </Grid>
-                    )
-                  })}
-                </Grid>
-                <DeleteParameterButton
-                  index={index}
-                  markedForDeletion={markedForDeletion}
-                  hovered={hovered}
-                  setHovered={setHovered}
-                  setMarkedForDeletion={setMarkedForDeletion}
-                  handleDeleteClicked={handleDeleteClicked}
-                />
-              </Stack>
+              <VectorState
+                name={key}
+                value={value}
+                constraint={constraint}
+                errorMessage={errorMessage}
+                scrollToConstraint={scrollToConstraint}
+                handleChange={handleChange}
+                handleBlur={handleBlur}
+                index={index}
+                markedForDeletion={markedForDeletion}
+                hovered={hovered}
+                setHovered={setHovered}
+                setMarkedForDeletion={setMarkedForDeletion}
+                handleDeleteClicked={handleDeleteClicked}
+                invalidComponents={invalidComponents}
+              />
             </Fragment>
           )
         }
@@ -199,6 +180,14 @@ export default function SubsystemStates({ data, id, setComponentList, componentK
       >
         <AddCircleIcon fontSize="inherit"/>
       </IconButton>
+      {constraints && <Constraints
+        states={states}
+        componentId={id}
+        constraints={constraints}
+        setConstraints={setConstraints}
+        setComponentList={setComponentList}
+        ref={constraintRefs.current}
+      />}
       {modalOpen && <AddParameterModal
         label='State'
         componentKeys={componentKeys}

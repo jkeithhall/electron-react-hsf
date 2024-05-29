@@ -30,6 +30,8 @@ export default function EditingPalette ({
   componentList,
   setComponentList,
   setDependencyList,
+  constraints,
+  setConstraints,
   pythonSrc,
   modelErrors,
   setModelErrors,
@@ -132,7 +134,7 @@ export default function EditingPalette ({
             handleBlur={handleBlur}
           />
           <SubsystemParameters data={parameters} id={id} setComponentList={setComponentList} componentKeys={componentKeys} errors={currentNodeErrors} handleBlur={handleBlur}/>
-          <SubsystemStates data={states} id={id} setComponentList={setComponentList} componentKeys={componentKeys} errors={currentNodeErrors} handleBlur={handleBlur}/>
+          <SubsystemStates states={states} id={id} setComponentList={setComponentList} componentKeys={componentKeys} constraints={constraints} setConstraints={setConstraints} errors={currentNodeErrors} handleBlur={handleBlur}/>
         </>}
       </Box>
       <div className="confirm-close-icons" style={{ marginBottom: 120 }}>

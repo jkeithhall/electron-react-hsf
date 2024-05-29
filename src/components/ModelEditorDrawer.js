@@ -23,7 +23,6 @@ export default function ModelEditorDrawer({
   setDependencyList,
   constraints,
   setConstraints,
-  evaluator,
   setEvaluator,
   setNodes,
   setEdges,
@@ -130,6 +129,8 @@ export default function ModelEditorDrawer({
         componentList={componentList}
         setComponentList={setComponentList}
         setDependencyList={setDependencyList}
+        constraints={constraints}
+        setConstraints={setConstraints}
         pythonSrc={pythonSrc}
         modelErrors={modelErrors}
         setModelErrors={setModelErrors}
@@ -143,6 +144,8 @@ export default function ModelEditorDrawer({
       {!data && newNodeType === 'subComponent' && <NewSubComponentPalette
         componentList={componentList}
         setComponentList={setComponentList}
+        constraints={constraints}
+        setConstraints={setConstraints}
         pythonSrc={pythonSrc}
         clipboardData={clipboardData}
       />}
