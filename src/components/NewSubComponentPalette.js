@@ -137,23 +137,14 @@ export default function NewSubComponentPalette({
             </Box>
           </Stack> : <Typography variant="h4" color="secondary" mt={2}>{'Create New Subcomponent'}</Typography>
         }
-        <Grid container spacing={2} my={2}>
-          <NameField
-            name={name}
-            setComponentList={updateNewComponent}
-            id={id}
-            errors={currentNodeErrors}
-            handleBlur={handleBlur}
-          />
-          <ClassName
-            className={className}
-            id={id}
-            setComponentList={updateNewComponent}
-            errors={currentNodeErrors}
-            handleBlur={handleBlur}
-          />
-        </Grid>
-        <Grid container spacing={2}>
+        <NameField
+          name={name}
+          setComponentList={updateNewComponent}
+          id={id}
+          errors={currentNodeErrors}
+          handleBlur={handleBlur}
+        />
+        <Grid container spacing={2} mb={2}>
           <SubsystemType
             type={type}
             setComponentList={updateNewComponent}
@@ -165,20 +156,30 @@ export default function NewSubComponentPalette({
             parent={parent}
             componentList={componentList}
             setComponentList={updateNewComponent}
-            errors={updateNewComponent}
+            errors={currentNodeErrors}
             handleBlur={handleBlur}
+            disabled={false}
           />
         </Grid>
-        <SourceFile
-          src={src}
-          setComponentList={updateNewComponent}
-          id={id}
-          pythonSrc={pythonSrc}
-          errors={currentNodeErrors}
-          handleBlur={handleBlur}
-        />
+        {type === 'scripted' ?
+          <SourceFile
+            src={src}
+            setComponentList={updateNewComponent}
+            id={id}
+            pythonSrc={pythonSrc}
+            errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          /> :
+          <ClassName
+            className={className}
+            id={id}
+            setComponentList={updateNewComponent}
+            errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          />
+        }
         <SubsystemParameters
-          data={parameters}
+          parameters={parameters}
           id={id}
           setComponentList={updateNewComponent}
           componentKeys={componentKeys}

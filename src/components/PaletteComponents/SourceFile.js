@@ -25,39 +25,35 @@ export default function SourceFile({ src, setComponentList, id, pythonSrc, error
 
   if (!src) {
     return (
-      <>
-        <Typography variant="h6" color="secondary" my={2}>Source File</Typography>
-        <TextField
-          id="src"
-          fullWidth
-          value=""
-          placeholder="Select File"
-          onClick={handleClick}
-          readOnly
-          error={errors.src !== undefined}
-          helperText={errors.src}
-          onBlur={handleBlur}
-          InputProps={{ endAdornment: <InputAdornment position="end"><InsertDriveFileIcon /></InputAdornment> }}
-        />
-      </>
+      <TextField
+        id="src"
+        fullWidth
+        value=""
+        label="Source File"
+        placeholder="Select File"
+        onClick={handleClick}
+        readOnly
+        error={errors.src !== undefined}
+        helperText={errors.src}
+        onBlur={handleBlur}
+        InputProps={{ endAdornment: <InputAdornment position="end"><InsertDriveFileIcon /></InputAdornment> }}
+      />
     )
   } else {
     return (
-      <>
-        <Typography variant="h6" color="secondary" my={2}>Source File</Typography>
-        <TextField
-          id="src"
-          fullWidth
-          value={shortenPath(src, 45)}
-          placeholder="Select File"
-          onClick={handleClick}
-          readOnly
-          error={errors.src !== undefined}
-          helperText={errors.src}
-          InputProps={{ endAdornment: <InputAdornment position="end"><InsertDriveFileIcon /></InputAdornment> }}
-          onBlur={handleBlur}
-        />
-      </>
+      <TextField
+        id="src"
+        fullWidth
+        value={shortenPath(src, 45)}
+        label="Source File"
+        placeholder="Select File"
+        onClick={handleClick}
+        readOnly
+        error={errors.src !== undefined}
+        helperText={errors.src}
+        InputProps={{ endAdornment: <InputAdornment position="end"><InsertDriveFileIcon /></InputAdornment> }}
+        onBlur={handleBlur}
+      />
     )
   }
 }

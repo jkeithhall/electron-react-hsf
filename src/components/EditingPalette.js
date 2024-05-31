@@ -8,7 +8,7 @@ import EomsType from './PaletteComponents/EomsType';
 import IntegratorOptions from './PaletteComponents/IntegratorOptions';
 import IntegratorParameters from './PaletteComponents/IntegratorParameters';
 import SubsystemType from './PaletteComponents/SubsystemType';
-import AssetGroup from './PaletteComponents/AssetGroup';
+import ParentSelector from './PaletteComponents/ParentSelector';
 import SourceFile from './PaletteComponents/SourceFile';
 import SubsystemParameters from './PaletteComponents/SubsystemParameters';
 import SubsystemStates from './PaletteComponents/SubsystemStates';
@@ -115,14 +115,28 @@ export default function EditingPalette ({
             </Tooltip>
           </Box>
         </Stack>
-        <Grid container spacing={2} my={2}>
-          <NameField name={name} setComponentList={setComponentList} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
-          <ClassName className={className} id={id} setComponentList={setComponentList} errors={currentNodeErrors} handleBlur={handleBlur}/>
-        </Grid>
         {className === 'asset' && <>
+          <NameField
+            name={name}
+            setComponentList={setComponentList}
+            id={id} errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          />
           <Grid container spacing={2}>
-            <DynamicStateType value={dynamicStateType} setComponentList={setComponentList} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
-            <EomsType value={eomsType} setComponentList={setComponentList} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
+            <DynamicStateType
+              value={dynamicStateType}
+              setComponentList={setComponentList}
+              id={id}
+              errors={currentNodeErrors}
+              handleBlur={handleBlur}
+            />
+            <EomsType
+              value={eomsType}
+              setComponentList={setComponentList}
+              id={id}
+              errors={currentNodeErrors}
+              handleBlur={handleBlur}
+            />
           </Grid>
           <StateData data={stateData} id={id} setComponentList={setComponentList} errors={currentNodeErrors} handleBlur={handleBlur}/>
           <IntegratorOptions
@@ -143,29 +157,49 @@ export default function EditingPalette ({
           />
         </>}
         {className !== 'asset' && <>
-          <Grid container spacing={2}>
+          <NameField
+            name={name}
+            setComponentList={setComponentList}
+            id={id}
+            errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          />
+          <Grid container spacing={2} mb={2}>
             <SubsystemType
               type={type}
               setComponentList={setComponentList}
               id={id} errors={currentNodeErrors}
               handleBlur={handleBlur}
             />
-            <AssetGroup
-              name={parentName}
+            <ParentSelector
+              id={id}
+              parent={parent}
+              componentList={componentList}
+              setComponentList={setComponentList}
+              errors={currentNodeErrors}
+              handleBlur={handleBlur}
+              disabled={true}
+            />
+          </Grid>
+          {type === 'scripted' ?
+            <SourceFile
+              src={src}
+              setComponentList={setComponentList}
+              id={id}
+              pythonSrc={pythonSrc}
+              errors={currentNodeErrors}
+              handleBlur={handleBlur}
+            /> :
+            <ClassName
+              className={className}
+              id={id}
+              setComponentList={setComponentList}
               errors={currentNodeErrors}
               handleBlur={handleBlur}
             />
-          </Grid>
-          <SourceFile
-            src={src}
-            setComponentList={setComponentList}
-            id={id}
-            pythonSrc={pythonSrc}
-            errors={currentNodeErrors}
-            handleBlur={handleBlur}
-          />
+          }
           <SubsystemParameters
-            data={parameters}
+            parameters={parameters}
             id={id}
             setComponentList={setComponentList}
             componentKeys={componentKeys}

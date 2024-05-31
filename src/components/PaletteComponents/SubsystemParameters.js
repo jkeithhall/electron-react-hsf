@@ -11,7 +11,7 @@ import VectorState from './VectorState';
 import AddParameterModal from './AddParameterModal';
 
 export default function SubsystemParameters({
-  data,
+  parameters,
   id,
   setComponentList,
   errors,
@@ -87,7 +87,7 @@ export default function SubsystemParameters({
   return (
     <>
       <Typography variant="h6" color="secondary" mt={2}>Parameters</Typography>
-      {data.map((parameter, index) => {
+      {parameters.map((parameter, index) => {
         const { name, value, type } = parameter;
         if (type === 'double' || type === 'int') {
           return (
