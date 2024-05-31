@@ -83,6 +83,7 @@ export default function ModelEditor({
                 componentList={componentList}
                 setComponentList={setComponentList}
                 dependencyList={dependencyList}
+                setConstraints={setConstraints}
                 selectedNodeId={selectedNodeId}
                 setSelectedNodeData={setSelectedNodeData}
                 setErrorModalOpen={setErrorModalOpen}

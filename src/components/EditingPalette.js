@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 
 import NameField from './PaletteComponents/NameField';
 import ClassName from './PaletteComponents/ClassName';
@@ -12,6 +12,7 @@ import AssetGroup from './PaletteComponents/AssetGroup';
 import SourceFile from './PaletteComponents/SourceFile';
 import SubsystemParameters from './PaletteComponents/SubsystemParameters';
 import SubsystemStates from './PaletteComponents/SubsystemStates';
+import Constraints from './PaletteComponents/Constraints';
 
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
@@ -37,6 +38,7 @@ export default function EditingPalette ({
   setModelErrors,
   handleDeleteClick
 }) {
+  const constraintRefs = useRef({});
 
   const {
     id,
@@ -64,6 +66,12 @@ export default function EditingPalette ({
       window.electronApi.writeToClipboard(JSON.stringify(data, null, 2));
     }
   }
+
+  const scrollToConstraint = (stateKey) => {
+    if (constraintRefs.current[stateKey]) {
+      constraintRefs.current[stateKey].scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   useEffect(() => {
     validateAssetParameters(data, setModelErrors, pythonSrc);
@@ -117,13 +125,36 @@ export default function EditingPalette ({
             <EomsType value={eomsType} setComponentList={setComponentList} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
           </Grid>
           <StateData data={stateData} id={id} setComponentList={setComponentList} errors={currentNodeErrors} handleBlur={handleBlur}/>
-          <IntegratorOptions data={integratorOptions} id={id} setComponentList={setComponentList} errors={currentNodeErrors} componentKeys={componentKeys} handleBlur={handleBlur}/>
-          <IntegratorParameters data={integratorParameters} id={id} setComponentList={setComponentList} errors={currentNodeErrors} componentKeys={componentKeys} handleBlur={handleBlur}/>
+          <IntegratorOptions
+            data={integratorOptions}
+            id={id}
+            setComponentList={setComponentList}
+            errors={currentNodeErrors}
+            componentKeys={componentKeys}
+            handleBlur={handleBlur}
+          />
+          <IntegratorParameters
+            data={integratorParameters}
+            id={id}
+            setComponentList={setComponentList}
+            errors={currentNodeErrors}
+            componentKeys={componentKeys}
+            handleBlur={handleBlur}
+          />
         </>}
         {className !== 'asset' && <>
           <Grid container spacing={2}>
-            <SubsystemType type={type} setComponentList={setComponentList} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
-            <AssetGroup name={parentName} errors={currentNodeErrors} handleBlur={handleBlur}/>
+            <SubsystemType
+              type={type}
+              setComponentList={setComponentList}
+              id={id} errors={currentNodeErrors}
+              handleBlur={handleBlur}
+            />
+            <AssetGroup
+              name={parentName}
+              errors={currentNodeErrors}
+              handleBlur={handleBlur}
+            />
           </Grid>
           <SourceFile
             src={src}
@@ -133,8 +164,32 @@ export default function EditingPalette ({
             errors={currentNodeErrors}
             handleBlur={handleBlur}
           />
-          <SubsystemParameters data={parameters} id={id} setComponentList={setComponentList} componentKeys={componentKeys} errors={currentNodeErrors} handleBlur={handleBlur}/>
-          <SubsystemStates states={states} id={id} setComponentList={setComponentList} componentKeys={componentKeys} constraints={constraints} setConstraints={setConstraints} errors={currentNodeErrors} handleBlur={handleBlur}/>
+          <SubsystemParameters
+            data={parameters}
+            id={id}
+            setComponentList={setComponentList}
+            componentKeys={componentKeys}
+            errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          />
+          <SubsystemStates
+            states={states}
+            id={id}
+            setComponentList={setComponentList}
+            componentKeys={componentKeys}
+            constraints={constraints}
+            scrollToConstraint={scrollToConstraint}
+            errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          />
+          {states.length > 0 && <Constraints
+            states={states}
+            componentId={id}
+            constraints={constraints}
+            setConstraints={setConstraints}
+            setComponentList={setComponentList}
+            ref={constraintRefs.current}
+          />}
         </>}
       </Box>
       <div className="confirm-close-icons" style={{ marginBottom: 120 }}>

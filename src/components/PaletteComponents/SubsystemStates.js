@@ -1,4 +1,4 @@
-import { useState, useRef, createRef, Fragment } from 'react';
+import { useState, Fragment } from 'react';
 
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -7,7 +7,6 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import NumericalState from './NumericalState';
 import BoolState from './BoolState';
 import VectorState from './VectorState';
-import Constraints from './Constraints';
 import AddParameterModal from './AddParameterModal';
 
 export default function SubsystemStates({
@@ -16,14 +15,13 @@ export default function SubsystemStates({
   setComponentList,
   componentKeys,
   constraints,
-  setConstraints,
+  scrollToConstraint,
   errors,
   handleBlur
 }) {
   const [hovered, setHovered] = useState(-1);
   const [markedForDeletion, setMarkedForDeletion] = useState(-1);
   const [modalOpen, setModalOpen] = useState(false);
-  const constraintRefs = useRef(constraints.map(() => createRef()));
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -84,14 +82,6 @@ export default function SubsystemStates({
         }
       });
     });
-  }
-
-  const scrollToConstraint = (stateIndex) => {
-    const index = constraints.findIndex((constraint) => constraint.subsystem === id &&
-      constraint.stateKey === states[stateIndex].key);
-    if (constraintRefs.current[index]) {
-      constraintRefs.current[index].current.scrollIntoView({ behavior: 'smooth' });
-    }
   }
 
   return (
@@ -180,14 +170,6 @@ export default function SubsystemStates({
       >
         <AddCircleIcon fontSize="inherit"/>
       </IconButton>
-      {constraints && <Constraints
-        states={states}
-        componentId={id}
-        constraints={constraints}
-        setConstraints={setConstraints}
-        setComponentList={setComponentList}
-        ref={constraintRefs.current}
-      />}
       {modalOpen && <AddParameterModal
         label='State'
         componentKeys={componentKeys}

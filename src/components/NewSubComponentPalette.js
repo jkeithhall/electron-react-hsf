@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { validateAssetParameters } from '../utils/validateParameters';
 
 import NameField from './PaletteComponents/NameField';
@@ -8,6 +8,7 @@ import ParentSelector from './PaletteComponents/ParentSelector';
 import SourceFile from './PaletteComponents/SourceFile';
 import SubsystemParameters from './PaletteComponents/SubsystemParameters';
 import SubsystemStates from './PaletteComponents/SubsystemStates';
+import Constraints from './PaletteComponents/Constraints';
 
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
@@ -41,6 +42,7 @@ export default function NewSubComponentPalette({
   const [ parameters, setParameters ] = useState([]);
   const [ newNodeErrors, setNewNodeErrors ] = useState({});
   const [ newConstraints, setNewConstraints ] = useState([]);
+  const constraintRefs = useRef({});
 
   const data = {
     id,
@@ -82,7 +84,9 @@ export default function NewSubComponentPalette({
         return { ...constraint, subsystem: id, id: randomId() }
       })
       // Add the copied constraints to the list of new constraints
-      setNewConstraints([...copiedConstraints]);
+      setNewConstraints(copiedConstraints);
+      // Validate the parameters of the pasted component
+      validateAssetParameters(clipboardData, setNewNodeErrors, src);
     }
   }
 
@@ -91,8 +95,14 @@ export default function NewSubComponentPalette({
   }
 
   const handleDragStart = (e) => {
-    e.dataTransfer.setData('application/reactflow', JSON.stringify({ data }));
+    e.dataTransfer.setData('application/reactflow', JSON.stringify({ data, newConstraints }));
     e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const scrollToConstraint = (stateKey) => {
+    if (constraintRefs.current[stateKey]) {
+      constraintRefs.current[stateKey].scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const componentKeys = ['id', 'name', 'className', 'parent', 'type', 'src'];
@@ -128,12 +138,36 @@ export default function NewSubComponentPalette({
           </Stack> : <Typography variant="h4" color="secondary" mt={2}>{'Create New Subcomponent'}</Typography>
         }
         <Grid container spacing={2} my={2}>
-          <NameField name={name} setComponentList={updateNewComponent} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
-          <ClassName className={className} id={id} setComponentList={updateNewComponent} errors={currentNodeErrors} handleBlur={handleBlur}/>
+          <NameField
+            name={name}
+            setComponentList={updateNewComponent}
+            id={id}
+            errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          />
+          <ClassName
+            className={className}
+            id={id}
+            setComponentList={updateNewComponent}
+            errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          />
         </Grid>
         <Grid container spacing={2}>
-          <SubsystemType type={type} setComponentList={updateNewComponent} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
-          <ParentSelector id={id} parent={parent} componentList={componentList} setComponentList={updateNewComponent} errors={updateNewComponent} handleBlur={handleBlur}/>
+          <SubsystemType
+            type={type}
+            setComponentList={updateNewComponent}
+            id={id} errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          />
+          <ParentSelector
+            id={id}
+            parent={parent}
+            componentList={componentList}
+            setComponentList={updateNewComponent}
+            errors={updateNewComponent}
+            handleBlur={handleBlur}
+          />
         </Grid>
         <SourceFile
           src={src}
@@ -143,8 +177,32 @@ export default function NewSubComponentPalette({
           errors={currentNodeErrors}
           handleBlur={handleBlur}
         />
-        <SubsystemParameters data={parameters} id={id} setComponentList={updateNewComponent} componentKeys={componentKeys} errors={currentNodeErrors} handleBlur={handleBlur}/>
-        <SubsystemStates states={states} id={id} setComponentList={updateNewComponent} componentKeys={componentKeys} constraints={newConstraints} setConstraints={setNewConstraints} errors={currentNodeErrors} handleBlur={handleBlur}/>
+        <SubsystemParameters
+          data={parameters}
+          id={id}
+          setComponentList={updateNewComponent}
+          componentKeys={componentKeys}
+          errors={currentNodeErrors}
+          handleBlur={handleBlur}
+        />
+        <SubsystemStates
+          states={states}
+          id={id}
+          setComponentList={updateNewComponent}
+          componentKeys={componentKeys}
+          constraints={newConstraints}
+          scrollToConstraint={scrollToConstraint}
+          errors={currentNodeErrors}
+          handleBlur={handleBlur}
+        />
+        {states.length > 0 && <Constraints
+            states={states}
+            componentId={id}
+            constraints={newConstraints}
+            setConstraints={setNewConstraints}
+            setComponentList={setComponentList}
+            ref={constraintRefs.current}
+        />}
       </Box>
       <div className="drag-drop-container" style={{ marginBottom: 120 }}>
         {name && Object.keys(currentNodeErrors).length === 0 && <>

@@ -23,6 +23,7 @@ export default function LayoutFlow ({
   componentList,
   setComponentList,
   dependencyList,
+  setConstraints,
   selectedNodeId,
   setSelectedNodeData,
   setErrorModalOpen,
@@ -88,7 +89,7 @@ export default function LayoutFlow ({
       y: e.clientY,
     });
 
-    const { data, backgroundColor } = JSON.parse(e.dataTransfer.getData('application/reactflow'));
+    const { data, backgroundColor, newConstraints } = JSON.parse(e.dataTransfer.getData('application/reactflow'));
     const { className } = data;
 
     const newNode = {
@@ -105,6 +106,7 @@ export default function LayoutFlow ({
     }
 
     setComponentList((prevList) => prevList.concat(data));
+    setConstraints((prevConstraints) => prevConstraints.concat(newConstraints));
     setNodes((nodes) => {
       // Check if the new node overlaps with any existing nodes
       let overlapped = false;

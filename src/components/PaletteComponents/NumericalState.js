@@ -1,5 +1,6 @@
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Tooltop from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import RuleIcon from '@mui/icons-material/Rule';
 import DeleteParameterButton from './DeleteButton';
@@ -38,13 +39,15 @@ export default function NumericalState({
         onBlur={handleBlur}
       />
       {constraint ?
-        <IconButton
-          size="medium"
-          onClick={() => scrollToConstraint(index)}
-        >
-          <RuleIcon fontSize="inherit" color="primary"/>
-        </IconButton>
-       : <DeleteParameterButton
+        <Tooltop title="Scroll to constraint">
+          <IconButton
+            size="medium"
+            onClick={() => scrollToConstraint(name)}
+          >
+            <RuleIcon fontSize="inherit" color="primary"/>
+          </IconButton>
+        </Tooltop>
+      : <DeleteParameterButton
           index={index}
           markedForDeletion={markedForDeletion}
           hovered={hovered}

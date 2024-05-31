@@ -9,7 +9,7 @@ import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
 
-export default function AddParameterModalModal({ label, handleAddParameter, handleClose, componentKeys }) {
+export default function AddParameterModal({ label, handleAddParameter, handleClose, componentKeys }) {
   const [parameterName, setParameterName] = useState('');
   const [parameterType, setParameterType] = useState('double');
   const [parameterValue, setParameterValue] = useState(0);

@@ -10,11 +10,11 @@ import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import MenuItem from '@mui/material/MenuItem';
+import AddConstraintModal from './AddConstraintModal';
 
 import { convertDisplayName } from '../../utils/displayNames';
 
 const typeOptions = ['FAIL_IF_HIGHER', 'FAIL_IF_LOWER', 'FAIL_IF_EQUAL', 'FAIL_IF_NOT_EQUAL', 'FAIL_IF_HIGHER_OR_EQUAL', 'FAIL_IF_LOWER_OR_EQUAL'];
-const stateTypeOptions = ['double', 'int'];
 
 const DeleteConstraintButton = ({markedForDeletion, index, hovered, buttonRef, setHovered, handleDeleteClicked}) => {
   if (markedForDeletion !== index) {
@@ -47,8 +47,10 @@ const DeleteConstraintButton = ({markedForDeletion, index, hovered, buttonRef, s
 }
 
 const Constraints = forwardRef(({ states, componentId, constraints, setConstraints, setComponentList }, ref) => {
-  const [hovered, setHovered] = useState(null);
-  const [markedForDeletion, setMarkedForDeletion] = useState(null);
+  const [ hovered, setHovered ] = useState(null);
+  const [ markedForDeletion, setMarkedForDeletion ] = useState(null);
+  const [ modalOpen, setModalOpen ] = useState(false);
+  const [ errorMessages, setErrorMessages ] = useState({})
   const buttonRef = useRef(null);
 
   const handleChange = (e, id) => {
@@ -62,6 +64,34 @@ const Constraints = forwardRef(({ states, componentId, constraints, setConstrain
         }
       });
     });
+  }
+
+  const handleBlur = (e, id) => {
+    const { value } = e.target;
+    const stateType = constraints.find((constraint) => constraint.id === id).stateType;
+    if (stateType === 'int') {
+      if (!Number.isInteger(parseFloat(value))) {
+        setErrorMessages(prevErrors => {
+          return { ...prevErrors, [id]: 'Value must be an integer' };
+        });
+      } else {
+        setErrorMessages(prevErrors => {
+          delete prevErrors[id];
+          return { ...prevErrors };
+        });
+      }
+    } else {
+      if (Number(value) !== parseFloat(value)) {
+        setErrorMessages(prevErrors => {
+          return { ...prevErrors, [id]: 'Value must be a number' };
+        });
+      } else {
+        setErrorMessages(prevErrors => {
+          delete prevErrors[id];
+          return { ...prevErrors };
+        });
+      }
+    }
   }
 
   const handleDeleteClicked = (e, id) => {
@@ -95,14 +125,15 @@ const Constraints = forwardRef(({ states, componentId, constraints, setConstrain
 
   return (
     <>
-      <Typography variant="h6" color="secondary" mb={2} sx={{ flexGrow: 1, textAlign: 'center' }}>Constraints</Typography>
+      <Typography variant="h6" color="secondary" mt={2} sx={{ flexGrow: 1, textAlign: 'center' }}>Constraints</Typography>
       {constraints.map((constraint, index) => {
         if (constraint.subsystem !== componentId) return null;
+        const { stateKey } = constraint;
 
         return (
-          <Card key={constraint.id} ref={ref[index]} sx={{ padding: 1, borderRadius: 2, borderColor: 'primary' }}>
+          <Card key={constraint.id} ref={(element) => ref[stateKey] = element} sx={{ marginTop: 1, padding: 1, borderRadius: 2 }}>
             <Stack direction="row" alignItems="center" sx={{ position: 'relative', width: '100%' }}>
-              <Typography variant="body1" my={2} sx={{ flexGrow: 1, textAlign: 'center' }}>{convertDisplayName(constraint.stateKey)}</Typography>
+              <Typography variant="body1" mt={1} mb={2} ml={1} sx={{ flexGrow: 1, textAlign: 'left' }}>{convertDisplayName(constraint.stateKey)}</Typography>
               <Box sx={{ position: 'absolute', right: 0 }}>
                 <DeleteConstraintButton
                   markedForDeletion={markedForDeletion}
@@ -114,19 +145,17 @@ const Constraints = forwardRef(({ states, componentId, constraints, setConstrain
                 />
               </Box>
             </Stack>
-            <Grid container spacing={2} my={2}>
-              <Grid item xs={6}>
-                <TextField
-                  id='name'
-                  fullWidth
-                  label='Name'
-                  variant="outlined"
-                  color='primary'
-                  name='name'
-                  value={constraint.name}
-                  onChange={(e) => handleChange(e, constraint.id)}
-                />
-              </Grid>
+            <TextField
+              id='name'
+              fullWidth
+              label='Constraint Name'
+              variant="outlined"
+              color='primary'
+              name='name'
+              value={constraint.name}
+              onChange={(e) => handleChange(e, constraint.id)}
+            />
+            <Grid container spacing={2} mt={1}>
               <Grid item xs={6}>
                 <TextField
                   id='type'
@@ -143,34 +172,19 @@ const Constraints = forwardRef(({ states, componentId, constraints, setConstrain
                   {typeOptions.map((type) => <MenuItem key={type} value={type}>{type}</MenuItem>)}
                 </TextField>
               </Grid>
-            </Grid>
-            <Grid container spacing={2} my={2}>
-              <Grid item xs={6}>
-                <TextField
-                  id='stateType'
-                  fullWidth
-                  label='State Type'
-                  variant="outlined"
-                  color='primary'
-                  name='stateType'
-                  value={constraint.stateType}
-                  select
-                  align='left'
-                  onChange={(e) => handleChange(e, constraint.id)}
-                >
-                  {stateTypeOptions.map((option) => <MenuItem key={option} value={option}>{option}</MenuItem>)}
-                </TextField>
-              </Grid>
               <Grid item xs={6}>
                 <TextField
                   id='value'
                   fullWidth
-                  label='Value'
+                  label={`Value (${constraint.stateType})`}
                   variant="outlined"
                   color='primary'
                   name='value'
                   value={constraint.value}
+                  error={errorMessages[constraint.id] !== undefined}
+                  helperText={errorMessages[constraint.id]}
                   onChange={(e) => handleChange(e, constraint.id)}
+                  onBlur={(e) => handleBlur(e, constraint.id)}
                 />
               </Grid>
             </Grid>
@@ -180,10 +194,17 @@ const Constraints = forwardRef(({ states, componentId, constraints, setConstrain
       <IconButton
         color="secondary"
         size="large"
-        onClick={() => {}}
+        onClick={() => setModalOpen(true)}
       >
         <AddCircleIcon fontSize="inherit"/>
       </IconButton>
+      {modalOpen && <AddConstraintModal
+        states={states}
+        subsystem={componentId}
+        handleClose={() => {setModalOpen(false)}}
+        setConstraints={setConstraints}
+        typeOptions={typeOptions}
+      />}
     </>
   )
 });
