@@ -24,7 +24,7 @@ import downloadCSV from './utils/downloadCSV';
 import createNodesEdges from './utils/createNodesEdges';
 
 const { systemComponents, systemDependencies, systemEvaluator, systemConstraints } = parseModel(initModel);
-console.log({ systemComponents, systemDependencies, systemEvaluator, systemConstraints });
+
 export default function App() {
   // Scenario and Tasks state variables
   const [activeStep, setActiveStep] = useState('Scenario');

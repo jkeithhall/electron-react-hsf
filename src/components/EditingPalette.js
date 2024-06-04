@@ -88,7 +88,6 @@ export default function EditingPalette ({
     parameters.forEach((parameter) => { componentKeys.push(parameter.name) });
   }
 
-  const parentName = componentList.find((component) => component.id === parent)?.name;
   const currentNodeErrors = modelErrors[id] ? modelErrors[id] : {};
 
   return (
