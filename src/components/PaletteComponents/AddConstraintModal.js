@@ -56,7 +56,7 @@ export default function AddConstraintModal({ setConstraints, handleClose, states
 
   return (
     <div className="overlay">
-      <Card sx={{ '&..MuiCard-root': { width: 350 }, zIndex: 2, padding: '20px', height: 'auto', borderRadius: "5px" }}>
+      <Card sx={{ maxWidth: 500, zIndex: 2, padding: '20px', height: 'auto', borderRadius: "5px" }}>
         <Typography variant="h4" my={2}>{'Add a New Constraint'}</Typography>
         <TextField
           id="stateKey"
@@ -124,7 +124,7 @@ export default function AddConstraintModal({ setConstraints, handleClose, states
             startIcon={<AddIcon/>}
             disabled={name === '' || value === '' || valueErrorMessage !== ''}
           >
-            Add Parameter
+            Add Constraint
           </Button>
           <Button variant="contained" color="light" onClick={handleClose} startIcon={<CloseIcon/>}>Cancel</Button>
         </div>

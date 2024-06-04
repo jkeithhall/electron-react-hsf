@@ -6,6 +6,7 @@ import ReactFlow, {
   addEdge,
   useReactFlow,
   Panel,
+  MarkerType
 } from 'reactflow';
 
 import AddComponentDial from './AddComponentDial';
@@ -70,8 +71,23 @@ export default function LayoutFlow ({
     // TO DO: Add check for circular dependencies (and other constraints?)
 
     setEdges((eds) => {
-      // Make all new edges smoothstep
-      return addEdge(params, eds).map((edge) => { return { ...edge, type: 'smoothstep' }});
+      // Style new edges as smoothstep with arrowheads
+      return addEdge(params, eds).map((edge) => {
+        return {
+          ...edge,
+          type: 'smoothstep',
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 15,
+            height: 15,
+            color: '#000',
+          },
+          style: {
+            strokeWidth: 2,
+            stroke: '#000',
+          },
+        }
+      });
     })
   },
     [setEdges],

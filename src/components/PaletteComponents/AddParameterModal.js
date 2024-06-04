@@ -124,7 +124,7 @@ export default function AddParameterModal({ label, handleAddParameter, handleClo
 
   return (
     <div className="overlay">
-      <Card sx={{ '&..MuiCard-root': { width: 550 }, zIndex: 2, padding: '20px', height: 'auto', borderRadius: "5px"}}>
+      <Card sx={{ width: 500, zIndex: 2, padding: '20px', height: 'auto', borderRadius: "5px"}}>
         <Typography variant="h4" my={2}>{`Add a New ${label}`}</Typography>
         <TextField
           id="parameterName"

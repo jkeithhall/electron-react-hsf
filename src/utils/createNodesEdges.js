@@ -53,7 +53,14 @@ const createNodesEdges = function(componentList, dependencyList) {
       data: dependency.fcnName,
       type: 'smoothstep',
       markerEnd: {
-        type: MarkerType.Arrow,
+        type: MarkerType.ArrowClosed,
+        width: 15,
+        height: 15,
+        color: '#000',
+      },
+      style: {
+        strokeWidth: 2,
+        stroke: '#000',
       },
     });
   });
