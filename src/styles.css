@@ -173,6 +173,21 @@ header {
     width: var(--tasks-table-max-width);
 }
 
+.constraints-table {
+    height: calc(100vh - var(--header-height) -
+    2 * var(--work-space-padding) - var(--footer-height));
+    max-width: var(--tasks-table-max-width);
+}
+
+.constraints-table-nav-open {
+    width: calc(100vw - var(--nav-drawer-width-open)
+    - 2 * var(--work-space-padding));
+}
+
+.constraints-table-nav-closed {
+    width: var(--tasks-table-max-width);
+}
+
 .stacking-context {
     position: absolute;
     z-index: 2;

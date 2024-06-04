@@ -13,13 +13,15 @@ import TaskTableToolbar from './TaskTableToolbar.js';
 import ConfirmationModal from './ConfirmationModal';
 import LocationModal from './LocationModal';
 
+import { dynStateTypeOptions } from './PaletteComponents/DynamicStateType';
+
 // Default pin location in map selector view for added tasks without location
 const DEFAULT_LATITUDE = 51.4778;
 const DEFAULT_LONGITUDE = 0;
 const DEFAULT_ALTITUDE = 0;
 const DEFAULT_LOCATION = { lat: DEFAULT_LATITUDE, lon: DEFAULT_LONGITUDE, alt: DEFAULT_ALTITUDE };
 
-export default function TaskTable({ navOpen, activeStep, setActiveStep, setStateMethods, taskList, setTaskList }) {
+export default function TaskTable({ navOpen, taskList, setTaskList }) {
   const [ formErrorCount, setFormErrorCount] = useState(0);
   const [rowModesModel, setRowModesModel] = useState({});
   const [confirmModalOpen, setConfirmModalOpen ] = useState(false);
@@ -28,15 +30,13 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
   const [selectedTaskName, setSelectedTaskName] = useState('');
   const [selectedTaskId, setSelectedTaskId] = useState('');
 
-  // const valid = formErrorCount === 0;
-
   const handleRowModesModelChange = (newRowModesModel) => {
     setRowModesModel(newRowModesModel);
   };
 
   const processRowUpdate = (newRow) => {
     const updatedRow = { ...newRow, isNew: false };
-    setTaskList(taskList.map((row) => (row.id === newRow.id ? updatedRow : row)));
+    setTaskList(taskList.map((row) => (row.id === newRow.id ? {...newRow} : row)));
     return updatedRow;
   };
 
@@ -183,16 +183,7 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
       field: 'dynamicStateType',
       headerName: 'Dyn. State Type',
       type: 'singleSelect',
-      valueOptions: [
-        'STATIC_LLA',
-        'STATIC_ECI',
-        'PREDETERMINED_LLA',
-        'PREDETERMINED_ECI',
-        'DYNAMIC_LLA',
-        'DYNAMIC_ECI',
-        'STATIC_LVLH',
-        'NULL_STATE'
-      ],
+      valueOptions: dynStateTypeOptions,
       width: 120,
       editable: true
     },
@@ -205,7 +196,6 @@ export default function TaskTable({ navOpen, activeStep, setActiveStep, setState
 
   return (
     <>
-      {/* <FileHeader activeStep={activeStep} valid={valid} setStateMethods={setStateMethods} handleNextButtonClick={handleNextButtonClick}/> */}
       {confirmModalOpen && (
         <div className='stacking-context'>
           <ConfirmationModal

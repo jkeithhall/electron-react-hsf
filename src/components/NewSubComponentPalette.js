@@ -8,7 +8,7 @@ import ParentSelector from './PaletteComponents/ParentSelector';
 import SourceFile from './PaletteComponents/SourceFile';
 import SubsystemParameters from './PaletteComponents/SubsystemParameters';
 import SubsystemStates from './PaletteComponents/SubsystemStates';
-import Constraints from './PaletteComponents/Constraints';
+import { Constraints } from './PaletteComponents/Constraints';
 
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';

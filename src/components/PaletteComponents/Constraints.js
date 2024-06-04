@@ -14,7 +14,7 @@ import AddConstraintModal from './AddConstraintModal';
 
 import { convertDisplayName } from '../../utils/displayNames';
 
-const typeOptions = ['FAIL_IF_HIGHER', 'FAIL_IF_LOWER', 'FAIL_IF_EQUAL', 'FAIL_IF_NOT_EQUAL', 'FAIL_IF_HIGHER_OR_EQUAL', 'FAIL_IF_LOWER_OR_EQUAL'];
+const constraintTypeOptions = ['FAIL_IF_HIGHER', 'FAIL_IF_LOWER', 'FAIL_IF_EQUAL', 'FAIL_IF_NOT_EQUAL', 'FAIL_IF_HIGHER_OR_EQUAL', 'FAIL_IF_LOWER_OR_EQUAL'];
 
 const DeleteConstraintButton = ({markedForDeletion, index, hovered, buttonRef, setHovered, handleDeleteClicked}) => {
   if (markedForDeletion !== index) {
@@ -169,7 +169,7 @@ const Constraints = forwardRef(({ states, componentId, constraints, setConstrain
                   align='left'
                   onChange={(e) => handleChange(e, constraint.id)}
                 >
-                  {typeOptions.map((type) => <MenuItem key={type} value={type}>{type}</MenuItem>)}
+                  {constraintTypeOptions.map((type) => <MenuItem key={type} value={type}>{type}</MenuItem>)}
                 </TextField>
               </Grid>
               <Grid item xs={6}>
@@ -203,10 +203,10 @@ const Constraints = forwardRef(({ states, componentId, constraints, setConstrain
         subsystem={componentId}
         handleClose={() => {setModalOpen(false)}}
         setConstraints={setConstraints}
-        typeOptions={typeOptions}
+        typeOptions={constraintTypeOptions}
       />}
     </>
   )
 });
 
-export default Constraints;
+export { Constraints, constraintTypeOptions };

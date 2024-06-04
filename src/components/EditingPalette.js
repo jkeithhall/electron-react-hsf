@@ -3,7 +3,7 @@ import { useRef, useEffect } from 'react';
 import NameField from './PaletteComponents/NameField';
 import ClassName from './PaletteComponents/ClassName';
 import StateData from './PaletteComponents/StateData';
-import DynamicStateType from './PaletteComponents/DynamicStateType';
+import { DynamicStateType } from './PaletteComponents/DynamicStateType';
 import EomsType from './PaletteComponents/EomsType';
 import IntegratorOptions from './PaletteComponents/IntegratorOptions';
 import IntegratorParameters from './PaletteComponents/IntegratorParameters';
@@ -12,7 +12,7 @@ import ParentSelector from './PaletteComponents/ParentSelector';
 import SourceFile from './PaletteComponents/SourceFile';
 import SubsystemParameters from './PaletteComponents/SubsystemParameters';
 import SubsystemStates from './PaletteComponents/SubsystemStates';
-import Constraints from './PaletteComponents/Constraints';
+import { Constraints } from './PaletteComponents/Constraints';
 
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';

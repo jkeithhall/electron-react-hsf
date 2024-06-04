@@ -4,7 +4,7 @@ import { validateAssetParameters } from '../utils/validateParameters';
 import NameField from './PaletteComponents/NameField';
 import ClassName from './PaletteComponents/ClassName';
 import StateData from './PaletteComponents/StateData';
-import DynamicStateType from './PaletteComponents/DynamicStateType';
+import { DynamicStateType } from './PaletteComponents/DynamicStateType';
 import EomsType from './PaletteComponents/EomsType';
 import IntegratorOptions from './PaletteComponents/IntegratorOptions';
 import IntegratorParameters from './PaletteComponents/IntegratorParameters';
