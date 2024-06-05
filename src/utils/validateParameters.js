@@ -13,8 +13,8 @@ const scenarioSchema = object({
     return schema.min(startSeconds, 'End Seconds must be greater than Start Seconds');
   }),
   stepSeconds: number().required().min(0, 'Step Seconds must be greater than 0'),
-  maxSchedules: number().required().min(0, 'Max Schedules must be greater than 0'),
-  cropTo: number().required().min(0, 'Crop To must be greater than 0'),
+  maxSchedules: number().required().min(1, 'Max Schedules must be greater than 0'),
+  cropTo: number().required().min(1, 'Crop To must be greater than 0'),
 });
 
 const taskSchema = object({

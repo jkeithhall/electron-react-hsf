@@ -55,8 +55,8 @@ export default function ModelEditor({
     if (window.electronApi) {
       window.electronApi.copyFromClipboard((content) => {
         const clipboardData = JSON.parse(content);
-        if ((type === 'asset' && clipboardData.className === 'asset') ||
-          (type === 'subComponent' && clipboardData.className !== 'asset')) {
+        if ((type === 'asset' && !clipboardData.className) ||
+          (type === 'subComponent' && clipboardData.className)) {
           setClipboardData(clipboardData);
         }
       });
@@ -66,9 +66,11 @@ export default function ModelEditor({
     setPaletteOpen(true);
   }
 
+  const modelEditorSize = navOpen && paletteOpen ? 'model-editor-all-open' : navOpen ? 'model-editor-nav-open' : paletteOpen ? 'model-editor-palette-open' : 'model-editor-all-closed';
+
   return (
     <>
-      <Box className="model-editor">
+      <Box className={`model-editor ${modelEditorSize}`}>
         <Paper className="react-flow-board" sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
           <Paper style={{ width: '100%', height: '100%' }}>
             <ReactFlowProvider>

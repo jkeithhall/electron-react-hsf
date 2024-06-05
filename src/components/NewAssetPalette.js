@@ -47,7 +47,7 @@ export default function NewAssetPalette({
   setDependencyList,
   clipboardData,
 }) {
-  const hue = BASE_COLORS[componentList.filter((component) => component.className === 'asset').length % BASE_COLORS.length];
+  const hue = BASE_COLORS[componentList.filter((component) => !component.className).length % BASE_COLORS.length];
   const initialBackgroundColor = rgbaToHexA(randomColor({
     hue,
     luminosity: 'light',
@@ -67,7 +67,6 @@ export default function NewAssetPalette({
   const data = {
     id,
     name,
-    className: 'asset',
     dynamicStateType,
     eomsType,
     stateData,
@@ -114,7 +113,7 @@ export default function NewAssetPalette({
     e.dataTransfer.effectAllowed = 'move';
   };
 
-  const componentKeys = ['id', 'name', 'className', 'dynamicStateType', 'eomsType', 'stateData'];
+  const componentKeys = ['id', 'name', 'dynamicStateType', 'eomsType', 'stateData'];
   Object.keys(integratorOptions).forEach((key) => { componentKeys.push(key) });
   integratorParameters.forEach((parameter) => { componentKeys.push(parameter.key) });
 
@@ -123,7 +122,7 @@ export default function NewAssetPalette({
   return (
     <>
       <Box sx={{ margin: '0 20px', padding: '10px', backgroundColor: '#eeeeee', borderRadius: '5px' }}>
-        {clipboardData && clipboardData.className === 'asset' ?
+        {clipboardData && !clipboardData.className ?
           <Stack direction="row" alignItems="center" sx={{ position: 'relative', width: '100%' }}>
             <Typography
               variant="h4"
@@ -146,17 +145,52 @@ export default function NewAssetPalette({
             </Box>
           </Stack> : <Typography variant="h4" color="secondary" mt={2}>{'Create New Asset'}</Typography>
         }
-        <Grid container spacing={2} my={2}>
-          <NameField name={name} setComponentList={updateNewComponent} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
-          <ClassName className={'asset'} id={id} setComponentList={updateNewComponent} errors={currentNodeErrors} handleBlur={handleBlur}/>
-        </Grid>
+        <NameField
+          name={name}
+          setComponentList={updateNewComponent}
+          id={id}
+          errors={currentNodeErrors}
+          handleBlur={handleBlur}
+        />
         <Grid container spacing={2}>
-          <DynamicStateType value={dynamicStateType} setComponentList={updateNewComponent} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
-          <EomsType value={eomsType} setComponentList={updateNewComponent} id={id} errors={currentNodeErrors} handleBlur={handleBlur}/>
+          <DynamicStateType
+            value={dynamicStateType}
+            setComponentList={updateNewComponent}
+            id={id}
+            errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          />
+          <EomsType
+            value={eomsType}
+            setComponentList={updateNewComponent}
+            id={id}
+            errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          />
         </Grid>
-        <StateData data={stateData} id={id} setComponentList={updateNewComponent} errors={currentNodeErrors} handleBlur={handleBlur}/>
-        <IntegratorOptions data={integratorOptions} id={id} setComponentList={updateNewComponent} errors={currentNodeErrors} componentKeys={componentKeys} handleBlur={handleBlur}/>
-        <IntegratorParameters data={integratorParameters} id={id} setComponentList={updateNewComponent} errors={currentNodeErrors} componentKeys={componentKeys} handleBlur={handleBlur}/>
+        <StateData
+          stateData={stateData}
+          id={id}
+          setComponentList={updateNewComponent}
+          errors={currentNodeErrors}
+          handleBlur={handleBlur}
+        />
+        <IntegratorOptions
+          integratorOptions={integratorOptions}
+          id={id}
+          setComponentList={updateNewComponent}
+          errors={currentNodeErrors}
+          componentKeys={componentKeys}
+          handleBlur={handleBlur}
+        />
+        <IntegratorParameters
+          integratorParameters={integratorParameters}
+          id={id}
+          setComponentList={updateNewComponent}
+          errors={currentNodeErrors}
+          componentKeys={componentKeys}
+          handleBlur={handleBlur}
+        />
       </Box>
       <div className="drag-drop-container" style={{ marginBottom: 120 }}>
         {name && Object.keys(currentNodeErrors).length === 0 && <>

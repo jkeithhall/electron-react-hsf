@@ -63,7 +63,7 @@ export default function LayoutFlow ({
       return;
     }
     // If the source or target are assets, don't add the edge
-    if (componentList.find((component) => component.className === 'asset' && (component.id === source || component.id === target))) {
+    if (componentList.find((component) => !component.className && (component.id === source || component.id === target))) {
       setErrorModalOpen(true);
       setErrorMessage('Cannot create dependencies between assets');
       return;
@@ -112,17 +112,17 @@ export default function LayoutFlow ({
       id: data.id,
       data: { label: data.name, data },
     }
-    if (className === 'asset') {
+    if (!className) { // Asset
       newNode.style = { backgroundColor, width: 200, height: 200 };
       newNode.position = { x: dropPosition.x, y: dropPosition.y };
-    } else if (data.parent) {
+    } else if (data.parent) { // Subcomponent
       newNode.extent = 'parent';
       newNode.parentNode = data.parent;
       newNode.position = { x: 0, y: 0 };
+      setConstraints((prevConstraints) => prevConstraints.concat(newConstraints));
     }
 
     setComponentList((prevList) => prevList.concat(data));
-    setConstraints((prevConstraints) => prevConstraints.concat(newConstraints));
     setNodes((nodes) => {
       // Check if the new node overlaps with any existing nodes
       let overlapped = false;

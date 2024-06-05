@@ -78,11 +78,11 @@ export default function EditingPalette ({
   }, [id, src]);
 
   const componentKeys = ['id', 'name', 'className'];
-  if (className === 'asset') {
+  if (!className) { // Asset
     componentKeys.push('dynamicStateType', 'eomsType', 'stateData');
     Object.keys(integratorOptions).forEach((key) => { componentKeys.push(key) });
     integratorParameters.forEach((parameter) => { componentKeys.push(parameter.key) });
-  } else {
+  } else { // Subcomponent
     componentKeys.push('type', 'src', 'parent');
     states.forEach((state) => { componentKeys.push(state.key) });
     parameters.forEach((parameter) => { componentKeys.push(parameter.name) });
@@ -114,7 +114,7 @@ export default function EditingPalette ({
             </Tooltip>
           </Box>
         </Stack>
-        {className === 'asset' && <>
+        {!className && <>
           <NameField
             name={name}
             setComponentList={setComponentList}
@@ -137,9 +137,15 @@ export default function EditingPalette ({
               handleBlur={handleBlur}
             />
           </Grid>
-          <StateData data={stateData} id={id} setComponentList={setComponentList} errors={currentNodeErrors} handleBlur={handleBlur}/>
+          <StateData
+            stateData={stateData}
+            id={id}
+            setComponentList={setComponentList}
+            errors={currentNodeErrors}
+            handleBlur={handleBlur}
+          />
           <IntegratorOptions
-            data={integratorOptions}
+            integratorOptions={integratorOptions}
             id={id}
             setComponentList={setComponentList}
             errors={currentNodeErrors}
@@ -147,7 +153,7 @@ export default function EditingPalette ({
             handleBlur={handleBlur}
           />
           <IntegratorParameters
-            data={integratorParameters}
+            integratorParameters={integratorParameters}
             id={id}
             setComponentList={setComponentList}
             errors={currentNodeErrors}
@@ -155,7 +161,7 @@ export default function EditingPalette ({
             handleBlur={handleBlur}
           />
         </>}
-        {className !== 'asset' && <>
+        {className && <>
           <NameField
             name={name}
             setComponentList={setComponentList}

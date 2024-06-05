@@ -152,10 +152,10 @@ export default function ModelEditorDrawer({
       {confirmationModalOpen &&
         <ConfirmationModal
           onCancel={handleDeleteCancel}
-          onConfirm={data.className === 'asset' ? handleDeleteAsset : handleDeleteSubComponent }
+          onConfirm={!data.className ? handleDeleteAsset : handleDeleteSubComponent }
           title={`Delete ${data.name}?`}
           message={`Are you sure you want to delete ${data.name}?`}
-          submessage={data.className === 'asset' ? ' This will also delete all subcomponents.' : ''}
+          submessage={!data.className ? ' This will also delete all subcomponents.' : ''}
           confirmText="Delete"
           cancelText="Cancel"
         />}

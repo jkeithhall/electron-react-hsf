@@ -33,7 +33,7 @@ export default function NewSubComponentPalette({
   const [ name, setName ] = useState('');
   const [ className, setClassName ] = useState('power');
   const [ parent, setParent ] = useState(() => {
-    const asset = componentList.find((component) => component.className === 'asset');
+    const asset = componentList.find((component) => !component.className);
     return asset ? asset.id : null;
   });
   const [ type, setType ] = useState('scripted');

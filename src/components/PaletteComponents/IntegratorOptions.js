@@ -9,7 +9,7 @@ import AddCircleIcon from '@mui/icons-material/AddCircle';
 import DeleteParameterButton from './DeleteButton';
 import AddParameterModal from './AddParameterModal';
 
-export default function IntegratorOptions({ data, setComponentList, id, errors, componentKeys, handleBlur }) {
+export default function IntegratorOptions({ integratorOptions, setComponentList, id, errors, componentKeys, handleBlur }) {
   const [hovered, setHovered] = useState(-1);
   const [markedForDeletion, setMarkedForDeletion] = useState(-1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -72,7 +72,7 @@ export default function IntegratorOptions({ data, setComponentList, id, errors, 
   return (
     <>
       <Typography variant="h6" color="secondary" my={2}>Integrator Options</Typography>
-      {Object.entries(data).map(([key, value], index) => (
+      {Object.entries(integratorOptions).map(([key, value], index) => (
         <Stack key={key} direction="row" mt={2}>
           <TextField
             id={key}

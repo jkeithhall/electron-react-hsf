@@ -3,7 +3,7 @@ import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 
 export default function ParentSelector({ id, parent, componentList, setComponentList, errors, handleBlur, disabled }) {
-  const options = componentList.filter((component) => component.className === 'asset').map((component) => component.name);
+  const options = componentList.filter((component) => !component.className).map((component) => component.name);
   const name = componentList.find((component) => component.id === parent)?.name;
 
   const handleChange = (e) => {

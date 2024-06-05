@@ -12,7 +12,10 @@ export default function ScenarioParameters({activeStep, setActiveStep, simulatio
   const { name, version, dependencies, simulationParameters, schedulerParameters } = simulationInput;
   const { pythonSrc, outputPath, ...otherDependencies } = dependencies;
   const sources = { name, version, pythonSrc, outputPath };
-  const pythonSourceFiles = componentList.filter((component) => component.className !== 'asset').map((component) => component.src);
+
+  const pythonSourceFiles = componentList
+    .filter((component) => component.className && (component.type === 'scripted' || component.type === 'SCRIPTED'))
+    .map((component) => component.src);
 
   const setSources = (newSources) => {
     const { name, version, pythonSrc, outputPath } = newSources;

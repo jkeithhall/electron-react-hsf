@@ -12,7 +12,7 @@ const hoverSX = {
 };
 
 export default function AddComponentDial({ componentList, onLayout, handleNewNodeClick }) {
-  const assetCount = componentList.filter((component) => component.className === 'asset').length;
+  const assetCount = componentList.filter((component) => !component.className).length;
 
   const handleAutoLayoutClick = (e) => {
     if (e.shiftKey) { // If shift key is pressed, layout the graph horizontally
