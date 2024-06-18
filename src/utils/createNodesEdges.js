@@ -22,7 +22,7 @@ const createNodesEdges = function(componentList, dependencyList) {
       id: component.id,
       data: { label: component.name, data: component },
     }
-    if (component.className === 'asset') {
+    if (!component.className) { // Asset
       node.position = { x: assetCount * (assetWidth + 50), y: 0 };
       const backgroundColor = randomColor({
         hue: BASE_COLORS[assetCount % BASE_COLORS.length],
@@ -33,7 +33,7 @@ const createNodesEdges = function(componentList, dependencyList) {
       node.style = { backgroundColor, width: assetWidth, height: assetHeight };
       assetCount++;
       subsystemCount[component.id] = 0;
-    } else {
+    } else { // Subcomponent
       const subsystemNum = subsystemCount[component.parent];
       node.position = { x: 87 * subsystemNum, y: -90 * subsystemNum + (assetHeight - 40) };
       node.extent = 'parent';
@@ -53,7 +53,14 @@ const createNodesEdges = function(componentList, dependencyList) {
       data: dependency.fcnName,
       type: 'smoothstep',
       markerEnd: {
-        type: MarkerType.Arrow,
+        type: MarkerType.ArrowClosed,
+        width: 15,
+        height: 15,
+        color: '#000',
+      },
+      style: {
+        strokeWidth: 2,
+        stroke: '#000',
       },
     });
   });

@@ -6,6 +6,7 @@ import ReactFlow, {
   addEdge,
   useReactFlow,
   Panel,
+  MarkerType
 } from 'reactflow';
 
 import AddComponentDial from './AddComponentDial';
@@ -23,12 +24,14 @@ export default function LayoutFlow ({
   componentList,
   setComponentList,
   dependencyList,
+  setConstraints,
   selectedNodeId,
   setSelectedNodeData,
   setErrorModalOpen,
   setErrorMessage,
   handleNewNodeClick,
   handlePaletteClose,
+  setClipboardData,
 }) {
   const [reactFlowInstance, setReactFlowInstance] = useState(null);
 
@@ -60,7 +63,7 @@ export default function LayoutFlow ({
       return;
     }
     // If the source or target are assets, don't add the edge
-    if (componentList.find((component) => component.className === 'asset' && (component.id === source || component.id === target))) {
+    if (componentList.find((component) => !component.className && (component.id === source || component.id === target))) {
       setErrorModalOpen(true);
       setErrorMessage('Cannot create dependencies between assets');
       return;
@@ -68,8 +71,23 @@ export default function LayoutFlow ({
     // TO DO: Add check for circular dependencies (and other constraints?)
 
     setEdges((eds) => {
-      // Make all new edges smoothstep
-      return addEdge(params, eds).map((edge) => { return { ...edge, type: 'smoothstep' }});
+      // Style new edges as smoothstep with arrowheads
+      return addEdge(params, eds).map((edge) => {
+        return {
+          ...edge,
+          type: 'smoothstep',
+          markerEnd: {
+            type: MarkerType.ArrowClosed,
+            width: 15,
+            height: 15,
+            color: '#000',
+          },
+          style: {
+            strokeWidth: 2,
+            stroke: '#000',
+          },
+        }
+      });
     })
   },
     [setEdges],
@@ -82,28 +100,49 @@ export default function LayoutFlow ({
 
   const onDrop = useCallback((e) => {
     e.preventDefault();
-
-    const { data, backgroundColor } = JSON.parse(e.dataTransfer.getData('application/reactflow'));
-    const { className } = data;
-
-    const position = reactFlowInstance.screenToFlowPosition({
+    const dropPosition = reactFlowInstance.screenToFlowPosition({
       x: e.clientX,
       y: e.clientY,
     });
+
+    const { data, backgroundColor, newConstraints } = JSON.parse(e.dataTransfer.getData('application/reactflow'));
+    const { className } = data;
+
     const newNode = {
       id: data.id,
       data: { label: data.name, data },
-      position,
     }
-    if (className === 'asset') {
+    if (!className) { // Asset
       newNode.style = { backgroundColor, width: 200, height: 200 };
-    } else if (data.parent) {
+      newNode.position = { x: dropPosition.x, y: dropPosition.y };
+    } else if (data.parent) { // Subcomponent
       newNode.extent = 'parent';
       newNode.parentNode = data.parent;
+      newNode.position = { x: 0, y: 0 };
+      setConstraints((prevConstraints) => prevConstraints.concat(newConstraints));
     }
 
     setComponentList((prevList) => prevList.concat(data));
-    setNodes((nodes) => nodes.concat(newNode));
+    setNodes((nodes) => {
+      // Check if the new node overlaps with any existing nodes
+      let overlapped = false;
+      do {
+        overlapped = false;
+        for (let i = 0; i < nodes.length; i++) {
+          const node = nodes[i];
+          if (node.parentNode && node.parentNode === data.parent && node.id !== newNode.id) {
+            if (Math.abs(node.position.x - newNode.position.x) < 150 && Math.abs(node.position.y - newNode.position.y) < 40) {
+              overlapped = true;
+              newNode.position.x += 150;
+              newNode.position.y += 40;
+            }
+          }
+        }
+      } while (overlapped);
+
+      return [...nodes, newNode];
+    });
+    setClipboardData(null);
     handlePaletteClose();
   }, [reactFlowInstance]);
 
@@ -145,7 +184,7 @@ export default function LayoutFlow ({
       fitView
     >
       <Panel position="top-left">
-        <AddComponentDial onLayout={onLayout} handleNewNodeClick={handleNewNodeClick} />
+        <AddComponentDial componentList={componentList} onLayout={onLayout} handleNewNodeClick={handleNewNodeClick} />
       </Panel>
       <Controls />
       <MiniMap />

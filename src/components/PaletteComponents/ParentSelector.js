@@ -2,8 +2,8 @@ import MenuItem from '@mui/material/MenuItem';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 
-export default function ParentSelector({ id, parent, componentList, setComponentList, errors, handleBlur }) {
-  const options = componentList.filter((component) => component.className === 'asset').map((component) => component.name).concat('None');
+export default function ParentSelector({ id, parent, componentList, setComponentList, errors, handleBlur, disabled }) {
+  const options = componentList.filter((component) => !component.className).map((component) => component.name);
   const name = componentList.find((component) => component.id === parent)?.name;
 
   const handleChange = (e) => {
@@ -30,10 +30,11 @@ export default function ParentSelector({ id, parent, componentList, setComponent
         variant="outlined"
         color='primary'
         name='parent'
-        placeholder='None'
-        value={name ? name : 'None'}
+        placeholder='Select Asset Group'
+        value={name || options[0]}
         align='left'
-        select
+        select={!disabled}
+        disabled={disabled}
         onChange={handleChange}
         error={errors.parent !== undefined}
         helperText={errors.parent}

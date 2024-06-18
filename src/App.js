@@ -5,6 +5,7 @@ import Footer from './components/Footer';
 import ScenarioParameters from './components/ScenarioParameters';
 import TaskTable from './components/TaskTable';
 import ModelEditor from './components/ModelEditor';
+import ConstraintsTable from './components/ConstraintsTable';
 import ConfirmationModal from './components/ConfirmationModal';
 import SaveConfirmationModal from './components/SaveConfirmationModal';
 import ErrorModal from './components/ErrorModal';
@@ -264,9 +265,6 @@ export default function App() {
           'Tasks':
             <TaskTable
               navOpen={navOpen}
-              activeStep={activeStep}
-              setActiveStep={setActiveStep}
-              setStateMethods={setStateMethods}
               taskList={taskList}
               setTaskList={setTaskList}
             />,
@@ -283,7 +281,6 @@ export default function App() {
               setDependencyList={setDependencyList}
               constraints={constraints}
               setConstraints={setConstraints}
-              evaluator={evaluator}
               setEvaluator={setEvaluator}
               nodes={nodes}
               edges={edges}
@@ -297,7 +294,13 @@ export default function App() {
               setErrorMessage={setErrorMessage}
             />,
           'Dependencies': <></>,
-          'Constraints': <></>,
+          'Constraints':
+            <ConstraintsTable
+              navOpen={navOpen}
+              constraints={constraints}
+              setConstraints={setConstraints}
+              componentList={componentList}
+            />,
           'Simulate': <></>,
           'Analyze': <></>
           }[activeStep]}

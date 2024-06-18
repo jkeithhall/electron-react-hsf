@@ -54,7 +54,6 @@ function parseModel(model) {
     systemComponents.push({
       id,
       name,
-      className: 'asset',
       dynamicStateType: dynamicState.type,
       stateData: [...stateData],
       eomsType: Eoms.type,

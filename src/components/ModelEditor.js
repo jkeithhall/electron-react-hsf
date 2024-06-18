@@ -15,7 +15,6 @@ export default function ModelEditor({
   setDependencyList,
   constraints,
   setConstraints,
-  evaluator,
   setEvaluator,
   activeStep,
   setActiveStep,
@@ -35,6 +34,7 @@ export default function ModelEditor({
   const [ selectedNodeData, setSelectedNodeData ] = useState(null);
   const [ paletteOpen, setPaletteOpen ] = useState(false);
   const [ newNodeType, setNewNodeType ] = useState(null);
+  const [ clipboardData, setClipboardData ] = useState(null);
 
   const handlePaletteOpen = () => {
     setPaletteOpen(true);
@@ -52,14 +52,25 @@ export default function ModelEditor({
   }
 
   const handleNewNodeClick = (type) => {
+    if (window.electronApi) {
+      window.electronApi.copyFromClipboard((content) => {
+        const clipboardData = JSON.parse(content);
+        if ((type === 'asset' && !clipboardData.className) ||
+          (type === 'subComponent' && clipboardData.className)) {
+          setClipboardData(clipboardData);
+        }
+      });
+    }
     setSelectedNodeData(null);
     setNewNodeType(type);
     setPaletteOpen(true);
   }
 
+  const modelEditorSize = navOpen && paletteOpen ? 'model-editor-all-open' : navOpen ? 'model-editor-nav-open' : paletteOpen ? 'model-editor-palette-open' : 'model-editor-all-closed';
+
   return (
     <>
-      <Box className="model-editor">
+      <Box className={`model-editor ${modelEditorSize}`}>
         <Paper className="react-flow-board" sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
           <Paper style={{ width: '100%', height: '100%' }}>
             <ReactFlowProvider>
@@ -74,12 +85,14 @@ export default function ModelEditor({
                 componentList={componentList}
                 setComponentList={setComponentList}
                 dependencyList={dependencyList}
+                setConstraints={setConstraints}
                 selectedNodeId={selectedNodeId}
                 setSelectedNodeData={setSelectedNodeData}
                 setErrorModalOpen={setErrorModalOpen}
                 setErrorMessage={setErrorMessage}
                 handleNewNodeClick={handleNewNodeClick}
                 handlePaletteClose={handlePaletteClose}
+                setClipboardData={setClipboardData}
               />
             </ReactFlowProvider>
           </Paper>
@@ -89,6 +102,7 @@ export default function ModelEditor({
         <ModelEditorDrawer
           data={selectedNodeData}
           newNodeType={newNodeType}
+          clipboardData={clipboardData}
           paletteOpen={paletteOpen}
           handlePaletteOpen={handlePaletteOpen}
           handlePaletteClose={handlePaletteClose}

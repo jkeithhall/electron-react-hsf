@@ -91,7 +91,15 @@ const api = {
   },
   hasUnsavedChanges: (updateStatus) => {
     ipcRenderer.send('set-revert-status', updateStatus);
-  }
+  },
+  writeToClipboard: (content) => {
+    ipcRenderer.send('write-to-clipboard', content);
+  },
+  copyFromClipboard: (callback) => {
+    ipcRenderer.invoke('copy-from-clipboard').then((content) => {
+      callback(content);
+    });
+  },
 }
 /*
   contextBridge exposes methods to the window object (accessed on a given API name).

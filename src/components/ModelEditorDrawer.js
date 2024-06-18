@@ -15,6 +15,7 @@ const headerHeight = 100;
 export default function ModelEditorDrawer({
   data,
   newNodeType,
+  clipboardData,
   componentList,
   paletteOpen,
   handlePaletteClose,
@@ -22,7 +23,6 @@ export default function ModelEditorDrawer({
   setDependencyList,
   constraints,
   setConstraints,
-  evaluator,
   setEvaluator,
   setNodes,
   setEdges,
@@ -33,11 +33,13 @@ export default function ModelEditorDrawer({
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
 
+  // Opens a confirmation modal when the delete button is clicked
   const handleDeleteClick = () => {
     setConfirmationModalOpen(true);
     setDeleteId(data.id);
   }
 
+  // Deletes a subcomponent and all of its dependencies
   const handleDeleteSubComponent = useCallback(() => {
     setComponentList((prevList) => prevList.filter((component) => component.id !== deleteId));
     setDependencyList((prevList) => prevList.filter((dependency) => dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId));
@@ -52,61 +54,35 @@ export default function ModelEditorDrawer({
     closePaletteAndModal();
   }, [deleteId]);
 
+  // Deletes an asset and all of its subcomponents
   const handleDeleteAsset = useCallback(() => {
-    setComponentList((prevList) => {
-      return prevList.filter((component) => component.id !== deleteId)
-        .map((component) => {
-          if (component.parent === deleteId) {
-            return { ...component, parent: null };
-          }
-          return component;
-        });
-    });
-    setDependencyList((prevList) => {
-      return prevList
-        .filter((dependency) => dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId)
-        .map((dependency) => {
-          let newDependency = { ...dependency };
-          if (newDependency.asset === deleteId) {
-            newDependency.asset = null;
-          }
-          if (newDependency.depAsset === deleteId) {
-            newDependency.depAsset = null;
-          }
-          return newDependency;
-        });
-    });
+    setComponentList((prevList) => prevList
+      .filter((component) => component.id !== deleteId && component.parent !== deleteId)
+    );
+    setDependencyList((prevList) => prevList
+      .filter((dependency) => dependency.asset !== deleteId && dependency.depAsset !== deleteId &&
+        dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId)
+    );
     setEvaluator((prevEvaluator) => {
       const { keyRequests } = prevEvaluator;
       const newKeyRequests = keyRequests.filter((keyRequest) => keyRequest.asset !== deleteId);
       return { ...prevEvaluator, keyRequests: newKeyRequests };
     })
     setNodes((prevNodes) => {
-      return prevNodes.filter((node) => node.id !== deleteId)
-        .map((node) => {
-          if (node.parentNode === deleteId) {
-            const newNode = { ...node };
-            newNode.parentNode = null;
-            delete newNode['extent'];
-            const newNodeData = { ...newNode.data };
-            newNodeData.data.parent = null;
-            newNode.data = newNodeData;
-            return newNode;
-          } else {
-            return node;
-          }
-        });
+      return prevNodes.filter((node) => node.id !== deleteId && node.parentNode !== deleteId);
     });
     setEdges((prevEdges) => prevEdges.filter((edge) => edge.source !== deleteId && edge.target !== deleteId));
     closePaletteAndModal();
   }, [deleteId]);
 
+  // Closes the palette and modal
   const closePaletteAndModal = () => {
     handlePaletteClose();
     setConfirmationModalOpen(false);
     setDeleteId(null);
   }
 
+  // Closes the confirmation modal
   const handleDeleteCancel = () => {
     setConfirmationModalOpen(false);
     setDeleteId(null);
@@ -153,6 +129,8 @@ export default function ModelEditorDrawer({
         componentList={componentList}
         setComponentList={setComponentList}
         setDependencyList={setDependencyList}
+        constraints={constraints}
+        setConstraints={setConstraints}
         pythonSrc={pythonSrc}
         modelErrors={modelErrors}
         setModelErrors={setModelErrors}
@@ -161,18 +139,23 @@ export default function ModelEditorDrawer({
       {!data && newNodeType === 'asset' && <NewAssetPalette
         componentList={componentList}
         setComponentList={setComponentList}
+        clipboardData={clipboardData}
       />}
       {!data && newNodeType === 'subComponent' && <NewSubComponentPalette
         componentList={componentList}
         setComponentList={setComponentList}
+        constraints={constraints}
+        setConstraints={setConstraints}
         pythonSrc={pythonSrc}
+        clipboardData={clipboardData}
       />}
       {confirmationModalOpen &&
         <ConfirmationModal
           onCancel={handleDeleteCancel}
-          onConfirm={data.className === 'asset' ? handleDeleteAsset : handleDeleteSubComponent }
+          onConfirm={!data.className ? handleDeleteAsset : handleDeleteSubComponent }
           title={`Delete ${data.name}?`}
           message={`Are you sure you want to delete ${data.name}?`}
+          submessage={!data.className ? ' This will also delete all subcomponents.' : ''}
           confirmText="Delete"
           cancelText="Cancel"
         />}

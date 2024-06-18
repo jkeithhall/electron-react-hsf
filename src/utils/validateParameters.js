@@ -13,8 +13,8 @@ const scenarioSchema = object({
     return schema.min(startSeconds, 'End Seconds must be greater than Start Seconds');
   }),
   stepSeconds: number().required().min(0, 'Step Seconds must be greater than 0'),
-  maxSchedules: number().required().min(0, 'Max Schedules must be greater than 0'),
-  cropTo: number().required().min(0, 'Crop To must be greater than 0'),
+  maxSchedules: number().required().min(1, 'Max Schedules must be greater than 0'),
+  cropTo: number().required().min(1, 'Crop To must be greater than 0'),
 });
 
 const taskSchema = object({
@@ -96,6 +96,14 @@ const validateParameter = (parameter, label) => {
   return null;
 };
 
+const validateClassName = (className) => {
+  if (!className.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/)) {
+    return 'Class name must start with a letter or underscore and contain only letters, numbers, and underscores';
+  } else {
+    return null;
+  }
+}
+
 const validateSrc = (src, pythonSrc) => {
   if (!validatePythonFile(pythonSrc, src)) {
     return 'Source File must be in the Python source directory listed in the scenario parameters.';
@@ -166,12 +174,23 @@ function validateAssetParameters(assetParameters, setModelErrors, pythonSrc) {
             }
           });
           break;
-        case 'src':
-          errorMessage = validateSrc(value, pythonSrc);
-          if (errorMessage) {
-            currentNodeErrors[name] = errorMessage;
+        case 'type':
+          if (value === 'scripted') {
+            const { src } = assetParameters;
+            errorMessage = validateSrc(src, pythonSrc);
+            if (errorMessage) {
+              currentNodeErrors['src'] = errorMessage;
+            } else {
+              delete currentNodeErrors['src'];
+            }
           } else {
-            delete currentNodeErrors[name];
+            const { className } = assetParameters;
+            errorMessage = validateClassName(className);
+            if (errorMessage) {
+              currentNodeErrors['className'] = errorMessage;
+            } else {
+              delete currentNodeErrors['className'];
+            }
           }
           break;
         case 'states':

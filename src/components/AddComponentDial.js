@@ -11,7 +11,9 @@ const hoverSX = {
   },
 };
 
-export default function AddComponentDial({ onLayout, handleNewNodeClick }) {
+export default function AddComponentDial({ componentList, onLayout, handleNewNodeClick }) {
+  const assetCount = componentList.filter((component) => !component.className).length;
+
   const handleAutoLayoutClick = (e) => {
     if (e.shiftKey) { // If shift key is pressed, layout the graph horizontally
       onLayout('LR');
@@ -36,14 +38,14 @@ export default function AddComponentDial({ onLayout, handleNewNodeClick }) {
         enterDelay={500}
         onClick={handleAutoLayoutClick}
       />
-      <SpeedDialAction
+      {assetCount > 0 && <SpeedDialAction
         key={'Add Subcomponent'}
         icon={<AddBoxIcon color="secondary" sx={hoverSX}/>}
         tooltipTitle={'Add Subcomponent'}
         tooltipPlacement="right"
         enterDelay={500}
         onClick={() => { handleNewNodeClick('subComponent') }}
-      />
+      />}
       <SpeedDialAction
         key={'Add Asset'}
         icon={<MarginTwoToneIcon color="secondary" sx={hoverSX}/>}

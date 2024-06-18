@@ -3,7 +3,7 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 
 export default function SubsystemType({ type, setComponentList, id, errors, handleBlur }) {
-  const typeOptions = ['scripted', 'unscripted']
+  const typeOptions = ['scripted', 'unscripted'];
 
   const handleChange = (e) => {
     let { name, value } = e.target;

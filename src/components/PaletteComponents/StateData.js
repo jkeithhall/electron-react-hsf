@@ -4,7 +4,7 @@ import TextField from '@mui/material/TextField';
 
 const stateComponents = ['x', 'y', 'z', 'v_x', 'v_y', 'v_z'];
 
-export default function StateData({ data, setComponentList, id, errors, handleBlur }) {
+export default function StateData({ stateData, setComponentList, id, errors, handleBlur }) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setComponentList((prevList) => {
@@ -37,7 +37,7 @@ export default function StateData({ data, setComponentList, id, errors, handleBl
       <Typography variant="h6" color="secondary" my={2}>State Data</Typography>
       {stateDataError && <Typography variant="body2" color="error" sx={{ my: 1 }}>{stateDataError}</Typography>}
       <Grid container spacing={2}>
-        {data.map((value, index) => {
+        {stateData.map((value, index) => {
           const key = stateComponents[index];
 
           return (

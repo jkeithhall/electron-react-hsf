@@ -1,4 +1,3 @@
-import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 
 export default function NameField({ name, setComponentList, id, errors, handleBlur }) {
@@ -17,22 +16,21 @@ export default function NameField({ name, setComponentList, id, errors, handleBl
   }
 
   return (
-    <Grid item xs={6}>
-      <TextField
-        id='name'
-        key='name'
-        fullWidth
-        label='Name'
-        variant="outlined"
-        color='primary'
-        value={name}
-        name='name'
-        type='text'
-        onChange={handleChange}
-        error={errors.name !== undefined}
-        helperText={errors.name}
-        onBlur={handleBlur}
-      />
-    </Grid>
+    <TextField
+      id='name'
+      key='name'
+      fullWidth
+      sx={{ my: 2 }}
+      label='Name'
+      variant="outlined"
+      color='primary'
+      value={name}
+      name='name'
+      type='text'
+      onChange={handleChange}
+      error={errors.name !== undefined}
+      helperText={errors.name}
+      onBlur={handleBlur}
+    />
   )
 }

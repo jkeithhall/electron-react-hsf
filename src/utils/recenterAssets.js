@@ -32,7 +32,7 @@ export default function recenterAssets(nodes, edges) {
   // Recenter the nodes within each asset
   nodes.forEach((node) => {
     const { id, data } = node;
-    if (data.data.className === 'asset') {
+    if (!data.data.className) { // Asset
       if (assets[id] === undefined) return; // Skip assets with no subcomponents
 
       const { minX, minY, maxX, maxY } = assets[id];
@@ -44,7 +44,7 @@ export default function recenterAssets(nodes, edges) {
       const assetWidth = maxX - minX + subComponentWidth;
       node.width = assetWidth;
       node.style.width = assetWidth;
-    } else {
+    } else { // Subcomponent
       const { parentNode } = node;
       if (parentNode) {
         const index = disconnectedSubcomponents.indexOf(node.id);

@@ -12,7 +12,7 @@ import DeleteParameterButton from './DeleteButton';
 import AddParameterModal from './AddParameterModal';
 import { convertDisplayName } from '../../utils/displayNames';
 
-export default function IntegratorParameters({data, id, setComponentList, errors, componentKeys, handleBlur }) {
+export default function IntegratorParameters({integratorParameters, id, setComponentList, errors, componentKeys, handleBlur }) {
   const [hovered, setHovered] = useState(-1);
   const [markedForDeletion, setMarkedForDeletion] = useState(-1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -82,7 +82,7 @@ export default function IntegratorParameters({data, id, setComponentList, errors
   return (
     <>
       <Typography variant="h6" color="secondary" my={2}>Integrator Parameters</Typography>
-      {data.map((integratorParameter, index) => {
+      {integratorParameters.map((integratorParameter, index) => {
         const { key, value, type } = integratorParameter;
         if (type === 'double' || type === 'int') {
           return (
