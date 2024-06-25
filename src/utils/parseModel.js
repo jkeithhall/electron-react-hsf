@@ -116,6 +116,7 @@ function parseModel(model) {
     // Assumes that asset names are unique
     const parentID = componentIds.getId(asset);
     return {
+      id: randomId(),
       asset: parentID,
       subsystem: systemComponents.find(c => c.name === subsystem && c.parent === parentID).id,
       type,

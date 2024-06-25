@@ -61,8 +61,10 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
 
   const processRowUpdate = (newRow) => {
     const updatedRow = { ...newRow, isNew: false };
-    const stateType = componentList.find((component) => component.id === newRow.subsystem).states.find((state) => state.key === newRow.stateKey).type;
+    const { stateKey } = newRow;
+    const stateType = stateKey ? componentList.find((component) => component.id === newRow.subsystem).states.find((state) => state.key === newRow.stateKey).type : '';
     const newConstraint = { ...newRow, stateType };
+    delete newConstraint.isNew;
     setConstraints(constraints.map((row) => (row.id === newRow.id ? newConstraint : row)));
     return updatedRow;
   };
@@ -76,16 +78,19 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
   };
 
   const handleDeleteClick = (id) => () => {
-    setSelectedConstraintId(id);
-
-    const name = constraints.find((row) => row.id === id).name;
-    setSelectedConstraintName(name);
-
-    setConfirmModalOpen(true);
+    const constraint = constraints.find((row) => row.id === id);
+    const { name, subsystem, stateKey, type, value } = constraint;
+    if (!subsystem && !stateKey && !type && !value) {
+      handleDeleteConfirm(id);
+    } else {
+      setSelectedConstraintName(name);
+      setSelectedConstraintId(id);
+      setConfirmModalOpen(true);
+    }
   };
 
-  const handleDeleteConfirm = () => {
-    setConstraints(constraints.filter((row) => row.id !== selectedConstraintId));
+  const handleDeleteConfirm = (deleteRowId) => {
+    setConstraints(constraints.filter((row) => row.id !== deleteRowId));
     setSelectedConstraintName('');
     setSelectedConstraintId('');
     setConfirmModalOpen(false);
@@ -137,10 +142,10 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
       headerName: 'Type',
       type: 'singleSelect',
       valueOptions: constraintTypeOptions,
-      width: 250,
+      width: 270,
       editable: true
     },
-    { field: 'value', headerName: 'Value', width: 150, editable: true },
+    { field: 'value', headerName: 'Value', width: 100, editable: true },
   ];
 
   const removeModalMessage = selectedConstraintName === '' ? 'Are you sure you want to remove this constraint (unnamed)?' : `Are you sure you want to remove the constraint "${selectedConstraintName}"?`;
@@ -152,22 +157,30 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
           <ConfirmationModal
             title={'Remove Constraint?'}
             message={removeModalMessage}
-            onConfirm={handleDeleteConfirm}
+            onConfirm={() => handleDeleteConfirm(selectedConstraintId)}
             onCancel={handleDeleteCancel}
             confirmText={"Remove"}
             cancelText={"Cancel"}
           />
       </div>)}
-      <Paper className={`constraints-table ${navOpen ? 'constraints-table-nav-open' : 'constraints-table-nav-closed'}`}
-        sx={{ padding: 1, backgroundColor: '#282D3d' }} >
+      <Paper
+        className={`constraints-table ${navOpen ? 'constraints-table-nav-open' : 'constraints-table-nav-closed'}`}
+        sx={{ padding: 1, backgroundColor: '#282D3d', height: 675, width: 1100 }}
+      >
         <DataGrid
           rows={constraints}
           columns={columns}
+          initialState={{
+            pagination: {
+              paginationModel: { pageSize: 10, page: 0 },
+            },
+          }}
           editMode="row"
           rowModesModel={rowModesModel}
           onRowModesModelChange={handleRowModesModelChange}
           onRowEditStop={handleRowEditStop}
           processRowUpdate={processRowUpdate}
+          onProcessRowUpdateError={console.error}
           slots={{
             toolbar: ConstraintsTableToolbar,
           }}

@@ -261,6 +261,8 @@ export default function App() {
               setSimulationInput={setSimulationInput}
               setStateMethods={setStateMethods}
               componentList={componentList}
+              evaluator={evaluator}
+              setEvaluator={setEvaluator}
             />,
           'Tasks':
             <TaskTable
