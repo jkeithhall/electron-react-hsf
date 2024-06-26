@@ -8,10 +8,13 @@ import ReactFlow, {
   Panel,
   MarkerType
 } from 'reactflow';
+import { SubcomponentNode, AssetNode } from '../utils/nodeTypes';
 
 import AddComponentDial from './AddComponentDial';
 import getLayoutedElements from '../utils/getLayoutedElements';
 import recenterAssets from '../utils/recenterAssets';
+
+const nodeTypes = { subcomponent: SubcomponentNode, asset: AssetNode };
 
 export default function LayoutFlow ({
   nodes,
@@ -174,6 +177,7 @@ export default function LayoutFlow ({
       onEdgesChange={onEdgesChange}
       onConnect={onConnect}
       onNodeClick={handleNodeClick}
+      nodeTypes={nodeTypes}
       deleteKeyCode={0}
       onError={console.log}
       snapToGrid={true}

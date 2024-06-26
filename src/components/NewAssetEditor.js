@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { validateAssetParameters } from '../utils/validateParameters';
 
 import NameField from './PaletteComponents/NameField';
-import ClassName from './PaletteComponents/ClassName';
 import StateData from './PaletteComponents/StateData';
 import { DynamicStateType } from './PaletteComponents/DynamicStateType';
 import EomsType from './PaletteComponents/EomsType';
@@ -41,7 +40,7 @@ function hexToRGB(hex, alpha = 0.5) {
 }
 
 
-export default function NewAssetPalette({
+export default function NewAssetEditor({
   componentList,
   setComponentList,
   setDependencyList,

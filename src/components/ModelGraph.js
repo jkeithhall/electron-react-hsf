@@ -5,9 +5,9 @@ import LayoutFlow from './LayoutFlow';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import 'reactflow/dist/style.css';
-import ModelEditorDrawer from './ModelEditorDrawer';
+import EditingPalette from './EditingPalette.js';
 
-export default function ModelEditor({
+export default function ModelGraph({
   navOpen,
   componentList,
   setComponentList,
@@ -33,7 +33,7 @@ export default function ModelEditor({
   const [ selectedNodeId, setSelectedNodeId ] = useState(null);
   const [ selectedNodeData, setSelectedNodeData ] = useState(null);
   const [ paletteOpen, setPaletteOpen ] = useState(false);
-  const [ newNodeType, setNewNodeType ] = useState(null);
+  const [ editingMode, setEditingMode ] = useState(null);
   const [ clipboardData, setClipboardData ] = useState(null);
 
   const handlePaletteOpen = () => {
@@ -47,22 +47,23 @@ export default function ModelEditor({
   const handleNodeClick = (event, node) => {
     const { id, data } = node;
     setSelectedNodeId(id);
+    setEditingMode('componentEditor');
     setSelectedNodeData(data.data);
     setPaletteOpen(true);
   }
 
-  const handleNewNodeClick = (type) => {
+  const handleNewNodeClick = (editingMode) => {
     if (window.electronApi) {
       window.electronApi.copyFromClipboard((content) => {
         const clipboardData = JSON.parse(content);
-        if ((type === 'asset' && !clipboardData.className) ||
-          (type === 'subComponent' && clipboardData.className)) {
+        if ((editingMode === 'newAssetEditor' && !clipboardData.className) ||
+          (editingMode === 'newComponentEditor' && clipboardData.className)) {
           setClipboardData(clipboardData);
         }
       });
     }
     setSelectedNodeData(null);
-    setNewNodeType(type);
+    setEditingMode(editingMode);
     setPaletteOpen(true);
   }
 
@@ -99,9 +100,9 @@ export default function ModelEditor({
         </Paper>
       </Box>
       {paletteOpen &&
-        <ModelEditorDrawer
+        <EditingPalette
           data={selectedNodeData}
-          newNodeType={newNodeType}
+          editingMode={editingMode}
           clipboardData={clipboardData}
           paletteOpen={paletteOpen}
           handlePaletteOpen={handlePaletteOpen}

@@ -44,7 +44,7 @@ export default function AddComponentDial({ componentList, onLayout, handleNewNod
         tooltipTitle={'Add Subcomponent'}
         tooltipPlacement="right"
         enterDelay={500}
-        onClick={() => { handleNewNodeClick('subComponent') }}
+        onClick={() => { handleNewNodeClick('newComponentEditor') }}
       />}
       <SpeedDialAction
         key={'Add Asset'}
@@ -52,7 +52,7 @@ export default function AddComponentDial({ componentList, onLayout, handleNewNod
         tooltipTitle={'Add Asset'}
         tooltipPlacement="right"
         enterDelay={500}
-        onClick={() => { handleNewNodeClick('asset') }}
+        onClick={() => { handleNewNodeClick('newAssetEditor') }}
       />
     </SpeedDial>
   );

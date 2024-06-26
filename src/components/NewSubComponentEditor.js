@@ -21,7 +21,7 @@ import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 
 import { randomId } from '@mui/x-data-grid-generator';
 
-export default function NewSubComponentPalette({
+export default function NewSubComponentEditor({
   componentList,
   setComponentList,
   constraints,

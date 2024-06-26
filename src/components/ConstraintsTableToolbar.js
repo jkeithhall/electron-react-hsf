@@ -61,7 +61,6 @@ export default function ConstraintsTableToolbar({ setConstraints, setRowModesMod
       >
         Add Constraint
       </Button>
-      <GridToolbarColumnsButton color="primary"/>
       <GridToolbarFilterButton color="primary"/>
       <GridToolbarDensitySelector color="primary"/>
     </GridToolbarContainer>

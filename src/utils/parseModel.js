@@ -124,6 +124,18 @@ function parseModel(model) {
   });
   const systemEvaluator = { ...evaluator, keyRequests };
 
+  // // Sort the components by parent ID, then by dependency relationship
+  // systemComponents.sort((a, b) => {
+  //   if (a.parent === b.id) return 1; // a sorted after b if a is a subcomponent of b
+  //   const dependency = systemDependencies.find(d => (d.subsystem === a.id && d.depSubsystem === b.id) ||
+  //   (d.subsystem === b.id && d.depSubsystem === a.id));
+  //   if (dependency) {
+  //     return dependency.depSubsystem === a.id ? 1 : -1; // a sorted after b if b depends on a
+  //   } else {
+  //     return 0;
+  //   }
+  // });
+
   return { systemComponents, systemConstraints, systemDependencies, systemEvaluator, componentIds };
 };
 
