@@ -46,7 +46,7 @@ export default function NewAssetEditor({
   setDependencyList,
   clipboardData,
 }) {
-  const hue = BASE_COLORS[componentList.filter((component) => !component.className).length % BASE_COLORS.length];
+  const hue = BASE_COLORS[componentList.filter((component) => component.parent === undefined).length % BASE_COLORS.length];
   const initialBackgroundColor = rgbaToHexA(randomColor({
     hue,
     luminosity: 'light',

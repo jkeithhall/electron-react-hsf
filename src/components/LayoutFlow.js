@@ -8,7 +8,7 @@ import ReactFlow, {
   Panel,
   MarkerType
 } from 'reactflow';
-import { SubcomponentNode, AssetNode } from '../utils/nodeTypes';
+import { SubcomponentNode, AssetNode } from './nodeTypes';
 
 import AddComponentDial from './AddComponentDial';
 import getLayoutedElements from '../utils/getLayoutedElements';
@@ -66,7 +66,7 @@ export default function LayoutFlow ({
       return;
     }
     // If the source or target are assets, don't add the edge
-    if (componentList.find((component) => !component.className && (component.id === source || component.id === target))) {
+    if (componentList.find((component) => component.parent === undefined && (component.id === source || component.id === target))) {
       setErrorModalOpen(true);
       setErrorMessage('Cannot create dependencies between assets');
       return;
@@ -109,16 +109,18 @@ export default function LayoutFlow ({
     });
 
     const { data, backgroundColor, newConstraints } = JSON.parse(e.dataTransfer.getData('application/reactflow'));
-    const { className } = data;
+    const { parent } = data;
 
     const newNode = {
       id: data.id,
-      data: { label: data.name, data },
+      data: { label: data.name, data, backgroundColor },
     }
-    if (!className) { // Asset
-      newNode.style = { backgroundColor, width: 200, height: 200 };
+    if (parent === undefined) { // Asset
+      newNode.type = 'asset';
+      newNode.style = { width: 200, height: 200 };
       newNode.position = { x: dropPosition.x, y: dropPosition.y };
     } else if (data.parent) { // Subcomponent
+      newNode.type = 'subcomponent';
       newNode.extent = 'parent';
       newNode.parentNode = data.parent;
       newNode.position = { x: 0, y: 0 };

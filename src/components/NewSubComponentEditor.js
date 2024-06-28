@@ -33,7 +33,7 @@ export default function NewSubComponentEditor({
   const [ name, setName ] = useState('');
   const [ className, setClassName ] = useState('power');
   const [ parent, setParent ] = useState(() => {
-    const asset = componentList.find((component) => !component.className);
+    const asset = componentList.find((component) => component.parent === undefined);
     return asset ? asset.id : null;
   });
   const [ type, setType ] = useState('scripted');

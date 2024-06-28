@@ -139,7 +139,7 @@ export default function ComponentEditor ({
   }, [id, src]);
 
   const componentKeys = ['id', 'name', 'className'];
-  if (!className) { // Asset
+  if (parent === undefined) { // Asset
     componentKeys.push('dynamicStateType', 'eomsType', 'stateData');
     Object.keys(integratorOptions).forEach((key) => { componentKeys.push(key) });
     integratorParameters.forEach((parameter) => { componentKeys.push(parameter.key) });
@@ -175,7 +175,7 @@ export default function ComponentEditor ({
             </Tooltip>
           </Box>
         </Stack>
-        {!className && <>
+        {parent === undefined && <>
           <NameField
             name={name}
             setComponentList={setComponentList}
@@ -222,7 +222,7 @@ export default function ComponentEditor ({
             handleBlur={handleBlur}
           />
         </>}
-        {className && <>
+        {parent && <>
           <NameField
             name={name}
             setComponentList={setComponentList}

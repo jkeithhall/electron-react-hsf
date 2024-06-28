@@ -234,6 +234,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList }) {
             toolbar: { setTaskList, setRowModesModel },
           }}
           sx={{ width: '100%', backgroundColor: '#eeeeee' }}
+          density="compact"
         />
       </Paper>
     </>

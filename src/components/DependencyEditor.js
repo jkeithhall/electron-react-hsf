@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
+import { randomId } from '@mui/x-data-grid-generator';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -10,18 +11,16 @@ import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 
 export default function DependencyEditor ({
-  data,
-  status,
+  selectedNodeId,
   componentList,
+  nodes,
+  dependencyList,
   setDependencyList,
   setNodes,
-  handlePaletteClose,
+  onNodesChange,
 }) {
-  const {
-    toolTipLabel,
-    dependencyId,
-    fcnName,
-  } = data;
+  const data = nodes.find((node) => node.id === selectedNodeId)?.data;
+  const { fromComponent, toComponent, status, dependencyId, fromAsset, toAsset } = data;
 
   const handleDepFcnChange = (e) => {
     setDependencyList((prevDependencyList) => {
@@ -34,29 +33,51 @@ export default function DependencyEditor ({
     });
   }
 
+  const handleAddDependency = () => {
+    const newDependencyId = randomId();
+    const newDependency = {
+      id: newDependencyId,
+      depSubsystem: fromComponent.id,
+      subsystem: toComponent.id,
+      fcnName: '',
+    };
+    setDependencyList((prevDependencyList) => {
+      return [...prevDependencyList, newDependency];
+    });
+    setNodes((prevNodes) => {
+      return prevNodes.map((node) => {
+        if (node.id === selectedNodeId) {
+          node.data.dependencyId = newDependencyId;
+          node.data.status = 'dependent';
+          // node.style.backgroundColor = '#4caf50';
+          node.selected = true;
+          return node;
+        }
+        return node;
+      });
+    });
+  }
+
   const handleRemoveDependency = () => {
     setDependencyList((prevDependencyList) => {
       return prevDependencyList.filter((dependency) => dependency.id !== dependencyId);
     });
     setNodes((prevNodes) => {
       return prevNodes.map((node) => {
-        if (node.data.dependencyId === dependencyId) {
-          return {
-            ...node,
-            data: {
-              ...node.data,
-              status: 'independent',
-              fcnName: null,
-            },
-            style: { ...node.style, backgroundColor: '#888888' },
-          }
+        if (node.id === selectedNodeId) {
+          node.data.dependencyId = null;
+          node.data.status = 'independent';
+          // node.style.backgroundColor = '#888888';
+          node.selected = true;
+          return node;
         }
         return node;
       });
     });
-    handlePaletteClose();
   }
 
+  const toolTipLabel = `${fromComponent.name} (${fromAsset}) → ${toComponent.name} (${toAsset})`;
+  const fcnName = dependencyList.find((dependency) => dependency.id === dependencyId)?.fcnName
 
   return (
     <>
@@ -86,7 +107,7 @@ export default function DependencyEditor ({
             {`(${status.charAt(0).toUpperCase() + status.slice(1)})`}
           </Typography>
         </Stack>
-        {fcnName && <TextField
+        {status === 'dependent' && <TextField
             id='depFcnName'
             key='depFcnName'
             fullWidth
@@ -103,7 +124,7 @@ export default function DependencyEditor ({
       <div className="confirm-close-icons" style={{ marginBottom: 120 }}>
         {status === 'independent' &&
           <Button
-            onClick={() => {}}
+            onClick={handleAddDependency}
             variant="contained"
             color="success"
             size="large"

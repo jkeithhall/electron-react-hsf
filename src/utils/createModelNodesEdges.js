@@ -22,7 +22,7 @@ const createModelNodesEdges = function(componentList, dependencyList) {
       id: component.id,
       data: { label: component.name, data: component },
     }
-    if (!component.className) { // Asset
+    if (component.parent === undefined) { // Asset
       node.type = 'asset';
       node.position = { x: assetCount * (assetWidth + 50), y: 0 };
       const backgroundColor = randomColor({
@@ -30,15 +30,16 @@ const createModelNodesEdges = function(componentList, dependencyList) {
         luminosity: 'light',
         format: 'rgba',
         alpha: 0.5,
-     });
-      node.style = { backgroundColor, width: assetWidth, height: assetHeight };
+      });
+      node.data.backgroundColor = backgroundColor;
+      node.style = { width: assetWidth, height: assetHeight };
       assetCount++;
       subsystemCount[component.id] = 0;
     } else { // Subcomponent
       const subsystemNum = subsystemCount[component.parent];
       node.type = 'subcomponent';
       node.position = { x: 87 * subsystemNum, y: -90 * subsystemNum + (assetHeight - 40) };
-      node.style = { backgroundColor: '#eeeeee', width: subcomponentWidth, height: subcomponentHeight };
+      node.style = { width: subcomponentWidth, height: subcomponentHeight };
       node.extent = 'parent';
       // parentNode has been renamed to parentId in in version 11.11.0 and will be removed in version 12
       node.parentNode = component.parent;

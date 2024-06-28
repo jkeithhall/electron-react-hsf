@@ -238,7 +238,6 @@ export default function Evaluator ({ evaluator, setEvaluator, formErrors, setFor
             }}
             sx={{ width: '100%', backgroundColor: '#eeeeee' }}
             density="compact"
-
           />
         </Box>
       </Box>

@@ -10,7 +10,7 @@ import ConstraintsTable from './components/ConstraintsTable';
 import ConfirmationModal from './components/ConfirmationModal';
 import SaveConfirmationModal from './components/SaveConfirmationModal';
 import ErrorModal from './components/ErrorModal';
-import  { useNodesState, useEdgesState } from 'reactflow';
+import { useNodesState, useEdgesState } from 'reactflow';
 
 import { initSimulationInput, aeolusSimulationInput } from './aeolus_config/initSimulationInput';
 import flattenedInitTasks from './aeolus_config/initTaskList';
@@ -45,8 +45,7 @@ export default function App() {
   const [modelNodes, setModelNodes, onModelNodesChange] = useNodesState(initialNodes);
   const [modelEdges, setModelEdges, onModelEdgesChange] = useEdgesState(initialEdges);
   const { initialDependencyNodes } = createDependencyNodesEdges(componentList, dependencyList);
-  // const [dependencyNodes, setDependencyNodes, onDependencyNodesChange] = useNodesState(initialDependencyNodes);
-  // const [dependencyNodes, setDependencyNodes] = useState(initialDependencyNodes);
+  const [dependencyNodes, setDependencyNodes, onDependencyNodesChange] = useNodesState(initialDependencyNodes);
 
   const [filePath, setFilePath] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -73,6 +72,7 @@ export default function App() {
     ...setStateMethods,
     setModelNodes,
     setModelEdges,
+    setDependencyNodes,
     setErrorMessage,
     setModelErrors,
   };
@@ -150,7 +150,8 @@ export default function App() {
           break;
         case 'System Model':
           const { systemComponents, systemDependencies } = parseJSONFile(fileType, content, setStateMethods);
-          updateNodesEdges(systemComponents, systemDependencies);
+          updateModelNodesEdges(systemComponents, systemDependencies);
+          updateDependencyNodes(systemComponents, systemDependencies);
           break;
         case 'CSV':
           parseCSVFile(content, setTaskList);
@@ -209,10 +210,15 @@ export default function App() {
     }
   }
 
-  const updateNodesEdges = (componentList, dependencyList) => {
+  const updateModelNodesEdges = (componentList, dependencyList) => {
     const { initialNodes, initialEdges } = createModelNodesEdges(componentList, dependencyList);
     setModelNodes(initialNodes);
     setModelEdges(initialEdges);
+  }
+
+  const updateDependencyNodes = (componentList, dependencyList) => {
+    const { initialDependencyNodes } = createDependencyNodesEdges(componentList, dependencyList);
+    setDependencyNodes(initialDependencyNodes);
   }
 
   useEffect(() => {
@@ -244,6 +250,16 @@ export default function App() {
     modelNodes,
     modelEdges
   ]);
+
+  // Update dependency nodes when component list changes
+  useEffect(() => {
+    updateDependencyNodes(componentList, dependencyList);
+  }, [componentList]);
+
+  // Update model nodes and edges when dependency list changes
+  useEffect(() => {
+    updateModelNodesEdges(componentList, dependencyList);
+  }, [dependencyList]);
 
   return (
     <NavDrawer
@@ -306,7 +322,9 @@ export default function App() {
               componentList={componentList}
               dependencyList={dependencyList}
               setDependencyList={setDependencyList}
-              initialNodes={initialDependencyNodes}
+              nodes={dependencyNodes}
+              setNodes={setDependencyNodes}
+              onNodesChange={onDependencyNodesChange}
             />,
           'Constraints':
             <ConstraintsTable

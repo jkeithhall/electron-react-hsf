@@ -1,13 +1,15 @@
 :root {
-    --font-primary: 'Poppins', sans-serif;
-    --font-secondary: 'Roboto Mono', monospace;
+    --font-secondary: 'Poppins', sans-serif;
+    --font-primary: 'Roboto Mono', monospace;
     --primary-background-color: #1f2330;
     --secondary--background-color: #2f3e4e;
+    --react-flow-background-color: #535671;
     --primary-color-main: #0288d1;
     --primary-color-light: #349fda;
     --default-border-radius: 5px;
     --header-height: 100px;
-    --footer-height: 25px;
+    --footer-height: 25px
+    ;
     --header-logo-margin: 20px;
     --nav-drawer-width-closed: 60px;
     --nav-drawer-width-open: 220px;
@@ -62,6 +64,7 @@ p, h1, h2, h3, h4, h5, h6 {
 /*
   CSS Reset
 */
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;600;800&family=VT323&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap');
 
@@ -233,7 +236,8 @@ footer {
 }
 
 .tasks-table-nav-closed {
-    width: var(--tasks-table-max-width);
+    width: calc(100vw - var(--nav-drawer-width-closed)
+    - 2 * var(--work-space-padding));
 }
 
 .constraints-table {
@@ -286,6 +290,10 @@ footer {
     2 * var(--work-space-padding) - var(--footer-height));
 }
 
+.react-flow {
+    background-color: var(--react-flow-background-color);
+}
+
 .new-node-origin {
     display: flex;
     justify-content: center;
@@ -295,11 +303,6 @@ footer {
 .asset-node {
     height: 100%;
     width: 100%;
-    display: flex;
-    flex-direction: column;
-    color: #555555;
-    justify-content: space-around;
-    align-items: space-around;
     border: 1px solid #222222;
     border-radius: 5px;
 }
@@ -308,7 +311,8 @@ footer {
     height: 100%;
     width: 100%;
     display: flex;
-    color: '33333';
+    color: #333333;
+    background-color: rgb(238, 238, 238);
     justify-content: center;
     align-items: center;
     border: 1px solid #222222;
@@ -321,20 +325,20 @@ footer {
     align-items: center;
     height: 50px;
     width: 50px;
-    border: 1px solid black;
+    border: 1px solid #1111117e;
     border-radius: 5px;
   }
 
   .inapplicable-node {
-    background-color: '#444444';
+    background-color: rgb(68, 68, 68);
   }
 
   .dependent-node {
-    background-color: '#4caf50';
+    background-color: rgb(76, 175, 80);
   }
 
   .independent-node {
-    background-color: '#888888';
+    background-color: rgb(136, 136, 136);
   }
 
   .selected-node {

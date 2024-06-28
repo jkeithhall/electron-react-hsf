@@ -188,6 +188,7 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
             toolbar: { setConstraints, setRowModesModel },
           }}
           sx={{ width: '100%', backgroundColor: '#eeeeee' }}
+          density="compact"
         />
       </Paper>
     </>

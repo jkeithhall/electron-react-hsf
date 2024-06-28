@@ -11,14 +11,18 @@ const headerHeight = 100;
 
 export default function EditingPalette({
   data,
+  selectedNodeId,
   editingMode,
   clipboardData,
   componentList,
   paletteOpen,
   handlePaletteClose,
   setComponentList,
+  nodes,
+  dependencyList,
   setDependencyList,
   setDependencyNodes,
+  onDependencyNodesChange,
   constraints,
   setConstraints,
   setEvaluator,
@@ -94,12 +98,13 @@ export default function EditingPalette({
         clipboardData={clipboardData}
       />}
       {editingMode === 'dependencyEditor' && <DependencyEditor
-        data={data.data}
-        status={data.status}
+        selectedNodeId={selectedNodeId}
         componentList={componentList}
-        setDependencyList={setDependencyList}
+        nodes={nodes}
         setNodes={setDependencyNodes}
-        handlePaletteClose={handlePaletteClose}
+        onNodesChange={onDependencyNodesChange}
+        dependencyList={dependencyList}
+        setDependencyList={setDependencyList}
       />}
     </Drawer>
   );

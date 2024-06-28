@@ -1,6 +1,6 @@
-import { useState, useCallback } from 'react';
-import ReactFlow, { MiniMap, Background, applyNodeChanges } from 'reactflow';
-import { DependencyNode } from '../utils/nodeTypes';
+import { useState, useEffect } from 'react';
+import ReactFlow, { Background } from 'reactflow';
+import { DependencyNode } from './nodeTypes';
 
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -14,10 +14,11 @@ export default function DependencyMatrix({
   componentList,
   dependencyList,
   setDependencyList,
-  initialNodes,
+  nodes,
+  setNodes,
+  onNodesChange,
 }) {
-  const [nodes, setNodes] = useState(initialNodes);
-  const [selectedNodeData, setSelectedNodeData] = useState(null);
+  const [ selectedNodeId, setSelectedNodeId ] = useState(null);
   const [ paletteOpen, setPaletteOpen ] = useState(false);
 
   const handlePaletteOpen = () => {
@@ -28,20 +29,24 @@ export default function DependencyMatrix({
     setPaletteOpen(false);
   }
 
-  const handleNodeClick = (event, node) => {
-    const { data } = node;
+  const handleNodeClick = (e, node) => {
+    const { id, data } = node;
     const { status } = data;
     if (status !== 'inapplicable') {
-      setSelectedNodeData({data, status});
+      setSelectedNodeId(id);
       handlePaletteOpen();
-    } else {
-      handlePaletteClose();
     }
+    setNodes((prevNodes) => {
+      return prevNodes.map((node) => {
+        if (node.id === id) {
+          node.selected = true;
+          return node;
+        }
+        node.selected = false;
+        return node;
+      });
+    });
   }
-
-  const onNodesChange = useCallback((changes) => setNodes((nodes) => applyNodeChanges(changes, nodes)),
-    [setNodes]
-  );
 
   const modelEditorSize = navOpen && paletteOpen ? 'model-editor-all-open' : navOpen ? 'model-editor-nav-open' : paletteOpen ? 'model-editor-palette-open' : 'model-editor-all-closed';
 
@@ -53,7 +58,6 @@ export default function DependencyMatrix({
             <ReactFlow
               nodes={nodes}
               nodeTypes={nodeTypes}
-              onNodesChange={onNodesChange}
               onNodeClick={handleNodeClick}
               deleteKeyCode={0}
               nodesDraggable={false}
@@ -61,21 +65,22 @@ export default function DependencyMatrix({
               onError={console.log}
               fitView
             >
-              {/* <MiniMap /> */}
-              <Background variant="lines" gap={55} lineWidth={2} />
             </ReactFlow>
           </Paper>
         </Paper>
       </Box>
       {paletteOpen &&
         <EditingPalette
-          data={selectedNodeData}
+          selectedNodeId={selectedNodeId}
           editingMode={'dependencyEditor'}
           paletteOpen={paletteOpen}
-          handlePaletteClose={handlePaletteClose}
           componentList={componentList}
+          nodes={nodes}
+          dependencyList={dependencyList}
           setDependencyList={setDependencyList}
           setDependencyNodes={setNodes}
+          onDependencyNodesChange={onNodesChange}
+          handlePaletteClose={handlePaletteClose}
         />}
     </>
   );

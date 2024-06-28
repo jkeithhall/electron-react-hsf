@@ -23,7 +23,7 @@ export default function ScenarioParameters({
   const sources = { name, version, pythonSrc, outputPath };
 
   const pythonSourceFiles = componentList
-    .filter((component) => component.className && component.type.toLowerCase() === 'scripted')
+    .filter((component) => component.parent && component.type.toLowerCase() === 'scripted')
     .map((component) => component.src);
 
   const setSources = (newSources) => {
