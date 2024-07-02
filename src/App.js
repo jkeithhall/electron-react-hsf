@@ -4,12 +4,13 @@ import NavDrawer from './components/NavDrawer';
 import Footer from './components/Footer';
 import ScenarioParameters from './components/ScenarioParameters';
 import TaskTable from './components/TaskTable';
-import ModelEditor from './components/ModelEditor';
+import ModelGraph from './components/ModelGraph';
+import DependencyMatrix from './components/DependencyMatrix';
 import ConstraintsTable from './components/ConstraintsTable';
 import ConfirmationModal from './components/ConfirmationModal';
 import SaveConfirmationModal from './components/SaveConfirmationModal';
 import ErrorModal from './components/ErrorModal';
-import  { useNodesState, useEdgesState } from 'reactflow';
+import { useNodesState, useEdgesState } from 'reactflow';
 
 import { initSimulationInput, aeolusSimulationInput } from './aeolus_config/initSimulationInput';
 import flattenedInitTasks from './aeolus_config/initTaskList';
@@ -22,7 +23,8 @@ import buildDownloadJSON from './utils/buildDownloadJSON';
 import buildSimFile from './utils/buildSimFile';
 import parseSimFile from './utils/parseSimFile';
 import downloadCSV from './utils/downloadCSV';
-import createNodesEdges from './utils/createNodesEdges';
+import createModelNodesEdges from './utils/createModelNodesEdges';
+import createDependencyNodesEdges from './utils/createDependencyNodesEdges';
 
 const { systemComponents, systemDependencies, systemEvaluator, systemConstraints } = parseModel(initModel);
 
@@ -39,9 +41,11 @@ export default function App() {
   const [constraints, setConstraints] = useState(systemConstraints);
 
   // React Flow state variables
-  const { initialNodes, initialEdges } = createNodesEdges(componentList, dependencyList);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const { initialNodes, initialEdges } = createModelNodesEdges(componentList, dependencyList);
+  const [modelNodes, setModelNodes, onModelNodesChange] = useNodesState(initialNodes);
+  const [modelEdges, setModelEdges, onModelEdgesChange] = useEdgesState(initialEdges);
+  const { initialDependencyNodes } = createDependencyNodesEdges(componentList, dependencyList);
+  const [dependencyNodes, setDependencyNodes, onDependencyNodesChange] = useNodesState(initialDependencyNodes);
 
   const [filePath, setFilePath] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -66,8 +70,9 @@ export default function App() {
 
   const savedStateMethods = {
     ...setStateMethods,
-    setNodes,
-    setEdges,
+    setModelNodes,
+    setModelEdges,
+    setDependencyNodes,
     setErrorMessage,
     setModelErrors,
   };
@@ -145,7 +150,8 @@ export default function App() {
           break;
         case 'System Model':
           const { systemComponents, systemDependencies } = parseJSONFile(fileType, content, setStateMethods);
-          updateNodesEdges(systemComponents, systemDependencies);
+          updateModelNodesEdges(systemComponents, systemDependencies);
+          updateDependencyNodes(systemComponents, systemDependencies);
           break;
         case 'CSV':
           parseCSVFile(content, setTaskList);
@@ -204,10 +210,15 @@ export default function App() {
     }
   }
 
-  const updateNodesEdges = (componentList, dependencyList) => {
-    const { initialNodes, initialEdges } = createNodesEdges(componentList, dependencyList);
-    setNodes(initialNodes);
-    setEdges(initialEdges);
+  const updateModelNodesEdges = (componentList, dependencyList) => {
+    const { initialNodes, initialEdges } = createModelNodesEdges(componentList, dependencyList);
+    setModelNodes(initialNodes);
+    setModelEdges(initialEdges);
+  }
+
+  const updateDependencyNodes = (componentList, dependencyList) => {
+    const { initialDependencyNodes } = createDependencyNodesEdges(componentList, dependencyList);
+    setDependencyNodes(initialDependencyNodes);
   }
 
   useEffect(() => {
@@ -236,9 +247,19 @@ export default function App() {
     dependencyList,
     evaluator,
     constraints,
-    nodes,
-    edges
+    modelNodes,
+    modelEdges
   ]);
+
+  // Update dependency nodes when component list changes
+  useEffect(() => {
+    updateDependencyNodes(componentList, dependencyList);
+  }, [componentList]);
+
+  // Update model nodes and edges when dependency list changes
+  useEffect(() => {
+    updateModelNodesEdges(componentList, dependencyList);
+  }, [dependencyList]);
 
   return (
     <NavDrawer
@@ -261,6 +282,8 @@ export default function App() {
               setSimulationInput={setSimulationInput}
               setStateMethods={setStateMethods}
               componentList={componentList}
+              evaluator={evaluator}
+              setEvaluator={setEvaluator}
             />,
           'Tasks':
             <TaskTable
@@ -269,7 +292,7 @@ export default function App() {
               setTaskList={setTaskList}
             />,
           'System Model':
-            <ModelEditor
+            <ModelGraph
               navOpen={navOpen}
               activeStep={activeStep}
               setActiveStep={setActiveStep}
@@ -282,18 +305,27 @@ export default function App() {
               constraints={constraints}
               setConstraints={setConstraints}
               setEvaluator={setEvaluator}
-              nodes={nodes}
-              edges={edges}
-              setNodes={setNodes}
-              setEdges={setEdges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
+              nodes={modelNodes}
+              edges={modelEdges}
+              setNodes={setModelNodes}
+              setEdges={setModelEdges}
+              onNodesChange={onModelNodesChange}
+              onEdgesChange={onModelEdgesChange}
               modelErrors={modelErrors}
               setModelErrors={setModelErrors}
               setErrorModalOpen={setErrorModalOpen}
               setErrorMessage={setErrorMessage}
             />,
-          'Dependencies': <></>,
+          'Dependencies':
+            <DependencyMatrix
+              navOpen={navOpen}
+              componentList={componentList}
+              dependencyList={dependencyList}
+              setDependencyList={setDependencyList}
+              nodes={dependencyNodes}
+              setNodes={setDependencyNodes}
+              onNodesChange={onDependencyNodesChange}
+            />,
           'Constraints':
             <ConstraintsTable
               navOpen={navOpen}

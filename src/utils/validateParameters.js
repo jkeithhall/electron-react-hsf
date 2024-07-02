@@ -228,6 +228,50 @@ function validateAssetParameters(assetParameters, setModelErrors, pythonSrc) {
 
 }
 
+function validateEvaluator(evaluator, pythonDirectorySrc, setFormErrors) {
+  setFormErrors((formErrors) => {
+    const newFormErrors = { ...formErrors };
+    Object.entries(evaluator).forEach(([name, value]) => {
+      let errorMessage;
+      switch (name) {
+        case 'type':
+          if (value === 'scripted') {
+            const { src } = evaluator;
+            errorMessage = validateSrc(src, pythonDirectorySrc);
+            if (errorMessage) {
+              newFormErrors['src'] = errorMessage;
+            } else {
+              delete newFormErrors['src'];
+            }
+          } else if (value === 'TargetValueEvaluator') {
+            const { className } = evaluator;
+            console.log({ className });
+            errorMessage = validateClassName(className);
+            console.log({ errorMessage });
+            if (errorMessage) {
+              newFormErrors['className'] = errorMessage;
+            } else {
+              delete newFormErrors['className'];
+            }
+          }
+          break;
+        case 'keyRequests':
+          value.forEach((keyRequest, index) => {
+            if (keyRequest === '') {
+              newFormErrors[`keyRequests[${index}]`] = 'Key Request is required';
+            } else {
+              delete newFormErrors[`keyRequests[${index}]`];
+            }
+          });
+          break;
+        default:
+          break;
+      }
+    });
+    return newFormErrors;
+  });
+}
+
 async function validateAllScenarioParameters(parameters, setFormErrors, pythonSourceFiles) {
   setFormErrors((formErrors) => {
     const newFormErrors = { ...formErrors };
@@ -260,4 +304,4 @@ async function validateAllScenarioParameters(parameters, setFormErrors, pythonSo
   });
 }
 
-export { validateScenarioParametersAt, validateTaskParametersAt, validateAllScenarioParameters, validateAssetParameters };
+export { validateScenarioParametersAt, validateTaskParametersAt, validateAllScenarioParameters, validateAssetParameters, validateEvaluator };

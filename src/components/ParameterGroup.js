@@ -112,7 +112,7 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
   }
 
   return(
-    <Box sx={{ padding: '10px', backgroundColor: '#eeeeee', borderRadius: '5px' }}>
+    <Box sx={{ padding: '5px', backgroundColor: '#eeeeee', borderRadius: '5px' }}>
       {Object.entries(parameters).map(([key, value]) => {
         const displayName = convertDisplayName(key);
 

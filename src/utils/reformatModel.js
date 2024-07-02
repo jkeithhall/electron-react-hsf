@@ -4,7 +4,7 @@ export default function reformatModel(componentList, dependencyList, constraints
   const assets = [];
   // Reconstruct assets and their constraints
   componentList.forEach((component) => {
-    if (!component.className) { // Asset
+    if (component.parent === undefined) { // Asset
       const asset = {
         id: component.id,
         name: component.name,
@@ -27,7 +27,7 @@ export default function reformatModel(componentList, dependencyList, constraints
 
   // Reconstruct subsystems
   componentList.forEach((component) => {
-    if (component.className) { // Subsystem
+    if (component.parent) { // Subsystem
       const subsystem = {
         id: component.id,
         name: component.name,

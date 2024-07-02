@@ -21,7 +21,7 @@ import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 
 import { randomId } from '@mui/x-data-grid-generator';
 
-export default function NewSubComponentPalette({
+export default function NewSubComponentEditor({
   componentList,
   setComponentList,
   constraints,
@@ -33,7 +33,7 @@ export default function NewSubComponentPalette({
   const [ name, setName ] = useState('');
   const [ className, setClassName ] = useState('power');
   const [ parent, setParent ] = useState(() => {
-    const asset = componentList.find((component) => !component.className);
+    const asset = componentList.find((component) => component.parent === undefined);
     return asset ? asset.id : null;
   });
   const [ type, setType ] = useState('scripted');

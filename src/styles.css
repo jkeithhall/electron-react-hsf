@@ -1,11 +1,15 @@
 :root {
-    --font-primary: 'Poppins', sans-serif;
-    --font-secondary: 'Roboto Mono', monospace;
+    --font-secondary: 'Poppins', sans-serif;
+    --font-primary: 'Roboto Mono', monospace;
     --primary-background-color: #1f2330;
     --secondary--background-color: #2f3e4e;
+    --react-flow-background-color: #535671;
+    --primary-color-main: #0288d1;
+    --primary-color-light: #349fda;
     --default-border-radius: 5px;
     --header-height: 100px;
-    --footer-height: 25px;
+    --footer-height: 25px
+    ;
     --header-logo-margin: 20px;
     --nav-drawer-width-closed: 60px;
     --nav-drawer-width-open: 220px;
@@ -13,7 +17,8 @@
     --work-space-padding: 30px;
     --work-space-height: calc(100vh - var(--header-height) -
     - 2 * var(--work-space-padding) - var(--footer-height));
-    --sources-width: 500px;
+    --sources-width: 570px;
+    --evaluator-parameters-width: 500px;
     --simulation-parameters-width: 300px;
     --scheduler-parameters-width: 250px;
     --parameters-container-gap: 20px;
@@ -59,6 +64,7 @@ p, h1, h2, h3, h4, h5, h6 {
 /*
   CSS Reset
 */
+@import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;600;800&family=VT323&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap');
 
@@ -82,6 +88,12 @@ header {
     height: var(--header-height);
 }
 
+footer {
+    height: var(--footer-height);
+    position: absolute;
+    bottom: 0;
+}
+
 .sim-lab-logo-header {
     width: calc(var(--header-height) - var(--header-logo-margin));
     height: calc(var(--header-height) - var(--header-logo-margin));
@@ -95,9 +107,9 @@ header {
     flex-direction: column;
     justify-content: space-between;
     align-items: center;
-    padding: var(--work-space-padding);
+    padding: var(--work-space-padding) var(--work-space-padding) 0 var(--work-space-padding);
     background-color: var(--primary-background-color);
-    height: var(--work-space-height);
+    min-height: var(--work-space-height);
 }
 
 .work-space-nav-open {
@@ -115,47 +127,100 @@ header {
 
 .sources {
     grid-area: sources;
-    height: 'min-content';
+    height: min-content;
     width: var(--sources-width);
+}
+
+.evaluator-parameters {
+    grid-area: evaluator-parameters;
+    height: min-content;
+    width: var(--evaluator-parameters-width);
 }
 
 .simulation-parameters {
     grid-area: simulation-parameters;
-    height: 'min-content';
+    height: min-content;
     width: var(--simulation-parameters-width);
 }
 
 .scheduler-parameters {
     grid-area: scheduler-parameters;
-    height: 'min-content';
+    height: min-content;
     width: var(--scheduler-parameters-width);
 }
 
-@media (min-width: 1400px) {
-    .scenario-parameters-container {
-        display: grid;
-        grid-template-columns: 2.5fr 1.5fr 1fr;
-        grid-template-rows: 1fr;
-        grid-template-areas: 'sources simulation-parameters scheduler-parameters';
-        gap: var(--parameters-container-gap);
-    }
-}
-
-@media (max-width: 1399px) {
+@media (min-width: 1350px) {
     .scenario-parameters-container {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: 1fr 1fr;
+        grid-template-rows: auto auto;
         grid-template-areas:
-            'sources simulation-parameters '
-            '. scheduler-parameters';
+            'sources evaluator-parameters'
+            'simulation-parameters scheduler-parameters';
         gap: var(--parameters-container-gap);
     }
+
     .sources {
-        width: calc(var(--sources-width) - 100px);
+        grid-row: 1 / 2;
+        grid-column: 1 / 2;
     }
+
+    .evaluator-parameters {
+        grid-row: 1 / 3;
+        grid-column: 2 / 3;
+    }
+
     .simulation-parameters {
-        width: calc(var(--simulation-parameters-width) - 50px);
+        grid-row: 2 / 3;
+        grid-column: 1 / 2;
+    }
+
+    .scheduler-parameters {
+        grid-row: 2 / 3;
+        grid-column: 1 / 2;
+    }
+
+    /* Ensuring the simulation and scheduler parameters are side by side in the same column */
+    .simulation-parameters {
+        justify-self: start;
+    }
+
+    .scheduler-parameters {
+        justify-self: end;
+    }
+}
+
+@media (max-width: 1349px) {
+    .scenario-parameters-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+            'sources simulation-parameters'
+            'evaluator-parameters scheduler-parameters';
+        gap: var(--parameters-container-gap);
+        margin-bottom: var(--parameters-container-gap);
+    }
+
+    .sources {
+        width: var(--evaluator-parameters-width);
+        grid-row: 1 / 2;
+        grid-column: 1 / 2;
+    }
+
+    .simulation-parameters {
+        grid-row: 1 / 2;
+        grid-column: 2 / 3;
+    }
+
+    .evaluator-parameters {
+        grid-row: 2 / 3;
+        grid-column: 1 / 2;
+    }
+
+    .scheduler-parameters {
+        grid-row: 2 / 3;
+        grid-column: 2 / 3;
     }
 }
 
@@ -171,7 +236,8 @@ header {
 }
 
 .tasks-table-nav-closed {
-    width: var(--tasks-table-max-width);
+    width: calc(100vw - var(--nav-drawer-width-closed)
+    - 2 * var(--work-space-padding));
 }
 
 .constraints-table {
@@ -224,11 +290,60 @@ header {
     2 * var(--work-space-padding) - var(--footer-height));
 }
 
+.react-flow {
+    background-color: var(--react-flow-background-color);
+}
+
 .new-node-origin {
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
+.asset-node {
+    height: 100%;
+    width: 100%;
+    border: 1px solid #222222;
+    border-radius: 5px;
+}
+
+.subcomponent-node {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    color: #333333;
+    background-color: rgb(238, 238, 238);
+    justify-content: center;
+    align-items: center;
+    border: 1px solid #222222;
+    border-radius: 5px;
+}
+
+.dependency-node {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 50px;
+    width: 50px;
+    border: 1px solid #1111117e;
+    border-radius: 5px;
+  }
+
+  .inapplicable-node {
+    background-color: rgb(68, 68, 68);
+  }
+
+  .dependent-node {
+    background-color: rgb(76, 175, 80);
+  }
+
+  .independent-node {
+    background-color: rgb(136, 136, 136);
+  }
+
+  .selected-node {
+    border: 2px solid #e53935;
+  }
 
 .location-inputs {
     display: flex;
@@ -293,12 +408,6 @@ header {
     display: flex;
     justify-content: center;
     align-items: center;
-  }
-
-footer {
-    height: var(--footer-height);
-    position: absolute;
-    bottom: 0;
 }
 
 

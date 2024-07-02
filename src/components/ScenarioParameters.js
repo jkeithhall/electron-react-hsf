@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react';
 import ParameterGroup from './ParameterGroup';
+import Evaluator from './Evaluator';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
 import { validateAllScenarioParameters } from '../utils/validateParameters';
 
-export default function ScenarioParameters({activeStep, setActiveStep, simulationInput, setSimulationInput, componentList}) {
+export default function ScenarioParameters({
+  activeStep,
+  setActiveStep,
+  simulationInput,
+  setSimulationInput,
+  componentList,
+  evaluator,
+  setEvaluator
+}) {
   // State variables for form validation and errors
   const [ formErrors, setFormErrors] = useState({});
 
@@ -14,7 +23,7 @@ export default function ScenarioParameters({activeStep, setActiveStep, simulatio
   const sources = { name, version, pythonSrc, outputPath };
 
   const pythonSourceFiles = componentList
-    .filter((component) => component.className && (component.type === 'scripted' || component.type === 'SCRIPTED'))
+    .filter((component) => component.parent && component.type.toLowerCase() === 'scripted')
     .map((component) => component.src);
 
   const setSources = (newSources) => {
@@ -37,20 +46,26 @@ export default function ScenarioParameters({activeStep, setActiveStep, simulatio
     <div className="scenario-parameters-container">
         <div className='sources'>
           <Paper elevation={3} sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
-            <Typography variant="h5" color='light.main' my={2}>Sources</Typography>
+            <Typography variant="h5" color='light.main' mt={1} mb={1.5}>Sources</Typography>
             <ParameterGroup parameters={sources} setParameters={setSources} formErrors={formErrors} setFormErrors={setFormErrors} pythonSourceFiles={pythonSourceFiles}/>
+          </Paper>
+        </div>
+        <div className='evaluator-parameters'>
+          <Paper elevation={3} sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
+            <Typography variant="h5" color="light.main" mt={1} mb={1.5}>Evaluator</Typography>
+            <Evaluator evaluator={evaluator} setEvaluator={setEvaluator} formErrors={formErrors} setFormErrors={setFormErrors} componentList={componentList} pythonDirectorySrc={pythonSrc}/>
           </Paper>
         </div>
         <div className='simulation-parameters' >
           <Paper elevation={3} sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
-            <Typography variant="h5" color="light.main" my={2}>Simulation Parameters</Typography>
+            <Typography variant="h5" color="light.main" mt={1} mb={1.5}>Simulation Parameters</Typography>
             <ParameterGroup parameters={simulationParameters} setParameters={setSimulationParameters} formErrors={formErrors} setFormErrors={setFormErrors}/>
           </Paper>
         </div>
         <div className='scheduler-parameters'>
           <Paper elevation={3} sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
-            <Typography variant="h5" color="light.main" my={2}>Scheduler Parameters</Typography>
-            <ParameterGroup parameters={schedulerParameters} setParameters={setSchedulerParameters} formErrors={formErrors} setFormErrors={setFormErrors}/>
+            <Typography variant="h5" color="light.main" mt={1} mb={1.5}>Scheduler Parameters</Typography>
+            <ParameterGroup parameters={schedulerParameters} setParameters={setSchedulerParameters} formErrors={formErrors} setFormErrors={setFormErrors} p/>
           </Paper>
         </div>
     </div>
