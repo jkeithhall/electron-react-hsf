@@ -5,7 +5,7 @@ import Footer from './components/Footer';
 import ScenarioParameters from './components/ScenarioParameters';
 import TaskTable from './components/TaskTable';
 import ModelGraph from './components/ModelGraph';
-import DependencyMatrix from './components/DependencyMatrix';
+import DependencyGraph from './components/DependencyGraph';
 import ConstraintsTable from './components/ConstraintsTable';
 import ConfirmationModal from './components/ConfirmationModal';
 import SaveConfirmationModal from './components/SaveConfirmationModal';
@@ -44,8 +44,9 @@ export default function App() {
   const { initialNodes, initialEdges } = createModelNodesEdges(componentList, dependencyList);
   const [modelNodes, setModelNodes, onModelNodesChange] = useNodesState(initialNodes);
   const [modelEdges, setModelEdges, onModelEdgesChange] = useEdgesState(initialEdges);
-  const { initialDependencyNodes } = createDependencyNodesEdges(componentList, dependencyList);
+  const { initialDependencyNodes, initialDependencyEdges } = createDependencyNodesEdges(componentList, dependencyList);
   const [dependencyNodes, setDependencyNodes, onDependencyNodesChange] = useNodesState(initialDependencyNodes);
+  const [dependencyEdges, setDependencyEdges] = useEdgesState(initialDependencyEdges);
 
   const [filePath, setFilePath] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -317,7 +318,7 @@ export default function App() {
               setErrorMessage={setErrorMessage}
             />,
           'Dependencies':
-            <DependencyMatrix
+            <DependencyGraph
               navOpen={navOpen}
               componentList={componentList}
               dependencyList={dependencyList}
@@ -325,6 +326,9 @@ export default function App() {
               nodes={dependencyNodes}
               setNodes={setDependencyNodes}
               onNodesChange={onDependencyNodesChange}
+              edges={dependencyEdges}
+              setEdges={setDependencyEdges}
+              onEdgesChange={onModelEdgesChange}
             />,
           'Constraints':
             <ConstraintsTable

@@ -47,8 +47,8 @@ const AssetNode = ({ data, selected }) => {
         placement="top"
         PopperProps={{ disablePortal: true }}
       >
-        <NodeResizer color="#e53935" isVisible={selected} minWidth={100} minHeight={30} />
-        <div className={`asset-node ${selectedClass}`} style={{ backgroundColor }}/>
+          <NodeResizer color="#e53935" isVisible={selected} minWidth={100} minHeight={30}/>
+          <div className={`asset-node ${selectedClass}`} style={{ backgroundColor }}/>
       </CustomToolTip>
     </>
   );
@@ -62,26 +62,27 @@ function SubcomponentNode({ data, selected }) {
       <div className={`subcomponent-node ${selectedClass}`}>
         <Typography variant="body2">{data.label}</Typography>
       </div>
-      <Handle type="target" position={Position.Bottom} id="a" />
+      <Handle type="target" position={Position.Bottom} />
     </>
   );
 }
 
 function DependencyNode({ data, selected }) {
-  const { status, fromComponent, toComponent, fromAsset, toAsset } = data;
-  const toolTipLabel = `${fromComponent.name} (${fromAsset}) → ${toComponent.name} (${toAsset})`;
-  const fromClassName = fromComponent.className;
+  const { component, assetName } = data;
 
-  const Icon = iconMap[fromClassName.toLowerCase()] || HelpCenterIcon;
-
-  const title = status === 'inapplicable' ? toolTipLabel.split('→')[0] : toolTipLabel;
-  const selectedClass = selected && status !== 'inapplicable' ? 'selected-node' : '';
+  const Icon = iconMap[component.className.toLowerCase()] || HelpCenterIcon;
 
   return (
-    <Tooltip title={title}>
-      <div className={`dependency-node ${status}-node ${selectedClass}`}>
-        {status === 'inapplicable' && <Icon sx={{ color: '#FFFFFF' }}/>}
-      </div>
+    <Tooltip title={`${component.name} (${assetName})`}>
+      <>
+        <Handle type="target" position={Position.Top}/>
+        <Handle type="source" position={Position.Right}/>
+        <Handle type="source" position={Position.Left}/>
+        <Handle type="target" position={Position.Bottom}/>
+        <div className={`dependency-node ${selected ? 'selected-node' : ''}`}>
+          <Icon sx={{ color: '#FFFFFF' }}/>
+        </div>
+      </>
     </Tooltip>
   );
 }

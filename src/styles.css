@@ -253,7 +253,7 @@ footer {
     z-index: 2;
 }
 
-.model-editor {
+.graph-editor {
     align-self: flex-start;
     display: flex;
     justify-content: flex-start;
@@ -262,23 +262,23 @@ footer {
     height: var(--work-space-height);
 }
 
-.model-editor-all-open {
+.graph-editor-all-open {
     width: calc(100vw - var(--nav-drawer-width-open) -
     2 * var(--work-space-padding) - var(--editing-palette-width));
 }
 
-.model-editor-nav-open {
+.graph-editor-nav-open {
     width: calc(100vw - var(--nav-drawer-width-open) -
     2 * var(--work-space-padding));
 }
 
-.model-editor-palette-open {
+.graph-editor-palette-open {
     width: calc(100vw - var(--editing-palette-width) -
     var(--nav-drawer-width-closed) -
     2 * var(--work-space-padding));
 }
 
-.model-editor-all-closed {
+.graph-editor-all-closed {
     width: calc(100vw - var(--nav-drawer-width-closed) -
     2 * var(--work-space-padding));
 }
@@ -325,25 +325,14 @@ footer {
     align-items: center;
     height: 50px;
     width: 50px;
+    background-color: var(--primary-color-main);
     border: 1px solid #1111117e;
     border-radius: 5px;
   }
 
-  .inapplicable-node {
-    background-color: rgb(68, 68, 68);
-  }
-
-  .dependent-node {
-    background-color: rgb(76, 175, 80);
-  }
-
-  .independent-node {
-    background-color: rgb(136, 136, 136);
-  }
-
-  .selected-node {
+.selected-node {
     border: 2px solid #e53935;
-  }
+}
 
 .location-inputs {
     display: flex;

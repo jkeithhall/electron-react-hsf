@@ -1,57 +1,73 @@
 const nodeSize = 50;
-const gap = 5;
 
 const createDependencyNodesEdges = function(componentList, dependencyList) {
   let initialDependencyNodes = [];
+  let initialDependencyEdges = [];
 
-  const assetNames = {};
+  if (!componentList) return { initialDependencyNodes, initialDependencyEdges};
+
+  // Find asset names
+  let assetNames = {};
   componentList.forEach((component) => {
     if (!component.parent) {
       assetNames[component.id] = component.name;
     }
   });
 
-  if (!componentList || !dependencyList) return { initialDependencyNodes };
+  // Sort components by asset
+  componentList.sort((a, b) => {
+    // Assets ordered by id
+    if (!a.parent && !b.parent) return a.id - b.id;
+      // Subcomponents ordered by parents' id
+    if (a.parent && b.parent) return a.parent.id - b.parent.id;
+    // Subcomponents ordered after their parent but before other assets
+    if (!a.parent && b.parent) {
+      if (a.id === b.parent) return -1;
+      return a.id - b.parent.id;
+    }
+    if (a.parent && !b.parent) {
+      if (a.parent.id === b.id) return 1;
+      return a.parent.id - b.id;
+    }
+    return 0;
+  });
 
-  componentList.forEach((fromComponent, i) => {
-    if (fromComponent.parent) {
-      componentList.forEach((toComponent, j) => {
-        if (toComponent.parent) {
-          const node = {
-            id: `${fromComponent.id}-${toComponent.id}`,
-            type: 'dependency',
-            data: {
-              fromComponent,
-              fromComponentId: fromComponent.id,
-              fromAsset: assetNames[fromComponent.parent],
-              toComponent,
-              toComponentId: toComponent.id,
-              toAsset: assetNames[toComponent.parent],
-            },
-            position: { x: (nodeSize + gap) * i, y: (nodeSize + gap) * j },
-            style: { width: nodeSize, height: nodeSize },
-          }
-          if (fromComponent.id === toComponent.id) {
-            node.data.status = 'inapplicable';
-          } else {
-            const dependency = dependencyList.find((dependency) =>
-              dependency.depSubsystem === fromComponent.id && dependency.subsystem === toComponent.id
-            );
-            if (dependency) {
-              node.data.dependencyId = dependency.id;
-              node.data.status = 'dependent';
-            } else {
-              node.data.dependencyId = null;
-              node.data.status = 'independent';
-            }
-          }
-          initialDependencyNodes.push(node);
-        }
+  let subcomponentCount = 0;
+  componentList.forEach((component) => {
+    if (component.parent) {
+      initialDependencyNodes.push({
+        id: component.id,
+        type: 'dependency',
+        data: { component, assetName: assetNames[component.parent] },
+        position: { x: nodeSize * subcomponentCount, y: nodeSize * subcomponentCount },
+        style: { width: nodeSize, height: nodeSize },
       });
+      subcomponentCount++;
     }
   });
 
-  return { initialDependencyNodes };
+  dependencyList.forEach((dependency) => {
+    initialDependencyEdges.push({
+      id: dependency.id,
+      source: dependency.depSubsystem,
+      target: dependency.subsystem,
+      data: dependency.fcnName,
+      type: 'smoothstep',
+      label: dependency.fcnName ? '⨍' : null,
+      markerEnd: {
+        type: 'arrowclosed',
+        width: 15,
+        height: 15,
+        color: '#333',
+      },
+      style: {
+        strokeWidth: 2,
+        stroke: '#333',
+      },
+    });
+  });
+
+  return { initialDependencyNodes, initialDependencyEdges };
 }
 
 export default createDependencyNodesEdges ;

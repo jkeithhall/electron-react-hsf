@@ -123,6 +123,7 @@ export default function LayoutFlow ({
       newNode.type = 'subcomponent';
       newNode.extent = 'parent';
       newNode.parentNode = data.parent;
+      newNode.style = { width: 120, height: 40 };
       newNode.position = { x: 0, y: 0 };
       setConstraints((prevConstraints) => prevConstraints.concat(newConstraints));
     }

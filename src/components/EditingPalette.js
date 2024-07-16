@@ -11,7 +11,7 @@ const headerHeight = 100;
 
 export default function EditingPalette({
   data,
-  selectedNodeId,
+  selectedComponents,
   editingMode,
   clipboardData,
   componentList,
@@ -19,6 +19,8 @@ export default function EditingPalette({
   handlePaletteClose,
   setComponentList,
   nodes,
+  edges,
+  setEdges,
   dependencyList,
   setDependencyList,
   setDependencyNodes,
@@ -27,7 +29,6 @@ export default function EditingPalette({
   setConstraints,
   setEvaluator,
   setNodes,
-  setEdges,
   pythonSrc,
   modelErrors,
   setModelErrors,
@@ -98,10 +99,12 @@ export default function EditingPalette({
         clipboardData={clipboardData}
       />}
       {editingMode === 'dependencyEditor' && <DependencyEditor
-        selectedNodeId={selectedNodeId}
+        selectedComponents={selectedComponents}
         componentList={componentList}
         nodes={nodes}
         setNodes={setDependencyNodes}
+        edges={edges}
+        setEdges={setEdges}
         onNodesChange={onDependencyNodesChange}
         dependencyList={dependencyList}
         setDependencyList={setDependencyList}
