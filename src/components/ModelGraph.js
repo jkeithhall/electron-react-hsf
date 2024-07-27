@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ReactFlowProvider } from 'reactflow';
-import LayoutFlow from './LayoutFlow';
+import ModelFlow from './ModelFlow';
 
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -75,7 +75,7 @@ export default function ModelGraph({
         <Paper className="react-flow-board" sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
           <Paper style={{ width: '100%', height: '100%' }}>
             <ReactFlowProvider>
-              <LayoutFlow
+              <ModelFlow
                 nodes={nodes}
                 edges={edges}
                 setNodes={setNodes}

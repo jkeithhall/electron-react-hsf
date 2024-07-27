@@ -46,7 +46,7 @@ export default function App() {
   const [modelEdges, setModelEdges, onModelEdgesChange] = useEdgesState(initialEdges);
   const { initialDependencyNodes, initialDependencyEdges } = createDependencyNodesEdges(componentList, dependencyList);
   const [dependencyNodes, setDependencyNodes, onDependencyNodesChange] = useNodesState(initialDependencyNodes);
-  const [dependencyEdges, setDependencyEdges] = useEdgesState(initialDependencyEdges);
+  const [dependencyEdges, setDependencyEdges, onDependencyEdgesChange] = useEdgesState(initialDependencyEdges);
 
   const [filePath, setFilePath] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -73,7 +73,6 @@ export default function App() {
     ...setStateMethods,
     setModelNodes,
     setModelEdges,
-    setDependencyNodes,
     setErrorMessage,
     setModelErrors,
   };
@@ -325,10 +324,10 @@ export default function App() {
               setDependencyList={setDependencyList}
               nodes={dependencyNodes}
               setNodes={setDependencyNodes}
-              onNodesChange={onDependencyNodesChange}
               edges={dependencyEdges}
               setEdges={setDependencyEdges}
-              onEdgesChange={onModelEdgesChange}
+              onNodesChange={onDependencyNodesChange}
+              onEdgesChange={onDependencyEdgesChange}
             />,
           'Constraints':
             <ConstraintsTable

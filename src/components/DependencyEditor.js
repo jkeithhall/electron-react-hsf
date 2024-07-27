@@ -11,19 +11,13 @@ import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 
 export default function DependencyEditor ({
-  selectedComponents,
+  componentA,
+  componentB,
   componentList,
-  nodes,
-  edges,
   setEdges,
   dependencyList,
   setDependencyList,
-  setNodes,
-  onNodesChange,
 }) {
-  const componentA = selectedComponents[0].id < selectedComponents[1].id ? selectedComponents[0] : selectedComponents[1];
-  const componentB = selectedComponents[0].id < selectedComponents[1].id ? selectedComponents[1] : selectedComponents[0];
-
   const [ abDependencyID, setABDependencyID ] = useState(() => {
     return dependencyList.find((dependency) => {
       return dependency.depSubsystem === componentA.id && dependency.subsystem === componentB.id;
@@ -66,29 +60,44 @@ export default function DependencyEditor ({
       id: newDependencyId,
       depSubsystem: direction === 'ab' ? componentA.id : componentB.id,
       subsystem: direction === 'ab' ? componentB.id : componentA.id,
+      asset: direction === 'ab' ? componentA.parent : componentB.parent,
+      depAsset: direction === 'ab' ? componentB.parent : componentA.parent,
       fcnName: '',
     };
     setDependencyList((prevDependencyList) => {
       return [...prevDependencyList, newDependency];
     });
+
+    let sourceHandle = 'right';
+    let targetHandle = 'top';
+    const firstComponent = componentList.find(c => c.id === componentA.id || c.id === componentB.id);
+    if ((direction === 'ab' && firstComponent.id === componentB.id) ||
+        (direction === 'ba' && firstComponent.id === componentA.id)) {
+      sourceHandle = 'left';
+      targetHandle = 'bottom';
+    }
+
     setEdges((prevEdges) => {
       return [...prevEdges, {
         id: newDependencyId,
         source: newDependency.depSubsystem,
         target: newDependency.subsystem,
+        sourceHandle,
+        targetHandle,
         data: newDependency.fcnName,
-        type: 'smoothstep',
+        type: 'function',
         label: newDependency.fcnName ? '⨍' : null,
         markerEnd: {
           type: 'arrowclosed',
           width: 15,
           height: 15,
-          color: '#333',
+          color: '#eee',
         },
         style: {
-          strokeWidth: 2,
-          stroke: '#333',
+          strokeWidth: 1,
+          stroke: '#EEE'
         },
+        selected: true,
       }];
     });
     direction === 'ab' ? setABDependencyID(newDependencyId) : setBADependencyID(newDependencyId);

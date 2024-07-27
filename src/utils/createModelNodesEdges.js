@@ -1,5 +1,4 @@
 import randomColor from 'randomcolor';
-import { MarkerType } from 'reactflow';
 
 const BASE_COLORS = [ 'blue', 'green', 'red', 'purple', 'orange', 'yellow', 'pink' ];
 
@@ -41,8 +40,7 @@ const createModelNodesEdges = function(componentList, dependencyList) {
       node.position = { x: 87 * subsystemNum, y: -90 * subsystemNum + (assetHeight - 40) };
       node.style = { width: subcomponentWidth, height: subcomponentHeight };
       node.extent = 'parent';
-      // parentNode has been renamed to parentId in in version 11.11.0 and will be removed in version 12
-      node.parentNode = component.parent;
+      node.parentId = component.parent;
       subsystemCount[component.parent]++;
     };
 
@@ -57,7 +55,7 @@ const createModelNodesEdges = function(componentList, dependencyList) {
       data: dependency.fcnName,
       type: 'smoothstep',
       markerEnd: {
-        type: MarkerType.ArrowClosed,
+        type: 'arrowclosed',
         width: 15,
         height: 15,
         color: '#000',

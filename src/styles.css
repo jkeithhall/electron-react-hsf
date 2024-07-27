@@ -8,8 +8,7 @@
     --primary-color-light: #349fda;
     --default-border-radius: 5px;
     --header-height: 100px;
-    --footer-height: 25px
-    ;
+    --footer-height: 25px;
     --header-logo-margin: 20px;
     --nav-drawer-width-closed: 60px;
     --nav-drawer-width-open: 220px;
@@ -48,7 +47,7 @@ body {
     -webkit-font-smoothing: antialiased;
     border-radius: var(--default-border-radius);
 }
-img, picture, video, canvas, svg {
+img, picture, video, canvas {
     display: block;
     max-width: 100%;
 }
@@ -290,7 +289,7 @@ footer {
     2 * var(--work-space-padding) - var(--footer-height));
 }
 
-.react-flow {
+.react-flow__renderer {
     background-color: var(--react-flow-background-color);
 }
 
