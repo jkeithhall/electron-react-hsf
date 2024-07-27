@@ -32,8 +32,8 @@ const AssetNode = ({ data, selected }) => {
         placement="top"
         PopperProps={{ disablePortal: true }}
       >
-          <NodeResizer color="#e53935" isVisible={selected ? true : false} minWidth={100} minHeight={30}/>
-          <div className={`asset-node ${selectedClass}`} style={{ backgroundColor }}/>
+        <NodeResizer color="#e53935" isVisible={selected ? true : false} minWidth={100} minHeight={30}/>
+        <div className={`asset-node ${selectedClass}`} style={{ backgroundColor }}/>
       </CustomToolTip>
     </>
   );

@@ -40,7 +40,8 @@ const createModelNodesEdges = function(componentList, dependencyList) {
       node.position = { x: 87 * subsystemNum, y: -90 * subsystemNum + (assetHeight - 40) };
       node.style = { width: subcomponentWidth, height: subcomponentHeight };
       node.extent = 'parent';
-      node.parentId = component.parent;
+      // parentNode has been renamed to parentId in in version 11.11.0 and will be removed in version 12
+      node.parentNode = component.parent;
       subsystemCount[component.parent]++;
     };
 
