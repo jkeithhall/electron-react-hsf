@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { randomId } from '@mui/x-data-grid-generator';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -11,18 +11,27 @@ import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 
 export default function DependencyEditor ({
-  selectedNodeId,
+  componentA,
+  componentB,
   componentList,
-  nodes,
+  setEdges,
   dependencyList,
   setDependencyList,
-  setNodes,
-  onNodesChange,
 }) {
-  const data = nodes.find((node) => node.id === selectedNodeId)?.data;
-  const { fromComponent, toComponent, status, dependencyId, fromAsset, toAsset } = data;
+  const [ abDependencyID, setABDependencyID ] = useState(() => {
+    return dependencyList.find((dependency) => {
+      return dependency.depSubsystem === componentA.id && dependency.subsystem === componentB.id;
+    })?.id;
+  })
+  const [ baDependencyID, setBADependencyID ] = useState(() => {
+    return dependencyList.find((dependency) => {
+      return dependency.depSubsystem === componentB.id && dependency.subsystem === componentA.id;
+    })?.id;
+  });
 
-  const handleDepFcnChange = (e) => {
+  const handleDepFcnChange = (direction) => (e) => {
+    const dependencyId = direction === 'ab' ? abDependencyID : baDependencyID;
+
     setDependencyList((prevDependencyList) => {
       return prevDependencyList.map((dependency) => {
         if (dependency.id === dependencyId) {
@@ -31,53 +40,90 @@ export default function DependencyEditor ({
         return dependency;
       });
     });
+    setEdges((prevEdges) => {
+      return prevEdges.map((edge) => {
+        if (edge.id === dependencyId) {
+          return {
+            ...edge,
+            label: e.target.value.length > 0 ? '⨍' : null,
+            data: e.target.value
+          };
+        }
+        return edge;
+      });
+    });
   }
 
-  const handleAddDependency = () => {
+  const handleAddDependency = (direction) => () => {
     const newDependencyId = randomId();
     const newDependency = {
       id: newDependencyId,
-      depSubsystem: fromComponent.id,
-      subsystem: toComponent.id,
+      depSubsystem: direction === 'ab' ? componentA.id : componentB.id,
+      subsystem: direction === 'ab' ? componentB.id : componentA.id,
+      asset: direction === 'ab' ? componentA.parent : componentB.parent,
+      depAsset: direction === 'ab' ? componentB.parent : componentA.parent,
       fcnName: '',
     };
     setDependencyList((prevDependencyList) => {
       return [...prevDependencyList, newDependency];
     });
-    setNodes((prevNodes) => {
-      return prevNodes.map((node) => {
-        if (node.id === selectedNodeId) {
-          node.data.dependencyId = newDependencyId;
-          node.data.status = 'dependent';
-          // node.style.backgroundColor = '#4caf50';
-          node.selected = true;
-          return node;
-        }
-        return node;
-      });
+
+    let sourceHandle = 'right';
+    let targetHandle = 'top';
+    const firstComponent = componentList.find(c => c.id === componentA.id || c.id === componentB.id);
+    if ((direction === 'ab' && firstComponent.id === componentB.id) ||
+        (direction === 'ba' && firstComponent.id === componentA.id)) {
+      sourceHandle = 'left';
+      targetHandle = 'bottom';
+    }
+
+    setEdges((prevEdges) => {
+      return [...prevEdges, {
+        id: newDependencyId,
+        source: newDependency.depSubsystem,
+        target: newDependency.subsystem,
+        sourceHandle,
+        targetHandle,
+        data: newDependency.fcnName,
+        type: 'function',
+        label: newDependency.fcnName ? '⨍' : null,
+        markerEnd: {
+          type: 'arrowclosed',
+          width: 15,
+          height: 15,
+          color: '#eee',
+        },
+        style: {
+          strokeWidth: 1,
+          stroke: '#EEE'
+        },
+        selected: true,
+      }];
     });
+    direction === 'ab' ? setABDependencyID(newDependencyId) : setBADependencyID(newDependencyId);
   }
 
-  const handleRemoveDependency = () => {
+  const handleRemoveDependency = (direction) => () => {
+    const dependencyId = direction === 'ab' ? abDependencyID : baDependencyID;
+
     setDependencyList((prevDependencyList) => {
-      return prevDependencyList.filter((dependency) => dependency.id !== dependencyId);
-    });
-    setNodes((prevNodes) => {
-      return prevNodes.map((node) => {
-        if (node.id === selectedNodeId) {
-          node.data.dependencyId = null;
-          node.data.status = 'independent';
-          // node.style.backgroundColor = '#888888';
-          node.selected = true;
-          return node;
-        }
-        return node;
+      return prevDependencyList.filter((dependency) => {
+        return dependency.id !== dependencyId;
       });
     });
+    setEdges((prevEdges) => {
+      return prevEdges.filter((edge) => {
+        return edge.id !== dependencyId;
+      });
+    });
+    direction === 'ab' ? setABDependencyID(null) : setBADependencyID(null);
   }
 
-  const toolTipLabel = `${fromComponent.name} (${fromAsset}) → ${toComponent.name} (${toAsset})`;
-  const fcnName = dependencyList.find((dependency) => dependency.id === dependencyId)?.fcnName
+  const abFcnName = dependencyList.find((dependency) => dependency.id === abDependencyID)?.fcnName ?? '';
+  const baFcnName = dependencyList.find((dependency) => dependency.id === baDependencyID)?.fcnName ?? '';
+
+  const assetAName = componentList.find((component) => component.id === componentA.parent)?.name;
+  const assetBName = componentList.find((component) => component.id === componentB.parent)?.name;
 
   return (
     <>
@@ -88,7 +134,7 @@ export default function DependencyEditor ({
           my={2}
           sx={{ flexGrow: 1, textAlign: 'center' }}
         >
-          {toolTipLabel ? toolTipLabel : ' '}
+          {`${componentA.name} (${assetAName}) → ${componentB.name} (${assetBName})`}
         </Typography>
         <Stack
           direction="row"
@@ -96,7 +142,7 @@ export default function DependencyEditor ({
           alignItems="center"
           sx={{ position: 'relative', width: '100%', padding: '0 10px' }}
         >
-          {status === 'dependent' ? <LinkIcon color="success"/> : <LinkOffIcon color="secondary"/>}
+          {abDependencyID ? <LinkIcon color="success"/> : <LinkOffIcon color="secondary"/>}
           <Typography
             variant="bod1"
             color="secondary"
@@ -104,10 +150,10 @@ export default function DependencyEditor ({
             my={2}
             sx={{ textAlign: 'left' }}
           >
-            {`(${status.charAt(0).toUpperCase() + status.slice(1)})`}
+            {abDependencyID ? 'Dependency Exists' : 'No Dependency'}
           </Typography>
         </Stack>
-        {status === 'dependent' && <TextField
+        {abDependencyID && <TextField
             id='depFcnName'
             key='depFcnName'
             fullWidth
@@ -115,16 +161,26 @@ export default function DependencyEditor ({
             label='Dependency Function'
             variant="outlined"
             color='primary'
-            value={fcnName}
+            value={abFcnName}
             type='text'
-            onChange={handleDepFcnChange}
+            onChange={handleDepFcnChange('ab')}
           />
         }
       </Box>
-      <div className="confirm-close-icons" style={{ marginBottom: 120 }}>
-        {status === 'independent' &&
+      <div className="confirm-close-icons">
+        {abDependencyID ?
           <Button
-            onClick={handleAddDependency}
+            onClick={handleRemoveDependency('ab')}
+            variant="contained"
+            color="error"
+            size="large"
+            startIcon={<RemoveCircleIcon />}
+            sx={{ backgroundColor: '#888888' }}
+            >
+              Remove Dependency
+          </Button> :
+          <Button
+            onClick={handleAddDependency('ab')}
             variant="contained"
             color="success"
             size="large"
@@ -133,9 +189,51 @@ export default function DependencyEditor ({
               Add Dependency
           </Button>
         }
-        {status === 'dependent' &&
+      </div>
+      <Box sx={{ margin: '0 20px', padding: '10px', backgroundColor: '#eeeeee', borderRadius: '5px' }}>
+        <Typography
+          variant="h4"
+          color="secondary"
+          my={2}
+          sx={{ flexGrow: 1, textAlign: 'center' }}
+        >
+          {`${componentB.name} (${assetBName}) → ${componentA.name} (${assetAName})`}
+        </Typography>
+        <Stack
+          direction="row"
+          justifyContent="flex-start"
+          alignItems="center"
+          sx={{ position: 'relative', width: '100%', padding: '0 10px' }}
+        >
+          {baDependencyID ? <LinkIcon color="success"/> : <LinkOffIcon color="secondary"/>}
+          <Typography
+            variant="bod1"
+            color="secondary"
+            mx={1}
+            my={2}
+            sx={{ textAlign: 'left' }}
+          >
+            {baDependencyID ? 'Dependency Exists' : 'No Dependency'}
+          </Typography>
+        </Stack>
+        {baDependencyID && <TextField
+            id='depFcnName'
+            key='depFcnName'
+            fullWidth
+            sx={{ my: 2 }}
+            label='Dependency Function'
+            variant="outlined"
+            color='primary'
+            value={baFcnName}
+            type='text'
+            onChange={handleDepFcnChange('ba')}
+          />
+        }
+      </Box>
+      <div className="confirm-close-icons" style={{ marginBottom: 120 }}>
+        {baDependencyID ?
           <Button
-            onClick={handleRemoveDependency}
+            onClick={handleRemoveDependency('ba')}
             variant="contained"
             color="error"
             size="large"
@@ -143,6 +241,15 @@ export default function DependencyEditor ({
             sx={{ backgroundColor: '#888888' }}
             >
               Remove Dependency
+          </Button> :
+          <Button
+            onClick={handleAddDependency('ba')}
+            variant="contained"
+            color="success"
+            size="large"
+            startIcon={<AutoAwesomeMotionIcon />}
+            >
+              Add Dependency
           </Button>
         }
       </div>

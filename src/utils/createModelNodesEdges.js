@@ -1,5 +1,4 @@
 import randomColor from 'randomcolor';
-import { MarkerType } from 'reactflow';
 
 const BASE_COLORS = [ 'blue', 'green', 'red', 'purple', 'orange', 'yellow', 'pink' ];
 
@@ -57,7 +56,7 @@ const createModelNodesEdges = function(componentList, dependencyList) {
       data: dependency.fcnName,
       type: 'smoothstep',
       markerEnd: {
-        type: MarkerType.ArrowClosed,
+        type: 'arrowclosed',
         width: 15,
         height: 15,
         color: '#000',

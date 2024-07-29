@@ -8,7 +8,7 @@ import ReactFlow, {
   Panel,
   MarkerType
 } from 'reactflow';
-import { SubcomponentNode, AssetNode } from './nodeTypes';
+import { SubcomponentNode, AssetNode } from './ModelNodes';
 
 import AddComponentDial from './AddComponentDial';
 import getLayoutedElements from '../utils/getLayoutedElements';
@@ -16,7 +16,7 @@ import recenterAssets from '../utils/recenterAssets';
 
 const nodeTypes = { subcomponent: SubcomponentNode, asset: AssetNode };
 
-export default function LayoutFlow ({
+export default function ModelFlow ({
   nodes,
   edges,
   setNodes,
@@ -122,7 +122,8 @@ export default function LayoutFlow ({
     } else if (data.parent) { // Subcomponent
       newNode.type = 'subcomponent';
       newNode.extent = 'parent';
-      newNode.parentNode = data.parent;
+      newNode.parentId = data.parent;
+      newNode.style = { width: 120, height: 40 };
       newNode.position = { x: 0, y: 0 };
       setConstraints((prevConstraints) => prevConstraints.concat(newConstraints));
     }
@@ -135,7 +136,7 @@ export default function LayoutFlow ({
         overlapped = false;
         for (let i = 0; i < nodes.length; i++) {
           const node = nodes[i];
-          if (node.parentNode && node.parentNode === data.parent && node.id !== newNode.id) {
+          if (node.parentId && node.parentId === data.parent && node.id !== newNode.id) {
             if (Math.abs(node.position.x - newNode.position.x) < 150 && Math.abs(node.position.y - newNode.position.y) < 40) {
               overlapped = true;
               newNode.position.x += 150;
@@ -170,6 +171,22 @@ export default function LayoutFlow ({
       }
     });
   }, [componentList]);
+
+  // On dismount, deselect all nodes and edges
+  useEffect(() => {
+    return () => {
+      setNodes((prevNodes) => {
+        return prevNodes.map((node) => {
+          return { ...node, selected: false };
+        });
+      });
+      setEdges((prevEdges) => {
+        return prevEdges.map((edge) => {
+          return { ...edge, selected: false };
+        });
+      });
+    }
+  }, []);
 
   return (
     <ReactFlow

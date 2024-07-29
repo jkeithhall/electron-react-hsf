@@ -1,57 +1,81 @@
 const nodeSize = 50;
-const gap = 5;
 
 const createDependencyNodesEdges = function(componentList, dependencyList) {
   let initialDependencyNodes = [];
+  let initialDependencyEdges = [];
 
-  const assetNames = {};
+  if (!componentList) return { initialDependencyNodes, initialDependencyEdges};
+
+  // Cluster components by asset
+  let assetClusters = {};
   componentList.forEach((component) => {
     if (!component.parent) {
-      assetNames[component.id] = component.name;
+      if (!assetClusters[component.id]) {
+        assetClusters[component.id] = { assetName: null, components: [] }
+      }
+      assetClusters[component.id]['assetName'] = component.name;
+    } else {
+      if (!assetClusters[component.parent]) {
+        assetClusters[component.parent] = { assetName: null, components: [] }
+      }
+      assetClusters[component.parent]['components'].push(component);
     }
   });
 
-  if (!componentList || !dependencyList) return { initialDependencyNodes };
-
-  componentList.forEach((fromComponent, i) => {
-    if (fromComponent.parent) {
-      componentList.forEach((toComponent, j) => {
-        if (toComponent.parent) {
-          const node = {
-            id: `${fromComponent.id}-${toComponent.id}`,
-            type: 'dependency',
-            data: {
-              fromComponent,
-              fromComponentId: fromComponent.id,
-              fromAsset: assetNames[fromComponent.parent],
-              toComponent,
-              toComponentId: toComponent.id,
-              toAsset: assetNames[toComponent.parent],
-            },
-            position: { x: (nodeSize + gap) * i, y: (nodeSize + gap) * j },
-            style: { width: nodeSize, height: nodeSize },
-          }
-          if (fromComponent.id === toComponent.id) {
-            node.data.status = 'inapplicable';
-          } else {
-            const dependency = dependencyList.find((dependency) =>
-              dependency.depSubsystem === fromComponent.id && dependency.subsystem === toComponent.id
-            );
-            if (dependency) {
-              node.data.dependencyId = dependency.id;
-              node.data.status = 'dependent';
-            } else {
-              node.data.dependencyId = null;
-              node.data.status = 'independent';
-            }
-          }
-          initialDependencyNodes.push(node);
-        }
+  let subcomponentCount = 0;
+  Object.values(assetClusters).forEach(({ assetName, components }) => {
+    components.forEach((component) => {
+      initialDependencyNodes.push({
+        id: component.id,
+        type: 'dependency',
+        data: { component, assetName },
+        position: { x: nodeSize * subcomponentCount, y: nodeSize * subcomponentCount },
+        width: nodeSize,
+        height: nodeSize,
       });
-    }
+      subcomponentCount++;
+    });
   });
 
-  return { initialDependencyNodes };
+  dependencyList.forEach(({
+    id,
+    depSubsystem,
+    subsystem,
+    asset,
+    depAsset,
+    fcnName,
+  }) => {
+    let sourceHandle = 'right';
+    let targetHandle = 'top';
+    const firstComponent = componentList.find(c => c.id === subsystem || c.id === depSubsystem);
+    if (firstComponent.id === subsystem) {
+      sourceHandle = 'left';
+      targetHandle = 'top';
+    }
+
+    initialDependencyEdges.push({
+      id,
+      source: depSubsystem,
+      target: subsystem,
+      sourceHandle,
+      targetHandle,
+      data: fcnName,
+      type: 'function',
+      label: fcnName ? '⨍' : null,
+      markerEnd: {
+        type: 'arrowclosed',
+        width: 15,
+        height: 15,
+        color: '#EEE',
+      },
+      style: {
+        strokeWidth: 1,
+        stroke: '#EEE',
+      },
+    });
+  });
+
+  return { initialDependencyNodes, initialDependencyEdges };
 }
 
 export default createDependencyNodesEdges ;
