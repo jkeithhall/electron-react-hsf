@@ -10,7 +10,7 @@ const DependencyEdge = ({
   sourcePosition,
   targetPosition,
   data: label,
-  markerEnd,
+  markerEnd: unselectedMarkerEnd,
   style: unselectedEdgeStyle,
   selected
 }) => {
@@ -31,17 +31,14 @@ const DependencyEdge = ({
     stroke: '#e53935',
     strokeOpacity: 1,
     strokeWidth: 1.5,
-    zIndex: 9999
   };
-
-  // TO DO: Create custom svgs for markerEnd selected v. unselected
 
   return (
     <>
       <BaseEdge
         id={id}
         path={edgePath}
-        markerEnd={markerEnd}
+        markerEnd={selected ? 'url(#red-arrowhead)' : unselectedMarkerEnd}
         style={selected ? selectedEdgeStyle : unselectedEdgeStyle}
       />
       {label &&
@@ -67,7 +64,7 @@ const DependencyEdge = ({
               }}
               className="edge-label"
             >
-              <Tooltip title={label} placement="top">⨍</Tooltip>
+              <Tooltip title={label} placement="top"><p>⨍</p></Tooltip>
             </div>
         </EdgeLabelRenderer>
       }

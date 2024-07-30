@@ -17,8 +17,19 @@ export default function DependencyFlow({
   handlePaneClick,
 }) {
 
+  const redArrowheadSvg = (
+    <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+      <defs>
+        <marker id={'red-arrowhead'} markerWidth="5" markerHeight="5.5" refX="2.75" refY="2.75" orient="auto">
+          <polygon points="0 0, 5 2.75, 0 5.5" fill="red" />
+        </marker>
+      </defs>
+    </svg>
+  );
+
   return (
     <>
+      {redArrowheadSvg}
       <ReactFlow
         nodes={nodes}
         edges={edges}

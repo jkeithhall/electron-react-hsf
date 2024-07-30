@@ -38,17 +38,24 @@ export default function DependencyGraph({
       });
     });
     if (nodeIds.length === 2) {
-      // Select all edges between the two components and put them last in the edge list
+      // Select all edges between the two components
       setEdges((prevEdges) => {
         const selectedEdges = [];
         prevEdges.forEach((edge) => {
           if (nodeIds.includes(edge.source) && nodeIds.includes(edge.target)) {
-            selectedEdges.push({ ...edge, selected: true });
+            selectedEdges.push(edge);
           }
         });
-        return prevEdges.filter((edge) => {
+        // Remove selected edges from the list
+        const unselectedEdges = prevEdges.filter((edge) => {
           return !selectedEdges.includes(edge);
-        }).concat(selectedEdges);
+        });
+        // Add selected edges to the end of the list of edges and mark them as selected
+        // (This is necessary because edges are svgs rendered in the order they appear in the list
+        // and we want selected edges to be rendered on top of unselected edges)
+        return [...unselectedEdges, ...selectedEdges.map((edge) => {
+          return { ...edge, selected: true };
+        })];
       });
       handlePaletteOpen();
     } else {
@@ -93,18 +100,6 @@ export default function DependencyGraph({
     setComponentA(sourceComponent);
     setComponentB(targetComponent);
     selectNodes([source, target]);
-    // setEdges((prevEdges) => {
-    //   // Select all edges between the two components
-    //   return prevEdges.map((edge) => {
-    //     if ((edge.source === source && edge.target === target) ||
-    //       (edge.source === target && edge.target === source)) {
-    //       return { ...edge, selected: true };
-    //     } else {
-    //       return { ...edge, selected: false };
-    //     }
-    //   });
-    // });
-
   }
 
   const handlePaneClick = (e) => {
