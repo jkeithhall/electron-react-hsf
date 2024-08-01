@@ -8,6 +8,7 @@ import ReactFlow, {
   Panel,
   MarkerType
 } from 'reactflow';
+import { randomId } from '@mui/x-data-grid-generator';
 import { SubcomponentNode, AssetNode } from './ModelNodes';
 
 import AddComponentDial from './AddComponentDial';
@@ -27,6 +28,7 @@ export default function ModelFlow ({
   componentList,
   setComponentList,
   dependencyList,
+  setDependencyList,
   setConstraints,
   selectedNodeId,
   setSelectedNodeData,
@@ -71,27 +73,41 @@ export default function ModelFlow ({
       setErrorMessage('Cannot create dependencies between assets');
       return;
     }
-    // TO DO: Add check for circular dependencies (and other constraints?)
 
-    setEdges((eds) => {
-      // Style new edges as smoothstep with arrowheads
-      return addEdge(params, eds).map((edge) => {
-        return {
-          ...edge,
-          type: 'smoothstep',
-          markerEnd: {
-            type: MarkerType.ArrowClosed,
-            width: 15,
-            height: 15,
-            color: '#000',
-          },
-          style: {
-            strokeWidth: 2,
-            stroke: '#000',
-          },
+    // TO DO: Add check for circular dependencies (and other constraints?)
+    setDependencyList((prevDependencyList) => {
+      const newDependencyId = randomId();
+      return [
+        ...prevDependencyList,
+        {
+          id: newDependencyId,
+          depSubsystem: source,
+          subsystem: target,
+          asset: componentList.find((component) => component.id === target).parent,
+          depAsset: componentList.find((component) => component.id === source).parent,
+          fcnName: '',
         }
-      });
-    })
+      ];
+    });
+    // setEdges((eds) => {
+    //   // Style new edges as smoothstep with arrowheads
+    //   return addEdge(params, eds).map((edge) => {
+    //     return {
+    //       ...edge,
+    //       type: 'smoothstep',
+    //       markerEnd: {
+    //         type: MarkerType.ArrowClosed,
+    //         width: 15,
+    //         height: 15,
+    //         color: '#000',
+    //       },
+    //       style: {
+    //         strokeWidth: 2,
+    //         stroke: '#000',
+    //       },
+    //     }
+    //   });
+    // })
   },
     [setEdges],
   );

@@ -12,6 +12,7 @@ export default function DependencyFlow({
   edges,
   onNodesChange,
   onEdgesChange,
+  onConnect,
   handleNodeClick,
   handleEdgeClick,
   handlePaneClick,
@@ -35,6 +36,7 @@ export default function DependencyFlow({
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         onNodeClick={handleNodeClick}

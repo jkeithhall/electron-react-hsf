@@ -24,7 +24,6 @@ import buildSimFile from './utils/buildSimFile';
 import parseSimFile from './utils/parseSimFile';
 import downloadCSV from './utils/downloadCSV';
 import createModelNodesEdges from './utils/createModelNodesEdges';
-import createDependencyNodesEdges from './utils/createDependencyNodesEdges';
 
 const { systemComponents, systemDependencies, systemEvaluator, systemConstraints } = parseModel(initModel);
 
@@ -44,9 +43,6 @@ export default function App() {
   const { initialNodes, initialEdges } = createModelNodesEdges(componentList, dependencyList);
   const [modelNodes, setModelNodes, onModelNodesChange] = useNodesState(initialNodes);
   const [modelEdges, setModelEdges, onModelEdgesChange] = useEdgesState(initialEdges);
-  const { initialDependencyNodes, initialDependencyEdges } = createDependencyNodesEdges(componentList, dependencyList);
-  const [dependencyNodes, setDependencyNodes, onDependencyNodesChange] = useNodesState(initialDependencyNodes);
-  const [dependencyEdges, setDependencyEdges, onDependencyEdgesChange] = useEdgesState(initialDependencyEdges);
 
   const [filePath, setFilePath] = useState('');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -150,8 +146,7 @@ export default function App() {
           break;
         case 'System Model':
           const { systemComponents, systemDependencies } = parseJSONFile(fileType, content, setStateMethods);
-          updateModelNodesEdges(systemComponents, systemDependencies);
-          updateDependencyNodes(systemComponents, systemDependencies);
+          updateModelGraph(systemComponents, systemDependencies);
           break;
         case 'CSV':
           parseCSVFile(content, setTaskList);
@@ -210,15 +205,10 @@ export default function App() {
     }
   }
 
-  const updateModelNodesEdges = (componentList, dependencyList) => {
+  const updateModelGraph = (componentList, dependencyList) => {
     const { initialNodes, initialEdges } = createModelNodesEdges(componentList, dependencyList);
     setModelNodes(initialNodes);
     setModelEdges(initialEdges);
-  }
-
-  const updateDependencyNodes = (componentList, dependencyList) => {
-    const { initialDependencyNodes } = createDependencyNodesEdges(componentList, dependencyList);
-    setDependencyNodes(initialDependencyNodes);
   }
 
   useEffect(() => {
@@ -251,14 +241,9 @@ export default function App() {
     modelEdges
   ]);
 
-  // Update dependency nodes when component list changes
+  // // Update model nodes and edges when dependency list changes
   useEffect(() => {
-    updateDependencyNodes(componentList, dependencyList);
-  }, [componentList]);
-
-  // Update model nodes and edges when dependency list changes
-  useEffect(() => {
-    updateModelNodesEdges(componentList, dependencyList);
+    updateModelGraph(componentList, dependencyList);
   }, [dependencyList]);
 
   return (
@@ -322,12 +307,6 @@ export default function App() {
               componentList={componentList}
               dependencyList={dependencyList}
               setDependencyList={setDependencyList}
-              nodes={dependencyNodes}
-              setNodes={setDependencyNodes}
-              edges={dependencyEdges}
-              setEdges={setDependencyEdges}
-              onNodesChange={onDependencyNodesChange}
-              onEdgesChange={onDependencyEdgesChange}
             />,
           'Constraints':
             <ConstraintsTable
@@ -344,7 +323,7 @@ export default function App() {
             <div className='stacking-context'>
               <ConfirmationModal
                 title={'Overwrite parameters?'}
-                message={'Are you sure you want to overwrite with current file?'}
+                message={'Are you sure you want to overwrite with the current file?'}
                 onConfirm={confirmationHandler}
                 onCancel={handleUploadCancel}
                 confirmText={'Confirm'}

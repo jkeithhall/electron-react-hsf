@@ -50,7 +50,7 @@ const createDependencyNodesEdges = function(componentList, dependencyList) {
     const firstComponent = componentList.find(c => c.id === subsystem || c.id === depSubsystem);
     if (firstComponent.id === subsystem) {
       sourceHandle = 'left';
-      targetHandle = 'top';
+      targetHandle = 'bottom';
     }
 
     initialDependencyEdges.push({

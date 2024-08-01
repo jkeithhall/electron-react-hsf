@@ -7,6 +7,8 @@ const assetWidth = 500;
 const subcomponentHeight = 40;
 const subcomponentWidth = 120;
 
+const assetColors = {};
+
 const createModelNodesEdges = function(componentList, dependencyList) {
   let nodes = [];
   let edges = [];
@@ -24,13 +26,17 @@ const createModelNodesEdges = function(componentList, dependencyList) {
     if (component.parent === undefined) { // Asset
       node.type = 'asset';
       node.position = { x: assetCount * (assetWidth + 50), y: 0 };
-      const backgroundColor = randomColor({
-        hue: BASE_COLORS[assetCount % BASE_COLORS.length],
-        luminosity: 'light',
-        format: 'rgba',
-        alpha: 0.5,
-      });
-      node.data.backgroundColor = backgroundColor;
+
+      if (!assetColors[component.id]) {
+        const backgroundColor = randomColor({
+          hue: BASE_COLORS[assetCount % BASE_COLORS.length],
+          luminosity: 'light',
+          format: 'rgba',
+          alpha: 0.5,
+        });
+        assetColors[component.id] = backgroundColor;
+      }
+      node.data.backgroundColor = assetColors[component.id];
       node.style = { width: assetWidth, height: assetHeight };
       assetCount++;
       subsystemCount[component.id] = 0;

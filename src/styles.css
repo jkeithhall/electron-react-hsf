@@ -16,6 +16,7 @@
     --work-space-padding: 30px;
     --work-space-height: calc(100vh - var(--header-height) -
     - 2 * var(--work-space-padding) - var(--footer-height));
+    --dependency-drop-down-height: 76px;
     --sources-width: 570px;
     --evaluator-parameters-width: 500px;
     --simulation-parameters-width: 300px;
@@ -282,11 +283,23 @@ footer {
     2 * var(--work-space-padding));
 }
 
+.dependency-editor {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0px;
+}
+
 .react-flow-board {
     align-self: first baseline;
     width: 100%;
     height: calc(100vh - var(--header-height) -
     2 * var(--work-space-padding) - var(--footer-height));
+}
+
+.dependency-flow-board {
+    height: calc(100vh - var(--header-height) -
+    2 * var(--work-space-padding) - var(--footer-height) -
+    var(--dependency-drop-down-height));
 }
 
 .react-flow__renderer {

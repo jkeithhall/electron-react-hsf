@@ -86,6 +86,7 @@ export default function ModelGraph({
                 componentList={componentList}
                 setComponentList={setComponentList}
                 dependencyList={dependencyList}
+                setDependencyList={setDependencyList}
                 setConstraints={setConstraints}
                 selectedNodeId={selectedNodeId}
                 setSelectedNodeData={setSelectedNodeData}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ReactFlowProvider } from '@xyflow/react';
+import { ReactFlowProvider, useNodesState, useEdgesState } from '@xyflow/react';
+import { randomId } from '@mui/x-data-grid-generator';
 import DependencyFlow from './DependencyFlow';
 
 import Box from '@mui/material/Box';
@@ -8,21 +9,19 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import EditingPalette from './EditingPalette';
+import createDependencyNodesEdges from '../utils/createDependencyNodesEdges';
 
 import '@xyflow/react/dist/style.css';
 
 export default function DependencyGraph({
-  nodes,
-  setNodes,
-  onNodesChange,
-  edges,
-  setEdges,
-  onEdgesChange,
   navOpen,
   componentList,
   dependencyList,
   setDependencyList,
 }) {
+  const { initialDependencyNodes, initialDependencyEdges } = createDependencyNodesEdges(componentList, dependencyList);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialDependencyNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialDependencyEdges);
   const [ componentA, setComponentA ] = useState(null);
   const [ componentB, setComponentB ] = useState(null);
   const [ paletteOpen, setPaletteOpen ] = useState(false);
@@ -102,6 +101,51 @@ export default function DependencyGraph({
     selectNodes([source, target]);
   }
 
+  const onConnect = (params) => {
+    const { source, target, sourceHandle, targetHandle } = params;
+    // No self-loops
+    if (source === target) return;
+
+    // Edges must connect to the correct handles
+    if (sourceHandle === 'right' && targetHandle === 'bottom') return;
+    if (sourceHandle === 'left' && targetHandle === 'top') return;
+
+    const id = randomId();
+
+    setDependencyList((prevList) => {
+      return [...prevList, {
+        id,
+        depSubsystem: source,
+        subsystem: target,
+        asset: componentList.find((component) => component.id === target).parent,
+        depAsset: componentList.find((component) => component.id === source).parent,
+        fcnName: '',
+      }];
+    });
+    setEdges((prevEdges) => {
+      return [...prevEdges, {
+        id,
+        source,
+        target,
+        sourceHandle,
+        targetHandle,
+        data: '',
+        type: 'function',
+        markerEnd: {
+          type: 'arrowclosed',
+          width: 15,
+          height: 15,
+          color: '#EEE',
+        },
+        style: {
+          strokeWidth: 1,
+          stroke: '#EEE',
+        },
+      }];
+    });
+
+  }
+
   const handlePaneClick = (e) => {
     setComponentA(null);
     setComponentB(null);
@@ -156,76 +200,77 @@ export default function DependencyGraph({
 
   return (
     <>
-      <Box className={`graph-editor ${graphEditorSize}`}>
-        <Paper className="react-flow-board" sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
-          <Stack
-            direction='row'
-            spacing={1}
-            sx={{
-              justifyContent: 'space-around',
-              backgroundColor: '#EEEE',
-              padding: '10px',
-              margin: '10px',
-              borderRadius: '5px',
-              width: 500,
-             }}
+      <Box className={`graph-editor ${graphEditorSize} dependency-editor`}>
+        <Stack
+          direction='row'
+          spacing={1}
+          sx={{
+            justifyContent: 'space-around',
+            backgroundColor: '#EEEE',
+            padding: '10px',
+            margin: '10px',
+            borderRadius: '5px',
+            width: 500,
+            }}
+        >
+          <TextField
+            id='componentA'
+            label='Component 1'
+            variant='outlined'
+            color='primary'
+            value={componentA || ''}
+            name='componentA'
+            select
+            align='left'
+            onChange={(e) => handleComponentSelectChange(e, 0)}
+            sx={{ width: 230, backgroundColor: '#EEE', margin: 1 }}
           >
-            <TextField
-              id='componentA'
-              label='Component 1'
-              variant='outlined'
-              color='primary'
-              value={componentA || ''}
-              name='componentA'
-              select
-              align='left'
-              onChange={(e) => handleComponentSelectChange(e, 0)}
-              sx={{ width: 230, backgroundColor: '#EEE', margin: 1 }}
-            >
-              {componentList
-                .filter((component) => component.parent && component.id !== componentB?.id)
-                .map((component) => (
-                  <MenuItem key={component.id} value={component}>
-                    {`${component.name} (${assetNames[component.parent]})`}
-                  </MenuItem>
-                ))
-              }
-            </TextField>
-            <TextField
-              id='componentB'
-              label='Component 2'
-              variant='outlined'
-              color='primary'
-              value={componentB || ''}
-              name='componentB'
-              select
-              align='left'
-              onChange={(e) => handleComponentSelectChange(e, 1)}
-              sx={{ width: 230, backgroundColor: '#EEE', margin: 1 }}
-            >
-              {componentList
-                .filter((component) => component.parent && component.id !== componentA?.id)
-                .map((component) => (
-                  <MenuItem key={component.id} value={component}>
-                    {`${component.name} (${assetNames[component.parent]})`}
-                  </MenuItem>
-                ))
-              }
-            </TextField>
-          </Stack>
-          <Paper style={{ width: '100%', height: '100%' }}>
+            {componentList
+              .filter((component) => component.parent && component.id !== componentB?.id)
+              .map((component) => (
+                <MenuItem key={component.id} value={component}>
+                  {`${component.name} (${assetNames[component.parent]})`}
+                </MenuItem>
+              ))
+            }
+          </TextField>
+          <TextField
+            id='componentB'
+            label='Component 2'
+            variant='outlined'
+            color='primary'
+            value={componentB || ''}
+            name='componentB'
+            select
+            align='left'
+            onChange={(e) => handleComponentSelectChange(e, 1)}
+            sx={{ width: 230, backgroundColor: '#EEE', margin: 1 }}
+          >
+            {componentList
+              .filter((component) => component.parent && component.id !== componentA?.id)
+              .map((component) => (
+                <MenuItem key={component.id} value={component}>
+                  {`${component.name} (${assetNames[component.parent]})`}
+                </MenuItem>
+              ))
+            }
+          </TextField>
+        </Stack>
+        <Paper className="react-flow-board dependency-flow-board" sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
+          <div style={{ width: '100%', height: '100%' }}>
             <ReactFlowProvider>
               <DependencyFlow
                 nodes={nodes}
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
+                onConnect={onConnect}
                 handleNodeClick={handleNodeClick}
                 handleEdgeClick={handleEdgeClick}
                 handlePaneClick={handlePaneClick}
               />
             </ReactFlowProvider>
-          </Paper>
+          </div>
         </Paper>
       </Box>
       {paletteOpen &&

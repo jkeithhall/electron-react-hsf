@@ -60,8 +60,8 @@ export default function DependencyEditor ({
       id: newDependencyId,
       depSubsystem: direction === 'ab' ? componentA.id : componentB.id,
       subsystem: direction === 'ab' ? componentB.id : componentA.id,
-      asset: direction === 'ab' ? componentA.parent : componentB.parent,
-      depAsset: direction === 'ab' ? componentB.parent : componentA.parent,
+      asset: direction === 'ab' ? componentB.parent : componentA.parent,
+      depAsset: direction === 'ab' ? componentA.parent : componentB.parent,
       fcnName: '',
     };
     setDependencyList((prevDependencyList) => {
