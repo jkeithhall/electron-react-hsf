@@ -1,6 +1,6 @@
 const { app, dialog } = require('electron');
 const { readFile, writeFile } = require('fs').promises;
-const { basename } = require('path');
+const { join, basename } = require('path');
 
 const currentFile = { content: '', filePath: null };
 const directorySeparator = process.platform === 'win32' ? '\\' : '/';
@@ -145,6 +145,28 @@ const openFile = async (browserWindow, fileType, filePath) => {
   }
 };
 
+const buildInputFiles = async (browserWindow, fileContents) => {
+  console.log('Building input files in fileHandlers.js');
+  const baseSrc = join(__dirname, '../Horizon/output');
+  const { simulationJSON, tasksJSON, modelJSON } = fileContents;
+  const fileNames = {
+    simulationFile: join(baseSrc, 'scenario.json'),
+    tasksFile: join(baseSrc, 'tasks.json'),
+    modelFile: join(baseSrc, 'model.json'),
+  };
+  // Save files
+  try {
+    await writeFile(fileNames.simulationFile, simulationJSON);
+    await writeFile(fileNames.tasksFile, tasksJSON);
+    await writeFile(fileNames.modelFile, modelJSON);
+    browserWindow.webContents.send('build-files-complete', fileNames);
+  } catch (error) {
+    console.error(error);
+    browserWindow.webContents.send('build-files-complete', error);
+    return;
+  }
+};
+
 const saveFile = async (browserWindow, fileType, filePath, content, updateCache = false) => {
   await writeFile(filePath, content);
   browserWindow.webContents.send('file-save-confirmed', filePath);
@@ -165,6 +187,7 @@ module.exports = {
   handleFileDownloadClick,
   showSaveDialog,
   showDirectorySelectDialog,
+  buildInputFiles,
   updateCurrentFile,
   checkUnsavedChanges,
   showFileSelectDialog,

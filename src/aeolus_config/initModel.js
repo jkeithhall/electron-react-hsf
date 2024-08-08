@@ -1,3 +1,5 @@
+const pythonSrc = window.electronApi ? window.electronApi.pythonSrc : "../../Horizon/samples/Aeolus/pythonScripts";
+
 const initModel = {
     assets: [
       {
@@ -43,7 +45,7 @@ const initModel = {
           {
             type: "scripted",
             name: "ADCS",
-            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\adcs.py",
+            src: pythonSrc + "/adcs.py",
             className: "adcs",
             states: [
               {
@@ -61,7 +63,7 @@ const initModel = {
           {
             type: "scripted",
             name: "EOSensor",
-            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\eosensor.py",
+            src: pythonSrc + "/eosensor.py",
             className: "eosensor",
             parameters: [
               {
@@ -119,7 +121,7 @@ const initModel = {
           {
             type: "scripted",
             name: "SSDR",
-            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\ssdr.py",
+            src: pythonSrc + "/ssdr.py",
             className: "ssdr",
             parameters: [
               {
@@ -140,7 +142,7 @@ const initModel = {
           {
             type: "scripted",
             name: "Comm",
-            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\comm.py",
+            src: pythonSrc + "/comm.py",
             className: "comm",
             states: [
               {
@@ -154,7 +156,7 @@ const initModel = {
           {
             type: "scripted",
             name: "Power",
-            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\power.py",
+            src: pythonSrc + "/power.py",
             className: "power",
             parameters: [
               {
@@ -232,7 +234,7 @@ const initModel = {
           {
             type: "scripted",
             name: "ADCS",
-            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\adcs.py",
+            src: pythonSrc + "/adcs.py",
             className: "adcs",
             states: [
               {
@@ -250,7 +252,7 @@ const initModel = {
           {
             type: "scripted",
             name: "EOSensor",
-            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\eosensor.py",
+            src: pythonSrc + "/eosensor.py",
             className: "eosensor",
             parameters: [
               {
@@ -308,7 +310,7 @@ const initModel = {
           {
             type: "scripted",
             name: "SSDR",
-            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\ssdr.py",
+            src: pythonSrc + "/ssdr.py",
             className: "ssdr",
             parameters: [
               {
@@ -329,7 +331,7 @@ const initModel = {
           {
             type: "scripted",
             name: "Comm",
-            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\comm.py",
+            src: pythonSrc + "/comm.py",
             className: "comm",
             states: [
               {
@@ -343,7 +345,7 @@ const initModel = {
           {
             type: "scripted",
             name: "Power",
-            src: "..\\..\\..\\..\\samples\\Aeolus\\pythonScripts\\power.py",
+            src: pythonSrc + "/power.py",
             className: "power",
             parameters: [
               {
@@ -502,7 +504,7 @@ const initModel = {
     ],
     evaluator: {
       type: "TargetValueEvaluator",
-      src: "..\\..\\..\\samples\\Aeolus\\pythonScripts\\eval.py",
+      src: pythonSrc + "/evaluator.py",
       className: "EVAL",
       keyRequests: [
         {

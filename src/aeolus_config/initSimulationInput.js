@@ -1,13 +1,12 @@
-
 const aeolusSimulationInput = {
   name: "Aeolus",
   version: 1.0,
   dependencies: {
-    baseSrc: "./samples/aeolus/",
-    modelSrc: "DSAC_Static_Mod_Scripted.xml",
-    targetSrc: "v2.2-300targets.xml",
-    pythonSrc: "pythonScripts/",
-    outputPath: "none"
+    baseSrc: window.electronApi ? window.electronApi.baseSrc : "./output",
+    modelSrc: "model.json",
+    targetSrc: "targets.json",
+    pythonSrc: window.electronApi ? window.electronApi.pythonSrc : "../../Horizon/samples/Aeolus/pythonScripts/",
+    outputPath: window.electronApi ? window.electronApi.baseSrc : "./output"
   },
   simulationParameters: {
     startJD: 2454680.0,
@@ -24,11 +23,11 @@ const initSimulationInput = {
   name: '',
   version: 1.0,
   dependencies: {
-    baseSrc: '',
-    modelSrc: '',
-    targetSrc: '',
-    pythonSrc: '',
-    outputPath: ''
+    baseSrc: window.electronApi ? window.electronApi.baseSrc : "./output",
+    modelSrc: "model.json",
+    targetSrc: "targets.json",
+    pythonSrc: window.electronApi ? window.electronApi.pythonSrc : "../../Horizon/samples/Aeolus/pythonScripts/",
+    outputPath: window.electronApi ? window.electronApi.baseSrc : "./output"
   },
   simulationParameters: {
     startJD: 2454680.0,

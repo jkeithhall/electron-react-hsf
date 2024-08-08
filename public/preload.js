@@ -1,4 +1,5 @@
 const electron = require('electron');
+const path = require('path');
 const { ipcRenderer, contextBridge } = electron;
 
 ipcRenderer.on('set-autosave-status', (_, status) => {
@@ -10,6 +11,9 @@ ipcRenderer.on('set-revert-status', (_, status) => {
 
 const api = {
   directorySeparator: process.platform === 'win32' ? '\\' : '/',
+  baseSrc: path.join(__dirname, '../Horizon/output'),
+  pythonSrc: path.join(__dirname, '../Horizon/samples/Aeolus/pythonScripts'),
+  getRelativePath: (from, to) => path.relative(from, to),
   onNewFile: (handleNewFile) => {
     ipcRenderer.on('new-file-click', async (_) => {
       handleNewFile();
@@ -89,6 +93,12 @@ const api = {
       callback();
     });
   },
+  onBuildInputFiles: (fileContents, callback) => {
+    ipcRenderer.on('build-files-complete', (_, data) => {
+      callback(data);
+    });
+    ipcRenderer.send('build-input-files', fileContents);
+  },
   hasUnsavedChanges: (updateStatus) => {
     ipcRenderer.send('set-revert-status', updateStatus);
   },
@@ -100,6 +110,46 @@ const api = {
       callback(content);
     });
   },
+  checkDockerInstalled: () => {
+    return new Promise((resolve, reject) => {
+      ipcRenderer.invoke('check-docker-installed').then((error) => {
+        if (error) {
+          resolve(error);
+        } else {
+          resolve();
+        }
+      });
+    });
+  },
+  checkDockerRunning: () => {
+    return new Promise((resolve, reject) => {
+      ipcRenderer.invoke('check-docker-running').then((error) => {
+        if (error) {
+          resolve(error);
+        } else {
+          resolve();
+        }
+      });
+    });
+  },
+  startDocker: () => {
+    return new Promise((resolve, reject) => {
+      ipcRenderer.invoke('start-docker').then((error) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve();
+        }
+      });
+    });
+  },
+  runSimulation: (inputFiles, outputFiles, handleSimulationResults) => {
+    console.log('Called runSimulation in preload');
+    ipcRenderer.send('run-simulation', inputFiles, outputFiles);
+    ipcRenderer.on('simulation-results', (_, data) => {
+      handleSimulationResults(data);
+    });
+  }
 }
 /*
   contextBridge exposes methods to the window object (accessed on a given API name).

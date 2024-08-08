@@ -3,12 +3,14 @@ const path = require('path');
 const { join } = require('path');
 const isDev = require('electron-is-dev');
 const { createMenu } = require('./menu');
+const { exec, spawn } = require('child_process');
 const {
   getFilePath,
   getContent,
   saveFile,
   showSaveDialog,
   showDirectorySelectDialog,
+  buildInputFiles,
   updateCurrentFile,
   checkUnsavedChanges,
   showFileSelectDialog } = require('./fileHandlers');
@@ -77,6 +79,14 @@ ipcMain.on('show-file-select-dialog', (event, directory, fileType) => {
   showFileSelectDialog(browserWindow, directory, fileType);
 });
 
+ipcMain.on('build-input-files', (event, fileContents) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  if (!browserWindow) return;
+
+  buildInputFiles(browserWindow, fileContents);
+});
+
 ipcMain.on('update-open-file', (event, filePath, content) => {
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
@@ -115,6 +125,7 @@ ipcMain.on('set-revert-status', (event, status) => {
 ipcMain.handle('get-current-filepath', async (event) => {
   return await getFilePath();
 });
+
 ipcMain.handle('get-current-filecontent', async (event) => {
   return await getContent();
 });
@@ -125,6 +136,150 @@ ipcMain.on('write-to-clipboard', (event, content) => {
 
 ipcMain.handle('copy-from-clipboard', () => {
   return clipboard.readText();
+});
+
+ipcMain.handle('check-docker-installed', async () => {
+  try {
+    const error = await new Promise((resolve, reject) => {
+      exec('docker -v', (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        }
+        resolve();
+      });
+    });
+    if (error) throw error;
+    return;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+});
+
+ipcMain.handle('check-docker-running', async () => {
+  try {
+    const error = await new Promise((resolve, reject) => {
+      exec('docker ps', (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        }
+        resolve();
+      });
+    });
+    if (error) throw error;
+    return;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+});
+
+ipcMain.handle('start-docker', async () => {
+  try {
+    const error = await new Promise((resolve, reject) => {
+      exec('open -a docker && while ! docker info > /dev/null 2>&1; do sleep 1 ; done',
+        (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        }
+        resolve();
+      });
+    });
+    if (error) throw error;
+    return;
+  } catch (error) {
+    console.log(error);
+    return error;
+  }
+});
+
+ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+  const { simulationFile, tasksFile, modelFile } = inputFiles;
+
+  try {
+    // Check input files for injection attacks
+    if (inputFiles) {
+      Object.values(inputFiles).forEach((file) => {
+        if (file.includes(';') || file.includes('~') || file.includes('|') || file.includes('&')) {
+          throw new Error('Invalid input file path');
+        }
+      });
+    }
+
+    // Construct the command and arguments
+    const command = 'dotnet';
+    const defaultArgs = [
+      'run',
+      '--',
+      '-s', '../../samples/Aeolus/AeolusSimulationInput.json',
+      '-t', '../../samples/Aeolus/AeolusTasks.json',
+      '-m', '../../samples/Aeolus/DSAC_Static_Scripted.json'
+    ];
+
+    const args = inputFiles ? [
+      'run',
+      '--',
+      '-s', simulationFile,
+      '-t', tasksFile,
+      '-m', modelFile,
+    ] : defaultArgs;
+
+    if (outputDir) {
+      args.push('-o', outputDir);
+    }
+
+    console.log({ command, args });
+
+    // Set the working directory to the path where Horizon is located
+    const options = {
+      shell: true,
+      cwd: join(__dirname, '../Horizon/src/Horizon')
+    };
+
+    // Execute the command in spawned child process
+    const simulation = spawn(command, args, options);
+
+    simulation.stdout.on('data', (data) => {
+      console.log(data.toString());
+      browserWindow.webContents.send('simulation-results', {
+        type: 'stdout',
+        data: data.toString(),
+        code: null,
+      });
+    });
+    simulation.stderr.on('data', (data) => {
+      console.error(data.toString());
+      browserWindow.webContents.send('simulation-results', {
+        type: 'stderr',
+        data: data.toString(),
+        code: null,
+      });
+    });
+    simulation.on('error', (error) => {
+      console.error(error);
+      browserWindow.webContents.send('simulation-results', {
+        type: 'error',
+        error: error.message,
+        code: null,
+      });
+    });
+    simulation.on('close', (code) => {
+      console.log(`Simulation exited with code ${code}`);
+      browserWindow.webContents.send('simulation-results', {
+        type: 'close',
+        data: null,
+        code,
+      });
+    });
+  } catch (error) {
+    console.log(error);
+    browserWindow.webContents.send('simulation-results', {
+      type: 'error',
+      data: error.message,
+      code: null,
+    });
+  }
 });
 
 // Quit when all windows are closed.

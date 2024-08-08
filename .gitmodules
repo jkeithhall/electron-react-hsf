@@ -1,0 +1,3 @@
+[submodule "Horizon"]
+	path = Horizon
+	url = https://github.com/Cal-Poly-Simulation-Lab/Horizon.git

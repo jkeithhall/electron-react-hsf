@@ -1,30 +1,50 @@
 import { reformatTasks } from './parseTasks';
 import reformatModel from './reformatModel';
+import typecastNumbers from './typecastNumbers';
 
 function getModifiedScenario(currentState) {
-  const { name, version, dependencies, simulationParameters, schedulerParameters } = currentState;
-  const { outputPath, pythonSrc } = dependencies;
+  if (!window.electronApi) return;
+
+  let { name, version, dependencies, simulationParameters, schedulerParameters } = currentState;
+  let { outputPath, pythonSrc } = dependencies;
+
+  const baseSrcAbs = window.electronApi.baseSrc;
+  let baseSrcRel = './output';
+  outputPath = outputPath ?? baseSrcAbs;
+
+  // Python source files should be given relative to baseSrc
+  pythonSrc = window.electronApi.getRelativePath(baseSrcAbs, pythonSrc);
+
+  // path-browserify module only uses POSIX separators; for Windows, replace all forward slashes with backslashes
+  if (window.electronApi.directorySeparator === '\\') {
+    baseSrcRel = baseSrcRel.replace(/\//g, '\\');
+    outputPath = outputPath?.replace(/\//g, '\\');
+    pythonSrc = pythonSrc?.replace(/\//g, '\\');
+  }
   return {
     name,
-    version,
+    version: Number(version),
     dependencies: {
       outputPath,
-      baseSrc: outputPath + '/builds/simulationParameters.json',
-      targetSrc: outputPath + '/builds/targets.json',
-      modelSrc: outputPath + '/builds/model.json',
+      baseSrc: baseSrcRel,
+      targetSrc: 'targets.json',
+      modelSrc: 'model.json',
       pythonSrc,
     },
-    simulationParameters,
-    schedulerParameters
+    simulationParameters: typecastNumbers(simulationParameters),
+    schedulerParameters: typecastNumbers(schedulerParameters),
   };
 }
 
 function getModifiedTasks(currentState) {
-  return reformatTasks(currentState.map(task => {
+  const reformattedTasks = reformatTasks(currentState.map(task => {
     // Filter out the 'id' property
     const { id, ...taskCopy } = task;
     return taskCopy;
   }));
+  return {
+    tasks: reformattedTasks
+  };
 }
 
 function getCurrentState(stateSetters) {

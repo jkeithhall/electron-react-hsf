@@ -3,10 +3,8 @@ import ReactFlow, {
   MiniMap,
   Controls,
   Background,
-  addEdge,
   useReactFlow,
   Panel,
-  MarkerType
 } from 'reactflow';
 import { randomId } from '@mui/x-data-grid-generator';
 import { SubcomponentNode, AssetNode } from './ModelNodes';
@@ -55,9 +53,7 @@ export default function ModelFlow ({
       window.requestAnimationFrame(() => {
         fitView();
       });
-    },
-    [nodes, edges]
-  );
+    }, [nodes, edges, setNodes, setEdges, fitView]);
 
   const onConnect = useCallback((params) => {
     const { source, target } = params;
@@ -89,28 +85,7 @@ export default function ModelFlow ({
         }
       ];
     });
-    // setEdges((eds) => {
-    //   // Style new edges as smoothstep with arrowheads
-    //   return addEdge(params, eds).map((edge) => {
-    //     return {
-    //       ...edge,
-    //       type: 'smoothstep',
-    //       markerEnd: {
-    //         type: MarkerType.ArrowClosed,
-    //         width: 15,
-    //         height: 15,
-    //         color: '#000',
-    //       },
-    //       style: {
-    //         strokeWidth: 2,
-    //         stroke: '#000',
-    //       },
-    //     }
-    //   });
-    // })
-  },
-    [setEdges],
-  );
+  }, [componentList, setDependencyList, setErrorMessage, setErrorModalOpen]);
 
   const onDragOver = useCallback((e) => {
     e.preventDefault();
@@ -166,7 +141,7 @@ export default function ModelFlow ({
     });
     setClipboardData(null);
     handlePaletteClose();
-  }, [reactFlowInstance]);
+  }, [handlePaletteClose, reactFlowInstance, setClipboardData, setComponentList, setConstraints, setNodes]);
 
   useEffect(() => {
     componentList.forEach((component) => {
@@ -186,7 +161,7 @@ export default function ModelFlow ({
         setSelectedNodeData(component);
       }
     });
-  }, [componentList]);
+  }, [componentList, selectedNodeId, setNodes, setSelectedNodeData]);
 
   // On dismount, deselect all nodes and edges
   useEffect(() => {
@@ -202,7 +177,7 @@ export default function ModelFlow ({
         });
       });
     }
-  }, []);
+  }, [setNodes, setEdges]);
 
   return (
     <ReactFlow

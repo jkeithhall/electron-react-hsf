@@ -3,8 +3,8 @@ import { validatePythonFile, findInvalidPythonFiles } from './validatePythonFile
 
 const scenarioSchema = object({
   name: string().required('Simulation name is required'),
-  pythonSrc: string().required('Python Source is required'),
-  outputPath: string().required('Output Path is required'),
+  pythonSrc: string(),
+  outputPath: string(),
   version: number().required('Version is required'),
   startJD: number().required('Start Julian Date is required'),
   startSeconds: number().required().min(0, 'Start Seconds must be greater than or equal to 0'),

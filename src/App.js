@@ -7,6 +7,7 @@ import TaskTable from './components/TaskTable';
 import ModelGraph from './components/ModelGraph';
 import DependencyGraph from './components/DependencyGraph';
 import ConstraintsTable from './components/ConstraintsTable';
+import SimulateStep from './components/SimulateStep';
 import ConfirmationModal from './components/ConfirmationModal';
 import SaveConfirmationModal from './components/SaveConfirmationModal';
 import ErrorModal from './components/ErrorModal';
@@ -241,7 +242,7 @@ export default function App() {
     modelEdges
   ]);
 
-  // // Update model nodes and edges when dependency list changes
+  // Update model nodes and edges when dependency list changes
   useEffect(() => {
     updateModelGraph(componentList, dependencyList);
   }, [dependencyList]);
@@ -315,7 +316,20 @@ export default function App() {
               setConstraints={setConstraints}
               componentList={componentList}
             />,
-          'Simulate': <></>,
+          'Simulate':
+            <SimulateStep
+              navOpen={navOpen}
+              simulationInput={simulationInput}
+              taskList={taskList}
+              componentList={componentList}
+              dependencyList={dependencyList}
+              evaluator={evaluator}
+              constraints={constraints}
+              setErrorMessage={setErrorMessage}
+              setErrorModalOpen={setErrorModalOpen}
+              setActiveStep={setActiveStep}
+              setStateMethods={setStateMethods}
+            />,
           'Analyze': <></>
           }[activeStep]}
           {
