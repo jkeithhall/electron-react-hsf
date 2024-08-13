@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import ParameterGroup from './ParameterGroup';
 import Evaluator from './Evaluator';
 import Paper from '@mui/material/Paper';
@@ -13,11 +13,10 @@ export default function ScenarioParameters({
   setSimulationInput,
   componentList,
   evaluator,
-  setEvaluator
+  setEvaluator,
+  formErrors,
+  setFormErrors
 }) {
-  // State variables for form validation and errors
-  const [ formErrors, setFormErrors] = useState({});
-
   const { name, version, dependencies, simulationParameters, schedulerParameters } = simulationInput;
   const { pythonSrc, outputPath, ...otherDependencies } = dependencies;
   const sources = { name, version, pythonSrc, outputPath };

@@ -166,7 +166,7 @@ export default function Evaluator ({ evaluator, setEvaluator, formErrors, setFor
             cancelText={"Cancel"}
           />
       </div>)}
-      <Box sx={{ padding: '5px', backgroundColor: '#eeeeee', borderRadius: '5px', height: 500 }}>
+      <Box sx={{ padding: '5px', backgroundColor: '#eeeeee', borderRadius: '5px', height: 500, overflow: 'scroll' }}>
         <Box my={1}>
           <TextField
             fullWidth

@@ -1,4 +1,5 @@
 const { app, dialog } = require('electron');
+const { existsSync, mkdirSync } = require('fs');
 const { readFile, writeFile } = require('fs').promises;
 const { join, basename } = require('path');
 
@@ -145,6 +146,13 @@ const openFile = async (browserWindow, fileType, filePath) => {
   }
 };
 
+const buildOutputDir = () => {
+  const output = join(__dirname, '../Horizon/output');
+  if (!existsSync(output)) {
+    mkdirSync(output);
+  }
+}
+
 const buildInputFiles = async (browserWindow, fileContents) => {
   console.log('Building input files in fileHandlers.js');
   const baseSrc = join(__dirname, '../Horizon/output');
@@ -187,6 +195,7 @@ module.exports = {
   handleFileDownloadClick,
   showSaveDialog,
   showDirectorySelectDialog,
+  buildOutputDir,
   buildInputFiles,
   updateCurrentFile,
   checkUnsavedChanges,

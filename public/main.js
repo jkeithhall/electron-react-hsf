@@ -1,6 +1,5 @@
 const { app, BrowserWindow, ipcMain, Menu, clipboard } = require('electron');
 const path = require('path');
-const { join } = require('path');
 const isDev = require('electron-is-dev');
 const { createMenu } = require('./menu');
 const { exec, spawn } = require('child_process');
@@ -26,7 +25,7 @@ function createWindow() {
     webPreferences: {
       nodeIntegration: true,
       devTools: isDev,
-      preload: join(__dirname, 'preload.js'),
+      preload: path.join(__dirname, 'preload.js'),
     }
   });
 
@@ -45,6 +44,10 @@ function createWindow() {
   createMenu(mainWindow);
 }
 
+// Build the output directory
+// buildOutputDir();
+
+// Create the window when the app is ready
 app.on('ready', createWindow);
 
 ipcMain.on('show-save-dialog', (event, fileType, content, updateCache) => {
@@ -229,12 +232,10 @@ ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
       args.push('-o', outputDir);
     }
 
-    console.log({ command, args });
-
     // Set the working directory to the path where Horizon is located
     const options = {
       shell: true,
-      cwd: join(__dirname, '../Horizon/src/Horizon')
+      cwd: path.join(__dirname, '../Horizon/src/Horizon')
     };
 
     // Execute the command in spawned child process

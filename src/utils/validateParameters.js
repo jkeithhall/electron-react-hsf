@@ -5,7 +5,7 @@ const scenarioSchema = object({
   name: string().required('Simulation name is required'),
   pythonSrc: string(),
   outputPath: string(),
-  version: number().required('Version is required'),
+  version: number().required('Version is required').min(0, 'Version must be greater than or equal to 0'),
   startJD: number().required('Start Julian Date is required'),
   startSeconds: number().required().min(0, 'Start Seconds must be greater than or equal to 0'),
   // End Seconds must be greater than Start Seconds

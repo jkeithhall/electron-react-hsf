@@ -54,6 +54,7 @@ export default function App() {
   // TO DO: Create context provider for all errors
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(false);
+  const [scenarioErrors, setScenarioErrors] = useState({});
   const [modelErrors, setModelErrors] = useState({});
 
   // Bundling state methods
@@ -270,6 +271,8 @@ export default function App() {
               componentList={componentList}
               evaluator={evaluator}
               setEvaluator={setEvaluator}
+              formErrors={scenarioErrors}
+              setFormErrors={setScenarioErrors}
             />,
           'Tasks':
             <TaskTable
@@ -319,16 +322,15 @@ export default function App() {
           'Simulate':
             <SimulateStep
               navOpen={navOpen}
-              simulationInput={simulationInput}
-              taskList={taskList}
-              componentList={componentList}
-              dependencyList={dependencyList}
-              evaluator={evaluator}
-              constraints={constraints}
               setErrorMessage={setErrorMessage}
               setErrorModalOpen={setErrorModalOpen}
               setActiveStep={setActiveStep}
               setStateMethods={setStateMethods}
+              outputPath={simulationInput.dependencies.outputPath}
+              scenarioErrors={scenarioErrors}
+              modelErrors={modelErrors}
+              componentList={componentList}
+              // TO DO: Add task and constraint errors
             />,
           'Analyze': <></>
           }[activeStep]}
