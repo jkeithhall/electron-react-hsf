@@ -44,9 +44,6 @@ function createWindow() {
   createMenu(mainWindow);
 }
 
-// Build the output directory
-// buildOutputDir();
-
 // Create the window when the app is ready
 app.on('ready', createWindow);
 

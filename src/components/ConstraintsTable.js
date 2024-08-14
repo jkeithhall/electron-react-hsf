@@ -5,6 +5,7 @@ import {
   GridActionsCellItem,
   GridRowEditStopReasons,
 } from '@mui/x-data-grid';
+import { styled } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Tooltip from '@mui/material/Tooltip';
@@ -14,17 +15,35 @@ import ConfirmationModal from './ConfirmationModal';
 import { constraintTypeOptions } from './PaletteComponents/Constraints';
 import { convertDisplayName } from '../utils/displayNames';
 
-export default function ConstraintsTable({ navOpen, constraints, setConstraints, componentList }) {
+const StyledGrid = styled('div')(({ theme }) => ({
+  '& .Mui-error': {
+    backgroundColor: `rgb(126,10,15, ${theme.palette.mode === 'dark' ? 0 : 0.1})`,
+    color: theme.palette.error.main,
+  },
+}));
+
+export default function ConstraintsTable({
+  navOpen,
+  constraints,
+  setConstraints,
+  componentList,
+  constraintErrors,
+  setConstraintErrors,
+}) {
   const [ rowModesModel, setRowModesModel ] = useState({});
   const [ confirmModalOpen, setConfirmModalOpen ] = useState(false);
   const [ selectedConstraintId, setSelectedConstraintId ] = useState('');
   const [ selectedConstraintName, setSelectedConstraintName ] = useState('');
 
+  console.log({ constraints, constraintErrors });
+
+  // Create a map of component IDs to component names
   const componentNames = componentList.reduce((acc, component) => {
     acc[component.id] = component.name;
     return acc;
   }, {});
 
+  // Create a map of subsystem IDs to subsystem labels: component name [(parent name)]
   const subsystemLabels = componentList.reduce((acc, component) => {
     const { id, parent, states } = component;
     if (parent) {
@@ -36,6 +55,7 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
     return acc;
   }, {});
 
+  // Create an array of subsystem label options for the subsystem column
   const subsystemValueOptions = Object.entries(subsystemLabels).map(([id, label]) => {
     return { value: id, label: label };
   });
@@ -53,7 +73,7 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
       });
     }
     return options;
-  }
+  };
 
   const handleRowModesModelChange = (newRowModesModel) => {
     setRowModesModel(newRowModesModel);
@@ -120,14 +140,43 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
         ];
       },
     },
-    { field: 'name', headerName: 'Constraint Name', width: 150, editable: true },
+    {
+      field: 'name',
+      headerName: 'Constraint Name',
+      width: 150,
+      editable: true,
+      preProcessEditCellProps: (params) => {
+        let hasError = !params.props.value || params.props.value === '';
+        if (hasError) {
+          setConstraintErrors({ ...constraintErrors, [params.id]: 'Constraint name cannot be empty' });
+        } else {
+          setConstraintErrors(prevErrors => {
+            delete prevErrors[params.id];
+            return prevErrors;
+          });
+        }
+        return { ...params.props, error: hasError };
+      }
+    },
     {
       field: 'subsystem',
       headerName: 'Subsystem',
       type: 'singleSelect',
       valueOptions: subsystemValueOptions,
       width: 200,
-      editable: true
+      editable: true,
+      preProcessEditCellProps: (params) => {
+        let hasError = !Object.keys(subsystemLabels).includes(params.props.value);
+        if (hasError) {
+          setConstraintErrors({ ...constraintErrors, [params.id]: 'Subsystem must be selected' });
+        } else {
+          setConstraintErrors(prevErrors => {
+            delete prevErrors[params.id];
+            return prevErrors;
+          });
+        }
+        return { ...params.props, error: hasError };
+      }
     },
     {
       field: 'stateKey',
@@ -135,7 +184,21 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
       type: 'singleSelect',
       valueOptions: stateKeyOptions,
       width: 250,
-      editable: true
+      editable: true,
+      preProcessEditCellProps: (params) => {
+        console.log(params.props.value);
+        console.log(stateKeyOptions(params));
+        let hasError = !Object.values(stateKeyOptions(params)).map(option => option.value).includes(params.props.value);
+        if (hasError) {
+          setConstraintErrors({ ...constraintErrors, [params.id]: 'State key must be selected' });
+        } else {
+          setConstraintErrors(prevErrors => {
+            delete prevErrors[params.id];
+            return prevErrors;
+          });
+        }
+        return { ...params.props, error: hasError };
+      }
     },
     {
       field: 'type',
@@ -143,9 +206,38 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
       type: 'singleSelect',
       valueOptions: constraintTypeOptions,
       width: 270,
-      editable: true
+      editable: true,
+      preProcessEditCellProps: (params) => {
+        let hasError = !constraintTypeOptions.includes(params.props.value);
+        if (hasError) {
+          setConstraintErrors({ ...constraintErrors, [params.id]: 'Type must be selected' });
+        } else {
+          setConstraintErrors(prevErrors => {
+            delete prevErrors[params.id];
+            return prevErrors;
+          });
+        }
+        return { ...params.props, error: hasError };
+      }
     },
-    { field: 'value', headerName: 'Value', width: 100, editable: true },
+    {
+      field: 'value',
+      headerName: 'Value',
+      width: 100,
+      editable: true,
+      preProcessEditCellProps: (params) => {
+        let hasError = !params.props.value || params.props.value === '' || isNaN(params.props.value);
+        if (hasError) {
+          setConstraintErrors({ ...constraintErrors, [params.id]: 'Value cannot be empty' });
+        } else {
+          setConstraintErrors(prevErrors => {
+            delete prevErrors[params.id];
+            return prevErrors;
+          });
+        }
+        return { ...params.props, error: hasError };
+      }
+    }
   ];
 
   const removeModalMessage = selectedConstraintName === '' ? 'Are you sure you want to remove this constraint (unnamed)?' : `Are you sure you want to remove the constraint "${selectedConstraintName}"?`;
@@ -167,29 +259,31 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
         className={`constraints-table ${navOpen ? 'constraints-table-nav-open' : 'constraints-table-nav-closed'}`}
         sx={{ padding: 1, backgroundColor: '#282D3d', height: 675, width: 1100 }}
       >
-        <DataGrid
-          rows={constraints}
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 10, page: 0 },
-            },
-          }}
-          editMode="row"
-          rowModesModel={rowModesModel}
-          onRowModesModelChange={handleRowModesModelChange}
-          onRowEditStop={handleRowEditStop}
-          processRowUpdate={processRowUpdate}
-          onProcessRowUpdateError={console.error}
-          slots={{
-            toolbar: ConstraintsTableToolbar,
-          }}
-          slotProps={{
-            toolbar: { setConstraints, setRowModesModel },
-          }}
-          sx={{ width: '100%', backgroundColor: '#eeeeee' }}
-          density="compact"
-        />
+        <StyledGrid sx={{ width: '100%', backgroundColor: '#eeeeee' }}>
+          <DataGrid
+            rows={constraints}
+            columns={columns}
+            initialState={{
+              pagination: {
+                paginationModel: { pageSize: 10, page: 0 },
+              },
+            }}
+            pageSizeOptions={[10]}
+            editMode="row"
+            rowModesModel={rowModesModel}
+            onRowModesModelChange={handleRowModesModelChange}
+            onRowEditStop={handleRowEditStop}
+            processRowUpdate={processRowUpdate}
+            onProcessRowUpdateError={console.error}
+            slots={{
+              toolbar: ConstraintsTableToolbar,
+            }}
+            slotProps={{
+              toolbar: { setConstraints, setRowModesModel },
+            }}
+            density="compact"
+          />
+        </StyledGrid>
       </Paper>
     </>
   )

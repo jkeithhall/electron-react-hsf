@@ -56,6 +56,7 @@ export default function App() {
   const [errorMessage, setErrorMessage] = useState(false);
   const [scenarioErrors, setScenarioErrors] = useState({});
   const [modelErrors, setModelErrors] = useState({});
+  const [constraintErrors, setConstraintErrors] = useState({});
 
   // Bundling state methods
   const setStateMethods = {
@@ -318,6 +319,8 @@ export default function App() {
               constraints={constraints}
               setConstraints={setConstraints}
               componentList={componentList}
+              constraintErrors={constraintErrors}
+              setConstraintErrors={setConstraintErrors}
             />,
           'Simulate':
             <SimulateStep
