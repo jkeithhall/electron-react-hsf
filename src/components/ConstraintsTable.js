@@ -5,7 +5,7 @@ import {
   GridActionsCellItem,
   GridRowEditStopReasons,
 } from '@mui/x-data-grid';
-import { styled } from '@mui/material/styles';
+import { styled, useTheme } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Tooltip from '@mui/material/Tooltip';
@@ -14,13 +14,28 @@ import ConfirmationModal from './ConfirmationModal';
 
 import { constraintTypeOptions } from './PaletteComponents/Constraints';
 import { convertDisplayName } from '../utils/displayNames';
+import { validateConstraintAt } from '../utils/validateConstraints';
 
 const StyledGrid = styled('div')(({ theme }) => ({
+  width: '100%',
+  height: '100%',
+  backgroundColor: '#eeeeee',
   '& .Mui-error': {
     backgroundColor: `rgb(126,10,15, ${theme.palette.mode === 'dark' ? 0 : 0.1})`,
     color: theme.palette.error.main,
   },
 }));
+
+const validateCellProps = (field, setConstraintErrors, componentList) => (params) => {
+  const { otherFieldsProps, id } = params;
+    const otherParams = Object.keys(otherFieldsProps).reduce((acc, key) => {
+      acc[key] = otherFieldsProps[key].value;
+      return acc;
+    }, {});
+  const constraint = { ...otherParams, id, [field]: params.props.value };
+  validateConstraintAt(constraint, field, setConstraintErrors, componentList);
+  return { ...params.props };
+}
 
 export default function ConstraintsTable({
   navOpen,
@@ -30,12 +45,11 @@ export default function ConstraintsTable({
   constraintErrors,
   setConstraintErrors,
 }) {
+  const theme = useTheme();
   const [ rowModesModel, setRowModesModel ] = useState({});
   const [ confirmModalOpen, setConfirmModalOpen ] = useState(false);
   const [ selectedConstraintId, setSelectedConstraintId ] = useState('');
   const [ selectedConstraintName, setSelectedConstraintName ] = useState('');
-
-  console.log({ constraints, constraintErrors });
 
   // Create a map of component IDs to component names
   const componentNames = componentList.reduce((acc, component) => {
@@ -82,7 +96,9 @@ export default function ConstraintsTable({
   const processRowUpdate = (newRow) => {
     const updatedRow = { ...newRow, isNew: false };
     const { stateKey } = newRow;
-    const stateType = stateKey ? componentList.find((component) => component.id === newRow.subsystem).states.find((state) => state.key === newRow.stateKey).type : '';
+    const stateType = stateKey ? componentList
+      .find((component) => component.id === newRow.subsystem).states
+      .find((state) => state.key === newRow.stateKey)?.type : null;
     const newConstraint = { ...newRow, stateType };
     delete newConstraint.isNew;
     setConstraints(constraints.map((row) => (row.id === newRow.id ? newConstraint : row)));
@@ -96,6 +112,11 @@ export default function ConstraintsTable({
       event.defaultMuiPrevented = true;
     }
   };
+
+  const getCellClassName = (params) => {
+    const { id, field } = params;
+    return constraintErrors[id] && constraintErrors[id][field] ? 'error' : '';
+  }
 
   const handleDeleteClick = (id) => () => {
     const constraint = constraints.find((row) => row.id === id);
@@ -111,6 +132,11 @@ export default function ConstraintsTable({
 
   const handleDeleteConfirm = (deleteRowId) => {
     setConstraints(constraints.filter((row) => row.id !== deleteRowId));
+    setConstraintErrors((prevErrors) => {
+      const updatedErrors = { ...prevErrors };
+      delete updatedErrors[selectedConstraintId];
+      return updatedErrors;
+    });
     setSelectedConstraintName('');
     setSelectedConstraintId('');
     setConfirmModalOpen(false);
@@ -145,18 +171,7 @@ export default function ConstraintsTable({
       headerName: 'Constraint Name',
       width: 150,
       editable: true,
-      preProcessEditCellProps: (params) => {
-        let hasError = !params.props.value || params.props.value === '';
-        if (hasError) {
-          setConstraintErrors({ ...constraintErrors, [params.id]: 'Constraint name cannot be empty' });
-        } else {
-          setConstraintErrors(prevErrors => {
-            delete prevErrors[params.id];
-            return prevErrors;
-          });
-        }
-        return { ...params.props, error: hasError };
-      }
+      preProcessEditCellProps: validateCellProps('name', setConstraintErrors),
     },
     {
       field: 'subsystem',
@@ -165,40 +180,21 @@ export default function ConstraintsTable({
       valueOptions: subsystemValueOptions,
       width: 200,
       editable: true,
-      preProcessEditCellProps: (params) => {
-        let hasError = !Object.keys(subsystemLabels).includes(params.props.value);
-        if (hasError) {
-          setConstraintErrors({ ...constraintErrors, [params.id]: 'Subsystem must be selected' });
-        } else {
-          setConstraintErrors(prevErrors => {
-            delete prevErrors[params.id];
-            return prevErrors;
-          });
-        }
-        return { ...params.props, error: hasError };
-      }
+      preProcessEditCellProps: validateCellProps('subsystem', setConstraintErrors, componentList),
     },
     {
       field: 'stateKey',
       headerName: 'State Key',
       type: 'singleSelect',
       valueOptions: stateKeyOptions,
+      valueSetter: ({value, row}) => {
+        const options = stateKeyOptions({ row }).map(option => option.value);
+        // If the value is not in the options, reset it to null
+        return { ...row, stateKey: options.includes(value) ? value : null };
+      },
       width: 250,
       editable: true,
-      preProcessEditCellProps: (params) => {
-        console.log(params.props.value);
-        console.log(stateKeyOptions(params));
-        let hasError = !Object.values(stateKeyOptions(params)).map(option => option.value).includes(params.props.value);
-        if (hasError) {
-          setConstraintErrors({ ...constraintErrors, [params.id]: 'State key must be selected' });
-        } else {
-          setConstraintErrors(prevErrors => {
-            delete prevErrors[params.id];
-            return prevErrors;
-          });
-        }
-        return { ...params.props, error: hasError };
-      }
+      preProcessEditCellProps: validateCellProps('stateKey', setConstraintErrors, componentList),
     },
     {
       field: 'type',
@@ -207,36 +203,14 @@ export default function ConstraintsTable({
       valueOptions: constraintTypeOptions,
       width: 270,
       editable: true,
-      preProcessEditCellProps: (params) => {
-        let hasError = !constraintTypeOptions.includes(params.props.value);
-        if (hasError) {
-          setConstraintErrors({ ...constraintErrors, [params.id]: 'Type must be selected' });
-        } else {
-          setConstraintErrors(prevErrors => {
-            delete prevErrors[params.id];
-            return prevErrors;
-          });
-        }
-        return { ...params.props, error: hasError };
-      }
+      preProcessEditCellProps: validateCellProps('type', setConstraintErrors),
     },
     {
       field: 'value',
       headerName: 'Value',
       width: 100,
       editable: true,
-      preProcessEditCellProps: (params) => {
-        let hasError = !params.props.value || params.props.value === '' || isNaN(params.props.value);
-        if (hasError) {
-          setConstraintErrors({ ...constraintErrors, [params.id]: 'Value cannot be empty' });
-        } else {
-          setConstraintErrors(prevErrors => {
-            delete prevErrors[params.id];
-            return prevErrors;
-          });
-        }
-        return { ...params.props, error: hasError };
-      }
+      preProcessEditCellProps: validateCellProps('value', setConstraintErrors),
     }
   ];
 
@@ -275,6 +249,7 @@ export default function ConstraintsTable({
             onRowEditStop={handleRowEditStop}
             processRowUpdate={processRowUpdate}
             onProcessRowUpdateError={console.error}
+            getCellClassName={getCellClassName}
             slots={{
               toolbar: ConstraintsTableToolbar,
             }}
@@ -282,6 +257,12 @@ export default function ConstraintsTable({
               toolbar: { setConstraints, setRowModesModel },
             }}
             density="compact"
+            sx={{
+              '& .error': {
+                backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                color: theme.palette.error.main,
+              },
+            }}
           />
         </StyledGrid>
       </Paper>

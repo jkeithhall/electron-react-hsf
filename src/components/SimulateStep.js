@@ -1,14 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { useTheme, ThemeProvider } from '@mui/material/styles';
 import buildDownloadJSON from '../utils/buildDownloadJSON';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
 import StepLabel from '@mui/material/StepLabel';
 import StepContent from '@mui/material/StepContent';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
 import Button from '@mui/material/Button';
+import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
+import CheckIcon from '@mui/icons-material/Check';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const steps = [
   { label: 'Validating parameters'},
@@ -26,12 +33,19 @@ export default function SimulateStep({
   setStateMethods,
   outputPath,
   scenarioErrors,
+  tasksErrors,
   modelErrors,
+  constraintsErrors,
   componentList,
 }) {
+  const theme = useTheme();
   const [precheckStep, setPrecheckStep] = useState(0);
   const [stepStatus, setStepStatus] = useState(steps.map(() => ({ status: 'pending', message: null })));
   const [inputFiles, setInputFiles] = useState({});
+  const [status, setStatus] = useState('pending');
+  const logsRef = useRef(null);
+  const [logs, setLogs] = useState([]);
+  const [progress, setProgress] = useState(0);
 
   const handleNext = () => {
     if (precheckStep < steps.length) {
@@ -41,13 +55,21 @@ export default function SimulateStep({
 
   const validateParameters = () => {
     console.log('Validating parameters');
-    if (Object.keys(scenarioErrors).length > 0 || Object.keys(modelErrors).length > 0) {
+    const hasScenarioErrors = Object.keys(scenarioErrors).length > 0;
+    const hasModelErrors = Object.keys(modelErrors).length > 0;
+    const hasTasksErrors = Object.keys(tasksErrors).length > 0;
+    const hasConstraintsErrors = Object.keys(constraintsErrors).length > 0;
+
+    if (hasScenarioErrors || hasModelErrors || hasTasksErrors || hasConstraintsErrors) {
       let errorMessage = '';
-      if (Object.keys(scenarioErrors).length > 0) {
+      if (hasScenarioErrors) {
         errorMessage += 'Please correct errors in the scenario step.\n';
       }
-      if (Object.keys(modelErrors).length > 0) {
-        errorMessage += `Please correct errors in model component${Object.keys(modelErrors).length > 1 ? 's' : ''} `;
+      if (hasTasksErrors) {
+        errorMessage += 'Please correct errors in the tasks step.\n';
+      }
+      if (hasModelErrors) {
+        errorMessage += `Please correct errors in model component${Object.keys(modelErrors).length > 1 ? 's' : ''}\n`;
         Object.keys(modelErrors).forEach((key) => {
           const component = componentList.find((c) => c.id === key);
           const parentName = componentList.find((c) => c.id === component.parent)?.name;
@@ -55,6 +77,9 @@ export default function SimulateStep({
           errorMessage += `${displayName}, `;
         });
         errorMessage = errorMessage.slice(0, -2) + '.\n';
+      }
+      if (hasConstraintsErrors) {
+        errorMessage += 'Please correct errors in the constraints step.\n';
       }
       setStepStatus((prevStepStatus) => ({
         ...prevStepStatus,
@@ -147,18 +172,47 @@ export default function SimulateStep({
     }
   }
 
+  const setProgressValue = (data) => {
+    // Scheduler Status: 0.000% done; 205 schedules generated.
+    if (data.includes('Scheduler Status:')) {
+      const progressMatch = data.match(/(\d+(\.\d+)?)%/);
+      if (progressMatch) {
+        const progressValue = parseFloat(progressMatch[1]);
+        setProgress(progressValue);
+      }
+    }
+  }
+
+  const setLogsValue = (data) => {
+    if (logs.length === 0 || logs[logs.length - 1] !== data) { // Avoid duplicates
+      if (data !== '' && data !== "idk") {  // Avoid empty logs and specific unwanted logs
+        setLogs((prevLogs) => [...prevLogs, data]);
+      }
+    }
+  }
+
+  useEffect(() => {
+    if (logsRef.current) {
+      logsRef.current.scrollTop = logsRef.current.scrollHeight; // Scroll to the bottom
+    }
+  }, [logs]);
+
   const runSimulation = () => {
     if (window.electronApi) {
       const backend = window.electronApi;
       try {
         // Run simulation
+        setStatus('running');
         backend.runSimulation(inputFiles, outputPath, ({type, data, code}) => {
           if (type === 'error') {
             setErrorMessage(data);
             setErrorModalOpen(true);
           } else if (type === 'close') {
+            setStatus('success');
             setActiveStep('Analyze');
           } else {
+            setProgressValue(data);
+            setLogsValue(data);
             console.log(data);
           }
         });
@@ -201,63 +255,119 @@ export default function SimulateStep({
   }, [precheckStep]);
 
   return (
-    <Paper sx={{ width: 500, backgroundColor: '#eee', padding: '25px', margin: '25px' }}>
-      <Stepper activeStep={precheckStep} orientation="vertical">
-        {steps.map((step, index) => {
-          const labelProps = {};
-          let  { status, message } = stepStatus[index];
-          if (index === precheckStep) {
-            if (status === 'error') {
-              const FormattedMessages = message.split('\n').map((line, i) => (
-                <Typography
-                variant="caption"
-                color={"error"}
-              >
-                {line}
-              </Typography>
-              ));
-              labelProps.optional = (
-                <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                  {FormattedMessages}
-                </Box>
-              )
-              labelProps.error = status === 'error';
-            }
-          }
-          return (
-            <Step key={step.label}>
-              <StepLabel {...labelProps} >
-                {step.label}
-              </StepLabel>
-              <StepContent>
-                {/* <Box sx={{ mb: 2 }}>
-                  {<div>
-                    <Button
-                      variant="contained"
-                      onClick={step.buttonHandler}
-                      sx={{ mt: 1, mr: 1 }}
+    <ThemeProvider theme={theme}>
+      <Paper sx={{ width: 500, backgroundColor: '#eee', padding: '25px', margin: '25px' }}>
+        {((status === "pending" || status === "ready") &&
+          <Stepper activeStep={precheckStep} orientation="vertical">
+            {steps.map((step, index) => {
+              const labelProps = {};
+              let  { status, message } = stepStatus[index];
+              if (index === precheckStep) {
+                if (status === 'error') {
+                  const FormattedMessages = message.split('\n').map((line, i) => (
+                    <Typography
+                      key={i}
+                      variant="caption"
+                      color={"error"}
                     >
-                      {step.buttonLabel}
-                    </Button>
-                  </div>}
-                </Box> */}
-              </StepContent>
-            </Step>
-          );
-      })}
-      </Stepper>
-      {precheckStep === steps.length && (
-        <Paper square elevation={0} sx={{ p: 3, m: 2 }}>
-          <Button
-            variant="contained"
-            startIcon={<PlayCircleIcon />}
-            onClick={runSimulation}
-            sx={{ mt: 1, mr: 1 }}
-          >
-            Run simulation
-          </Button>
-        </Paper>
-      )}
-    </Paper>
+                      {line}
+                    </Typography>
+                  ));
+                  labelProps.optional = (
+                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                      {FormattedMessages}
+                    </Box>
+                  )
+                  labelProps.error = status === 'error';
+                }
+              }
+              return (
+                <Step key={step.label}>
+                  <StepLabel {...labelProps} >
+                    {step.label}
+                  </StepLabel>
+                  <StepContent>
+                    {/* <Box sx={{ mb: 2 }}>
+                      {<div>
+                        <Button
+                          variant="contained"
+                          onClick={step.buttonHandler}
+                          sx={{ mt: 1, mr: 1 }}
+                        >
+                          {step.buttonLabel}
+                        </Button>
+                      </div>}
+                    </Box> */}
+                  </StepContent>
+                </Step>
+              );
+            })}
+          </Stepper>
+        )}
+        {status === "running" && (
+          <Accordion sx={{ backgroundColor: theme.palette.primary.dark, color: 'white' }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}>
+              <Typography variant="h5" fontWeight="bold">Progress logs</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box
+                ref={logsRef}
+                p={1}
+                sx={{
+                  maxHeight: 200,
+                  overflowY: 'auto',
+                  backgroundColor: '#eee',
+                  color: 'black',
+                  minHeight: 200,
+                }}
+              >
+                {logs.map((log, index) => (
+                  <Typography
+                    key={index}
+                    variant="body2"
+                    align="left"
+                    paragraph={true}
+                    sx={{ fontFamily: 'Courier Prime, monospace' }}
+                    m={1}
+                  >
+                    {log}
+                </Typography>
+                ))}
+              </Box>
+            </AccordionDetails>
+          </Accordion>
+        )}
+        {precheckStep === steps.length && (
+          <Paper square elevation={0} sx={{ p: 3, m: 2 }}>
+            <Button
+              variant="contained"
+              color={status === "running" ? "success" : "primary"}
+              startIcon={
+                <Box sx={{ m: 1, position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+                  {status === "success" ? <CheckIcon /> : <PlayCircleIcon />}
+                  {(status === "running" || status === "success") && (
+                    <CircularProgress
+                      size={28}
+                      variant={progress > 0 ? "determinate" : "indeterminate"}
+                      value={progress}
+                      sx={{
+                        color: (theme) => theme.palette.success.light,
+                        position: 'absolute',
+                        top: -1.9,
+                        left: -1.9,
+                        zIndex: 1,
+                      }}
+                    />
+                  )}
+                </Box>}
+              onClick={runSimulation}
+              sx={{ mt: 1, mr: 1 }}
+            >
+              Run simulation
+            </Button>
+          </Paper>
+        )}
+      </Paper>
+    </ThemeProvider>
   );
 }

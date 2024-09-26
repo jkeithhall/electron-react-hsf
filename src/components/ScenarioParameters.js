@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import ParameterGroup from './ParameterGroup';
-import Evaluator from './Evaluator';
+import { Evaluator } from './Evaluator';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 
-import { validateAllScenarioParameters } from '../utils/validateParameters';
+import { validateScenario } from '../utils/validateScenario';
 
 export default function ScenarioParameters({
   activeStep,
@@ -38,7 +38,7 @@ export default function ScenarioParameters({
 
   useEffect(() => {
     const flattenedParameters = { ...sources, ...simulationParameters, ...schedulerParameters };
-    validateAllScenarioParameters(flattenedParameters, setFormErrors, pythonSourceFiles);
+    validateScenario(flattenedParameters, setFormErrors, pythonSourceFiles);
   }, []); // Only run on initial render; subsequent verification is handled by handleBlur and handleFileClick
 
   return (
@@ -52,7 +52,14 @@ export default function ScenarioParameters({
         <div className='evaluator-parameters'>
           <Paper elevation={3} sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
             <Typography variant="h5" color="light.main" mt={1} mb={1.5}>Evaluator</Typography>
-            <Evaluator evaluator={evaluator} setEvaluator={setEvaluator} formErrors={formErrors} setFormErrors={setFormErrors} componentList={componentList} pythonDirectorySrc={pythonSrc}/>
+            <Evaluator
+              evaluator={evaluator}
+              setEvaluator={setEvaluator}
+              formErrors={formErrors}
+              setFormErrors={setFormErrors}
+              componentList={componentList}
+              pythonDirectorySrc={pythonSrc}
+            />
           </Paper>
         </div>
         <div className='simulation-parameters' >

@@ -55,6 +55,7 @@ export default function App() {
   const [errorModalOpen, setErrorModalOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState(false);
   const [scenarioErrors, setScenarioErrors] = useState({});
+  const [taskErrors, setTaskErrors] = useState({});
   const [modelErrors, setModelErrors] = useState({});
   const [constraintErrors, setConstraintErrors] = useState({});
 
@@ -75,6 +76,13 @@ export default function App() {
     setErrorMessage,
     setModelErrors,
   };
+
+  const setValidationErrors = {
+    setScenarioErrors,
+    setTaskErrors,
+    setModelErrors,
+    setConstraintErrors,
+  }
 
   const navDrawerWidth = 220;
   const [ navOpen, setNavOpen ] = useState(true);
@@ -142,17 +150,23 @@ export default function App() {
     try {
       switch(fileType) {
         case 'Scenario':
-          parseJSONFile(fileType, content, setStateMethods);
+          parseJSONFile(fileType, content, setStateMethods, setValidationErrors);
+          setActiveStep('Scenario');
           break;
         case 'Tasks':
-          parseJSONFile(fileType, content, setStateMethods);
+          parseJSONFile(fileType, content, setStateMethods, setValidationErrors);
+          setActiveStep('Tasks');
           break;
         case 'System Model':
-          const { systemComponents, systemDependencies } = parseJSONFile(fileType, content, setStateMethods);
+          const {
+            systemComponents,
+            systemDependencies } = parseJSONFile(fileType, content, setStateMethods, setValidationErrors, simulationInput.dependencies.pythonSrc);
           updateModelGraph(systemComponents, systemDependencies);
+          setActiveStep('System Model');
           break;
         case 'CSV':
-          parseCSVFile(content, setTaskList);
+          parseCSVFile(content, setTaskList, setTaskErrors);
+          setActiveStep('Tasks');
           break;
         default:
           throw new Error('Invalid file type');
@@ -177,7 +191,8 @@ export default function App() {
 
   const openSimFile = (filePath, content) => {
     try {
-      parseSimFile(content, savedStateMethods);
+      // TO DO: Replace with parseJSONFile
+      parseSimFile(content, savedStateMethods, setValidationErrors);
       setFilePath(filePath);
       setHasUnsavedChanges(false);
       window.electronApi.confirmFileOpened(filePath, content);
@@ -280,6 +295,8 @@ export default function App() {
               navOpen={navOpen}
               taskList={taskList}
               setTaskList={setTaskList}
+              taskErrors={taskErrors}
+              setTaskErrors={setTaskErrors}
             />,
           'System Model':
             <ModelGraph
@@ -331,9 +348,10 @@ export default function App() {
               setStateMethods={setStateMethods}
               outputPath={simulationInput.dependencies.outputPath}
               scenarioErrors={scenarioErrors}
+              tasksErrors={taskErrors}
               modelErrors={modelErrors}
+              constraintsErrors={constraintErrors}
               componentList={componentList}
-              // TO DO: Add task and constraint errors
             />,
           'Analyze': <></>
           }[activeStep]}

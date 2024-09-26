@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { validateAssetParameters } from '../utils/validateParameters';
+import { validateComponent } from '../utils/validateComponents';
 
 import NameField from './PaletteComponents/NameField';
 import ClassName from './PaletteComponents/ClassName';
@@ -86,12 +86,12 @@ export default function NewSubComponentEditor({
       // Add the copied constraints to the list of new constraints
       setNewConstraints(copiedConstraints);
       // Validate the parameters of the pasted component
-      validateAssetParameters(clipboardData, setNewNodeErrors, src);
+      validateComponent(clipboardData, setNewNodeErrors, componentList, src);
     }
   }
 
   const handleBlur = () => {
-    validateAssetParameters(data, setNewNodeErrors, pythonSrc);
+    validateComponent(data, setNewNodeErrors, componentList, pythonSrc);
   }
 
   const handleDragStart = (e) => {

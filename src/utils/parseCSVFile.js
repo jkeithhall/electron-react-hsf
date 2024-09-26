@@ -1,6 +1,7 @@
 import { randomId } from '@mui/x-data-grid-generator';
+import { validateAllTasks } from './validateTasks';
 
-export default function parseCSVFile(content, setTaskList) {
+export default function parseCSVFile(content, setTaskList, setTaskErrors) {
   try {
     const parsedCSV = content.split('\r\n').map(row => row.split(';'));
 
@@ -42,6 +43,8 @@ export default function parseCSVFile(content, setTaskList) {
         eomsType: row[columnIndex['EOMS']],
       };
     });
+
+    validateAllTasks(taskList, setTaskErrors);
     setTaskList(taskList);
   } catch (error) {
     console.log(`Error parsing CSV file: ${error.message}`);

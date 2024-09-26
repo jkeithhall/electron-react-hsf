@@ -4,7 +4,7 @@ import NameField from './PaletteComponents/NameField';
 import ClassName from './PaletteComponents/ClassName';
 import StateData from './PaletteComponents/StateData';
 import { DynamicStateType } from './PaletteComponents/DynamicStateType';
-import EomsType from './PaletteComponents/EomsType';
+import { EomsType } from './PaletteComponents/EomsType';
 import IntegratorOptions from './PaletteComponents/IntegratorOptions';
 import IntegratorParameters from './PaletteComponents/IntegratorParameters';
 import SubsystemType from './PaletteComponents/SubsystemType';
@@ -25,7 +25,7 @@ import Tooltip from '@mui/material/Tooltip';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 
-import { validateAssetParameters } from '../utils/validateParameters';
+import { validateComponent } from '../utils/validateComponents';
 
 export default function ComponentEditor ({
   handlePaletteClose,
@@ -76,6 +76,9 @@ export default function ComponentEditor ({
       .filter((dependency) => dependency.asset !== deleteId && dependency.depAsset !== deleteId &&
         dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId)
     );
+    setConstraints((prevConstraints) => prevConstraints.filter(({ subsystem }) => {
+      return componentList.find(({ id }) => id === subsystem).parent !== deleteId;
+    }));
     setEvaluator((prevEvaluator) => {
       const { keyRequests } = prevEvaluator;
       const newKeyRequests = keyRequests.filter((keyRequest) => keyRequest.asset !== deleteId);
@@ -119,7 +122,7 @@ export default function ComponentEditor ({
   } = data;
 
   const handleBlur = () => {
-    validateAssetParameters(data, setModelErrors, pythonSrc);
+    validateComponent(data, setModelErrors, componentList, pythonSrc);
   }
 
   const handleCopyClick = () => {
@@ -135,7 +138,7 @@ export default function ComponentEditor ({
   };
 
   useEffect(() => {
-    validateAssetParameters(data, setModelErrors, pythonSrc);
+    validateComponent(data, setModelErrors, componentList, pythonSrc);
   }, [id, src]);
 
   const componentKeys = ['id', 'name', 'className'];

@@ -39,10 +39,10 @@ export default function DeleteParameterButton({index, markedForDeletion, hovered
         ref={buttonRef}
         size="medium"
         color="error"
-        sx={{ paddingTop: 0 }}
+        sx={{ paddingTop: 0, paddingLeft: 3 }}
         onClick={(e) => handleDeleteClicked(e, index)}
-        startIcon={<RemoveCircleIcon sx={{ '&.MuiSvgIcon-root': { fontSize: 52 }}}/>}
-        fontSize="large"
+        startIcon={<RemoveCircleIcon sx={{ '&.MuiSvgIcon-root': { fontSize: 20 }}}/>}
+        fontSize="inherit"
       >
         Confirm
       </Button>

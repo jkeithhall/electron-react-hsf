@@ -6,27 +6,24 @@ function getModifiedScenario(currentState) {
   if (!window.electronApi) return;
 
   let { name, version, dependencies, simulationParameters, schedulerParameters } = currentState;
+
   let { outputPath, pythonSrc } = dependencies;
+  let baseSrc = window.electronApi.baseSrc;
+  outputPath = outputPath ?? baseSrc;
 
-  const baseSrcAbs = window.electronApi.baseSrc;
-  let baseSrcRel = './output';
-  outputPath = outputPath ?? baseSrcAbs;
-
-  // Python source files should be given relative to baseSrc
-  pythonSrc = window.electronApi.getRelativePath(baseSrcAbs, pythonSrc);
-
-  // path-browserify module only uses POSIX separators; for Windows, replace all forward slashes with backslashes
+  // For Windows, replace all forward slashes with backslashes
   if (window.electronApi.directorySeparator === '\\') {
-    baseSrcRel = baseSrcRel.replace(/\//g, '\\');
+    baseSrc = baseSrc.replace(/\//g, '\\');
     outputPath = outputPath?.replace(/\//g, '\\');
     pythonSrc = pythonSrc?.replace(/\//g, '\\');
   }
+
   return {
     name,
     version: Number(version),
     dependencies: {
       outputPath,
-      baseSrc: baseSrcRel,
+      baseSrc,
       targetSrc: 'targets.json',
       modelSrc: 'model.json',
       pythonSrc,

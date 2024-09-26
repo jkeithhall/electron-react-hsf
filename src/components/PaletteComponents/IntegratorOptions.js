@@ -85,8 +85,8 @@ export default function IntegratorOptions({ integratorOptions, setComponentList,
             value={value}
             type='text'
             onChange={handleChange}
-            error={errors[key] !== undefined}
-            helperText={errors[key]}
+            error={errors[`integratorOptions.${key}`] !== undefined}
+            helperText={errors[`integratorOptions.${key}`]}
             onBlur={handleBlur}
           />
           <DeleteParameterButton

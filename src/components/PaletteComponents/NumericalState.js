@@ -9,7 +9,7 @@ import { convertDisplayName } from '../../utils/displayNames';
 export default function NumericalState({
   name,
   value,
-  errors,
+  error,
   constraint,
   scrollToConstraint,
   handleChange,
@@ -34,8 +34,8 @@ export default function NumericalState({
         value={value}
         type='text'
         onChange={handleChange}
-        error={errors[name] !== undefined}
-        helperText={errors[name]}
+        error={error !== undefined}
+        helperText={error}
         onBlur={handleBlur}
       />
       {constraint ?

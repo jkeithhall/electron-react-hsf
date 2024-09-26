@@ -12,7 +12,7 @@ import dayjs from 'dayjs';
 import { shortenPath } from '../utils/shortenPath.js';
 import { findInvalidPythonFiles } from '../utils/validatePythonFiles';
 import { convertDisplayName } from '../utils/displayNames';
-import { validateScenarioParametersAt } from '../utils/validateParameters';
+import { validateScenario } from '../utils/validateScenario';
 import { julianToDate, dateToJulian } from '../utils/julianConversion.js';
 
 const parametersWithSeconds = ['startSeconds', 'endSeconds', 'stepSeconds'];
@@ -27,31 +27,8 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
     setParameters({ ...parameters, [name]: value });
   }
 
-  const handleBlur = async (e) => {
-    const { name } = e.target;
-    if (name === 'pythonSrc') {
-      const invalidSources = findInvalidPythonFiles(parameters[name], pythonSourceFiles);
-      if (invalidSources.length > 0) {
-        setFormErrors({ ...formErrors, [name]: 'Python source files for one or more system components not found in the selected directory.' });
-      } else {
-        // Remove error message from the pythonSrc key of the object
-        setFormErrors(formErrors => {
-          const newFormErrors = { ...formErrors };
-          delete newFormErrors[name];
-          return newFormErrors;
-        });
-      }
-    } else {
-      try {
-        await validateScenarioParametersAt(parameters, name);
-        const newFormErrors = { ...formErrors };
-        delete newFormErrors[name];
-        setFormErrors(newFormErrors);
-      } catch (error) {
-        const { message } = error;
-        setFormErrors({ ...formErrors, [name]: message });
-      }
-    }
+  const handleBlur = (e) => {
+    validateScenario(parameters, setFormErrors, pythonSourceFiles);
   }
 
   const handleFileClick = (key) => async (e) => {
@@ -144,12 +121,12 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
               name={key}
               value={isFile ? shortenPath(value, 50) : value}
               type={type}
-              onChange={isFile ? () => {} : handleChange}
-              onClick={isFile ? handleFileClick(key) : () => {}}
+              onChange={isFile ? undefined : handleChange}
+              onClick={isFile ? handleFileClick(key) : undefined}
               onBlur={handleBlur}
               error={!valid}
               helperText={errorMessage}
-              InputProps={{ startAdornment: startAdornment, endAdornment: endAdornment }}
+              InputProps={{ startAdornment, endAdornment }}
             />
             {showCalendar && key === 'startJD' &&
               <div className="calendar-stacking-context">
