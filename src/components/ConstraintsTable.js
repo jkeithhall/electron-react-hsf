@@ -38,6 +38,20 @@ const validateCellProps = (field, setConstraintErrors, componentList) => (params
   return { ...params.props };
 }
 
+const ConstraintCell = ({ params, constraintErrors }) => {
+  const { id, field } = params;
+
+  return constraintErrors[id] && constraintErrors[id][field] ? (
+    <Tooltip title={constraintErrors[id][field]} placement="top">
+      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
+        {params.value}
+      </div>
+    </Tooltip>
+  ) : (
+    <div>{params.value}</div>
+  );
+};
+
 export default function ConstraintsTable({
   navOpen,
   constraints,
@@ -173,6 +187,7 @@ export default function ConstraintsTable({
       width: 150,
       editable: true,
       preProcessEditCellProps: validateCellProps('name', setConstraintErrors),
+      renderCell: (params) => <ConstraintCell params={params} constraintErrors={constraintErrors} />,
     },
     {
       field: 'subsystem',
@@ -205,6 +220,7 @@ export default function ConstraintsTable({
       width: 270,
       editable: true,
       preProcessEditCellProps: validateCellProps('type', setConstraintErrors),
+      renderCell: (params) => <ConstraintCell params={params} constraintErrors={constraintErrors} />,
     },
     {
       field: 'value',
@@ -212,6 +228,7 @@ export default function ConstraintsTable({
       width: 100,
       editable: true,
       preProcessEditCellProps: validateCellProps('value', setConstraintErrors),
+      renderCell: (params) => <ConstraintCell params={params} constraintErrors={constraintErrors} />,
     }
   ];
 

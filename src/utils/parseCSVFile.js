@@ -44,7 +44,9 @@ export default function parseCSVFile(content, setTaskList, setTaskErrors) {
       };
     });
 
-    validateAllTasks(taskList, setTaskErrors);
+    // Throw error if required fields are missing rather than setting validation errors in state
+    const throwable = true;
+    validateAllTasks(taskList, setTaskErrors, throwable);
     setTaskList(taskList);
   } catch (error) {
     console.log(`Error parsing CSV file: ${error.message}`);

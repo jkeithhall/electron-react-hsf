@@ -61,8 +61,6 @@ const Constraints = forwardRef(({
   const [ modalOpen, setModalOpen ] = useState(false);
   const buttonRef = useRef(null);
 
-  console.log({ constraints, errors, componentId });
-
   const handleChange = (e, id) => {
     const { name, value } = e.target;
     setConstraints((prevConstraints) => {
@@ -79,30 +77,6 @@ const Constraints = forwardRef(({
   const handleBlur = (e, id) => {
     const constraint = constraints.find((constraint) => constraint.id === id);
     validateConstraint(constraint, setErrors, componentList);
-    // const stateType = constraints.find((constraint) => constraint.id === id).stateType;
-    // if (stateType === 'int') {
-    //   if (!Number.isInteger(parseFloat(value))) {
-    //     setErrorMessages(prevErrors => {
-    //       return { ...prevErrors, [id]: 'Value must be an integer' };
-    //     });
-    //   } else {
-    //     setErrorMessages(prevErrors => {
-    //       delete prevErrors[id];
-    //       return { ...prevErrors };
-    //     });
-    //   }
-    // } else {
-    //   if (Number(value) !== parseFloat(value)) {
-    //     setErrorMessages(prevErrors => {
-    //       return { ...prevErrors, [id]: 'Value must be a number' };
-    //     });
-    //   } else {
-    //     setErrorMessages(prevErrors => {
-    //       delete prevErrors[id];
-    //       return { ...prevErrors };
-    //     });
-    //   }
-    // }
   }
 
   const handleDeleteClicked = (e, id) => {
