@@ -15,37 +15,70 @@ const {
   showFileSelectDialog } = require('./fileHandlers');
 
 let mainWindow;
+let splashWindow;
 
 function createWindow() {
-  // Create the browser window.
-  mainWindow = new BrowserWindow({
-    fullscreen: true,
+  splashWindow = new BrowserWindow({
+    width: 400,
+    height: 400,
+    frame: false,
+    resizable: false,
+    alwaysOnTop: true,
     backgroundColor: '#1f2330',
-    show: false,
     webPreferences: {
       nodeIntegration: true,
-      devTools: isDev,
-      preload: path.join(__dirname, 'preload.js'),
     }
   });
-
-  mainWindow.loadURL(
-    isDev
-      ? 'http://localhost:3000'
-      : `file://${path.join(__dirname, '../build/index.html')}`
-  );
-
-  mainWindow.once('ready-to-show', () => {
-    mainWindow.show();
-    mainWindow.focus();
+  splashWindow.loadURL(`file://${path.join(__dirname, '../public/splash.html')}`);
+  splashWindow.once('ready-to-show', () => {
+    splashWindow.show();
+    splashWindow.focus();
   });
 
-  // Initialize menu
-  createMenu(mainWindow);
+  // Create the browser window.
+  setTimeout(() => {
+    mainWindow = new BrowserWindow({
+      fullscreen: true,
+      backgroundColor: '#1f2330',
+      show: false,
+      webPreferences: {
+        nodeIntegration: true,
+        devTools: isDev,
+        preload: path.join(__dirname, 'preload.js'),
+      }
+    });
+
+    mainWindow.loadURL(
+      isDev
+        ? 'http://localhost:3000'
+        : `file://${path.join(__dirname, '../build/index.html')}`
+    );
+    createMenu(mainWindow);
+
+    mainWindow.once('ready-to-show', () => {
+      mainWindow.show();
+      splashWindow.close();
+    });
+  }, 2000);
 }
 
 // Create the window when the app is ready
 app.on('ready', createWindow);
+
+// Quit when all windows are closed.
+app.on('window-all-closed', function () {
+  // On OS X it is common for applications and their menu bar
+  // to stay active until the user quits explicitly with Cmd + Q
+  if (process.platform !== 'darwin') {
+    app.quit();
+  }
+});
+
+app.on('activate', function () {
+  // On OS X it's common to re-create a window in the app when the
+  // dock icon is clicked and there are no other windows open.
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+});
 
 ipcMain.on('show-save-dialog', (event, fileType, content, updateCache) => {
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
@@ -278,19 +311,4 @@ ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
       code: null,
     });
   }
-});
-
-// Quit when all windows are closed.
-app.on('window-all-closed', function () {
-  // On OS X it is common for applications and their menu bar
-  // to stay active until the user quits explicitly with Cmd + Q
-  if (process.platform !== 'darwin') {
-    app.quit();
-  }
-});
-
-app.on('activate', function () {
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
