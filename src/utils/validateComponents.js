@@ -69,7 +69,7 @@ const assetSchema = object({
     .oneOf(eomsOptions)
     .test('no-injection', 'EOMS Type contains invalid characters', noInjection),
   stateData: array("State Data must be an array")
-    .of(number("State Data components must be numbers"))
+    .of(number("State Data components must be numbers").typeError('State Data components must be numbers'))
     .required('State Data is required')
     .test('state-data', ({value}) => vectorError(value, "State Data"), (value) => vectorError(value, "State Data") === null),
   integratorOptions: object({

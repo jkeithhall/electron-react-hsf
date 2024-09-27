@@ -320,6 +320,8 @@ export default function App() {
               onEdgesChange={onModelEdgesChange}
               modelErrors={modelErrors}
               setModelErrors={setModelErrors}
+              constraintErrors={constraintErrors}
+              setConstraintErrors={setConstraintErrors}
               setErrorModalOpen={setErrorModalOpen}
               setErrorMessage={setErrorMessage}
             />,

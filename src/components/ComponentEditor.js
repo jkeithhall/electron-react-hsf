@@ -38,6 +38,8 @@ export default function ComponentEditor ({
   pythonSrc,
   modelErrors,
   setModelErrors,
+  constraintErrors,
+  setConstraintErrors,
   setEvaluator,
   setNodes,
   setEdges,
@@ -77,7 +79,8 @@ export default function ComponentEditor ({
         dependency.subsystem !== deleteId && dependency.depSubsystem !== deleteId)
     );
     setConstraints((prevConstraints) => prevConstraints.filter(({ subsystem }) => {
-      return componentList.find(({ id }) => id === subsystem).parent !== deleteId;
+      const subcomponent = componentList.find(({ id }) => id === subsystem);
+      return subcomponent ? subcomponent.parent !== deleteId : true;
     }));
     setEvaluator((prevEvaluator) => {
       const { keyRequests } = prevEvaluator;
@@ -290,7 +293,10 @@ export default function ComponentEditor ({
             componentId={id}
             constraints={constraints}
             setConstraints={setConstraints}
+            componentList={componentList}
             setComponentList={setComponentList}
+            errors={constraintErrors}
+            setErrors={setConstraintErrors}
             ref={constraintRefs.current}
           />}
         </>}

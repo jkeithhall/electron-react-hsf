@@ -17,7 +17,8 @@ const taskSchema = object({
     .test('no-injection', 'Task Type contains invalid characters', noInjection),
   maxTimes: number("Max Times must be a number")
     .required('Max Times is required')
-    .min(0, 'Max Times must be greater than or equal to 0'),
+    .min(0, 'Max Times must be greater than or equal to 0')
+    .typeError('Max Times must be a number'),
   targetName: string("Target Name must be a string")
     .min(1, 'Target Name must be at least 1 character')
     .required('Target Name is required')
@@ -29,16 +30,20 @@ const taskSchema = object({
     .oneOf(['FacilityTarget', 'LocationTarget'])
     .test('no-injection', 'Target Type contains invalid characters', noInjection),
   targetValue: number("Target Value must be a number")
-    .required('Target Value is required'),
+    .required('Target Value is required')
+    .typeError('Target Value must be a number'),
   latitude: number("Latitude must be a number")
     .required('Latitude is required')
-    .min(-90, 'Latitude must be ≥-90').max(90, 'Latitude must be ≤90'),
+    .min(-90, 'Latitude must be ≥-90').max(90, 'Latitude must be ≤90')
+    .typeError('Latitude must be a number'),
   longitude: number("Longitude must be a number")
     .required("Longitude is required")
-    .min(-180, 'Longitude must be ≥-180').max(180, 'Longitude must be ≤180'),
+    .min(-180, 'Longitude must be ≥-180').max(180, 'Longitude must be ≤180')
+    .typeError('Longitude must be a number'),
   altitude: number("Altitude must be a number")
     .required("Altitude is required")
-    .min(0, 'Altitude must be ≥0'),
+    .min(0, 'Altitude must be ≥0')
+    .typeError('Altitude must be a number'),
   dynamicStateType: string("Dynamic State Type must be a string")
     .min(1, 'Dynamic State Type must be at least 1 character')
     .required('Dynamic State Type is required')

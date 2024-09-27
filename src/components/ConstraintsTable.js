@@ -33,6 +33,7 @@ const validateCellProps = (field, setConstraintErrors, componentList) => (params
       return acc;
     }, {});
   const constraint = { ...otherParams, id, [field]: params.props.value };
+  console.log(`Validating constraint ${id} at field ${field} with value ${params.props.value}`);
   validateConstraintAt(constraint, field, setConstraintErrors, componentList);
   return { ...params.props };
 }

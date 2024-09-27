@@ -27,6 +27,8 @@ export default function ModelGraph({
   onEdgesChange,
   modelErrors,
   setModelErrors,
+  constraintErrors,
+  setConstraintErrors,
   setErrorModalOpen,
   setErrorMessage
 }) {
@@ -119,6 +121,8 @@ export default function ModelGraph({
           pythonSrc={pythonSrc}
           modelErrors={modelErrors}
           setModelErrors={setModelErrors}
+          constraintErrors={constraintErrors}
+          setConstraintErrors={setConstraintErrors}
         />}
     </>
   );

@@ -34,25 +34,42 @@ const scenarioSchema = (pythonSourceFiles) => object({
     .min(1, 'Output Path must be at least 1 character')
     .required('Output Path is required')
     .test('no-injection', 'Output Path contains invalid characters', noInjection),
-  version: number('Version must be a number').required('Version is required').min(0, 'Version must be greater than or equal to 0'),
-  startJD: number('Start JD must be a number').required('Start JD is required'),
+  version: number('Version must be a number')
+    .required('Version is required')
+    .min(0, 'Version must be greater than or equal to 0')
+    .typeError('Version must be a number'),
+  startJD: number('Start JD must be a number')
+    .required('Start JD is required')
+    .min(0, 'Start JD must be greater than or equal to 0')
+    .typeError('Start JD must be a number'),
   startSeconds: number('Start Seconds must be a number')
     .required('Start Seconds is required')
     .min(0, 'Start Seconds must be greater than or equal to 0')
     .test('is-less-than-endSeconds', 'Start Seconds must be less than End Seconds', function(value) {
       const { endSeconds } = this.parent;
       return endSeconds === undefined || value < endSeconds;
-    }),
+    })
+    .typeError('Start Seconds must be a number'),
   endSeconds: number('End Seconds must be a number')
     .required('End Seconds is required')
     .min(0, 'End Seconds must be greater than or equal to 0')
     .test('is-greater-than-startSeconds', 'End Seconds must be greater than Start Seconds', function(value) {
       const { startSeconds } = this.parent;
       return startSeconds === undefined || value > startSeconds;
-    }),
-  stepSeconds: number('Step Seconds must be a number').required('Step Seconds is required').min(0, 'Step Seconds must be greater than 0'),
-  maxSchedules: number('Max Schedules must be a number').required('Max Seconds is required').min(1, 'Max Schedules must be greater than 0'),
-  cropTo: number('Crop To must be a number').required('Crop To is required').min(1, 'Crop To must be greater than 0'),
+    })
+    .typeError('End Seconds must be a number'),
+  stepSeconds: number('Step Seconds must be a number')
+    .required('Step Seconds is required')
+    .min(0, 'Step Seconds must be greater than 0')
+    .typeError('Step Seconds must be a number'),
+  maxSchedules: number('Max Schedules must be a number')
+    .required('Max Seconds is required')
+    .min(1, 'Max Schedules must be greater than 0')
+    .typeError('Max Schedules must be a number'),
+  cropTo: number('Crop To must be a number')
+    .required('Crop To is required')
+    .min(1, 'Crop To must be greater than 0')
+    .typeError('Crop To must be a number'),
 });
 
 function validateScenarioAt(parameters, name, setFormErrors, pythonSourceFiles, throwable = false) {

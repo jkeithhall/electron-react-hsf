@@ -35,11 +35,11 @@ const constraintSchema = (componentList) => object({
     .oneOf(['int', 'double'])
     .test('no-injection', 'State Type contains invalid characters', noInjection),
   value: number("Value must be a number")
-    .required('Value is required'),
+    .required('Value is required')
+    .typeError('Value must be a number')
 });
 
 function validateConstraintAt(constraint, name, setFormErrors, componentList, throwable = false) {
-  console.log(`Validating ${name} for constraint`, constraint);
   if (name === 'id') return; // Skip id
 
   setFormErrors((formErrors) => {
@@ -65,6 +65,7 @@ function validateConstraintAt(constraint, name, setFormErrors, componentList, th
     } else {
       delete newFormErrors[constraint.id];
     }
+    console.log(newFormErrors);
     return newFormErrors;
   });
 }

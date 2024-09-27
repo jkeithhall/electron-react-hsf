@@ -18,12 +18,12 @@ const dependencySchema = (componentList) => object({
       return componentList.find((component) => component.id === value && component.parent === asset) !== undefined;
     }),
   depAsset: string('Asset must be a string')
-  .min(1, 'Asset must be at least 1 character')
-  .required('Asset is required')
-  .test('no-injection', 'Asset contains invalid characters', noInjection)
-  .test('asset-exists', 'Asset does not exist', value => {
-    return componentList.find((component) => component.id === value) !== undefined;
-  }),
+    .min(1, 'Asset must be at least 1 character')
+    .required('Asset is required')
+    .test('no-injection', 'Asset contains invalid characters', noInjection)
+    .test('asset-exists', 'Asset does not exist', value => {
+      return componentList.find((component) => component.id === value) !== undefined;
+    }),
   depSubsystem: string('Subsystem must be a string')
     .min(1, 'Subsystem must be at least 1 character')
     .required('Subsystem is required')
