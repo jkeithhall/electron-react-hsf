@@ -53,7 +53,6 @@ const TaskCell = ({ params, taskErrors }) => {
   );
 };
 
-
 export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, setTaskErrors }) {
   const theme = useTheme();
 
