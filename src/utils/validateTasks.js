@@ -61,41 +61,12 @@ const taskSchema = object({
 
 function validateTaskAt(task, name, setFormErrors, throwable = false) {
   if (name === 'id') return; // Skip id
+  let importError = null;
 
   setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
-    const currErrors = newFormErrors[task.id] || {};
-
     try {
-      taskSchema.validateSyncAt(name, task);
-      // Remove error message from the name key of the object
-      delete currErrors[name];
-
-    } catch (error) {
-      console.log(error);
-      const { message } = error;
-
-      // Throw error if the missing fields are required
-      if (throwable) throwErrorIfMissingFields(message);
-      currErrors[name] = message;
-    }
-
-    if (Object.keys(currErrors).length > 0) {
-      newFormErrors[task.id] = currErrors;
-    } else {
-      delete newFormErrors[task.id];
-    }
-    return newFormErrors;
-  });
-}
-
-function validateTask(task, setFormErrors, throwable = false) {
-  setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
-    const currErrors = newFormErrors[task.id] || {};
-
-    Object.entries(task).forEach(([name, value]) => {
-      if (name === 'id') return; // Skip id
+      const newFormErrors = { ...formErrors };
+      const currErrors = newFormErrors[task.id] || {};
 
       try {
         taskSchema.validateSyncAt(name, task);
@@ -110,22 +81,27 @@ function validateTask(task, setFormErrors, throwable = false) {
         if (throwable) throwErrorIfMissingFields(message);
         currErrors[name] = message;
       }
-    });
 
-    if (Object.keys(currErrors).length > 0) {
-      newFormErrors[task.id] = currErrors;
-    } else {
-      delete newFormErrors[task.id];
+      if (Object.keys(currErrors).length > 0) {
+        newFormErrors[task.id] = currErrors;
+      } else {
+        delete newFormErrors[task.id];
+      }
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
     }
-    return newFormErrors;
   });
+  if (importError) throw importError;
 }
 
-// Validate each task and update formErrors if there are errors or throw an error if a required field is missing
-function validateAllTasks(tasks, setFormErrors, throwable = false) {
+function validateTask(task, setFormErrors, throwable = false) {
+  let importError = null;
+
   setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
-    tasks.forEach(task => {
+    try {
+      const newFormErrors = { ...formErrors };
       const currErrors = newFormErrors[task.id] || {};
 
       Object.entries(task).forEach(([name, value]) => {
@@ -151,9 +127,56 @@ function validateAllTasks(tasks, setFormErrors, throwable = false) {
       } else {
         delete newFormErrors[task.id];
       }
-    });
-    return newFormErrors;
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
+    }
   });
+  if (importError) throw importError;
+}
+
+// Validate each task and update formErrors if there are errors or throw an error if a required field is missing
+function validateAllTasks(tasks, setFormErrors, throwable = false) {
+  let importError = null;
+
+  setFormErrors((formErrors) => {
+    try {
+      const newFormErrors = { ...formErrors };
+      tasks.forEach(task => {
+        const currErrors = newFormErrors[task.id] || {};
+
+        Object.entries(task).forEach(([name, value]) => {
+          if (name === 'id') return; // Skip id
+
+          try {
+            taskSchema.validateSyncAt(name, task);
+            // Remove error message from the name key of the object
+            delete currErrors[name];
+
+          } catch (error) {
+            console.log(error);
+            const { message } = error;
+
+            // Throw error if the missing fields are required
+            if (throwable) throwErrorIfMissingFields(message);
+            currErrors[name] = message;
+          }
+        });
+
+        if (Object.keys(currErrors).length > 0) {
+          newFormErrors[task.id] = currErrors;
+        } else {
+          delete newFormErrors[task.id];
+        }
+      });
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
+    }
+  });
+  if (importError) throw importError;
 }
 
 export { validateTaskAt, validateTask, validateAllTasks };

@@ -73,36 +73,17 @@ const scenarioSchema = (pythonSourceFiles) => object({
 });
 
 function validateScenarioAt(parameters, name, setFormErrors, pythonSourceFiles, throwable = false) {
-  setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
+  let importError = null;
 
+  setFormErrors((formErrors) => {
     try {
-      scenarioSchema(pythonSourceFiles).validateSyncAt(name, parameters);
-      // Remove error message from the name key of the object
-      delete newFormErrors[name];
+      const newFormErrors = { ...formErrors };
 
-    } catch (error) {
-      console.log(error);
-      const { message } = error;
-
-      // Throw error during import if the missing field is required
-      if (throwable) throwErrorIfMissingFields(message);
-      newFormErrors[name] = message;
-    }
-    return newFormErrors;
-  });
-}
-
-// Validate each parameter and update formErrors if there are errors or throw an error if a required field is missing
-function validateScenario(parameters, setFormErrors, pythonSourceFiles, throwable = false) {
-  setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
-    Object.entries(parameters).forEach(([name, value]) => {
       try {
-        // validateScenarioParametersAt(parameters, name, pythonSourceFiles);
         scenarioSchema(pythonSourceFiles).validateSyncAt(name, parameters);
         // Remove error message from the name key of the object
         delete newFormErrors[name];
+
       } catch (error) {
         console.log(error);
         const { message } = error;
@@ -111,9 +92,46 @@ function validateScenario(parameters, setFormErrors, pythonSourceFiles, throwabl
         if (throwable) throwErrorIfMissingFields(message);
         newFormErrors[name] = message;
       }
-    });
-    return newFormErrors;
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
+    }
   });
+
+  if (importError) throw importError;
+}
+
+// Validate each parameter and update formErrors if there are errors or throw an error if a required field is missing
+function validateScenario(parameters, setFormErrors, pythonSourceFiles, throwable = false) {
+  let importError = null;
+
+  setFormErrors((formErrors) => {
+    try {
+      const newFormErrors = { ...formErrors };
+      Object.entries(parameters).forEach(([name, value]) => {
+        try {
+          // validateScenarioParametersAt(parameters, name, pythonSourceFiles);
+          scenarioSchema(pythonSourceFiles).validateSyncAt(name, parameters);
+          // Remove error message from the name key of the object
+          delete newFormErrors[name];
+        } catch (error) {
+          console.log(error);
+          const { message } = error;
+
+          // Throw error during import if the missing field is required
+          if (throwable) throwErrorIfMissingFields(message);
+          newFormErrors[name] = message;
+        }
+      });
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
+    }
+  });
+
+  if (importError) throw importError;
 }
 
 export { noInjection, throwErrorIfMissingFields, validateScenarioAt, validateScenario };

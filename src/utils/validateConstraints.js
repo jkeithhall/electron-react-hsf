@@ -41,42 +41,12 @@ const constraintSchema = (componentList) => object({
 
 function validateConstraintAt(constraint, name, setFormErrors, componentList, throwable = false) {
   if (name === 'id') return; // Skip id
+  let importError = null;
 
   setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
-    const currErrors = newFormErrors[constraint.id] || {};
-
     try {
-      constraintSchema(componentList).validateSyncAt(name, constraint);
-      // Remove error message from the name key of the object
-      delete currErrors[name];
-
-    } catch (error) {
-      console.log(error);
-      const { message } = error;
-
-      // Throw error during import if the missing field is required
-      if (throwable) throwErrorIfMissingFields(message);
-      currErrors[name] = message;
-    }
-
-    if (Object.keys(currErrors).length > 0) {
-      newFormErrors[constraint.id] = currErrors;
-    } else {
-      delete newFormErrors[constraint.id];
-    }
-    console.log(newFormErrors);
-    return newFormErrors;
-  });
-}
-
-function validateConstraint(constraint, setFormErrors, componentList, throwable = false) {
-  setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
-    const currErrors = newFormErrors[constraint.id] || {};
-
-    Object.entries(constraint).forEach(([name, value]) => {
-      if (name === 'id') return; // Skip id
+      const newFormErrors = { ...formErrors };
+      const currErrors = newFormErrors[constraint.id] || {};
 
       try {
         constraintSchema(componentList).validateSyncAt(name, constraint);
@@ -91,22 +61,29 @@ function validateConstraint(constraint, setFormErrors, componentList, throwable 
         if (throwable) throwErrorIfMissingFields(message);
         currErrors[name] = message;
       }
-    });
 
-    if (Object.keys(currErrors).length > 0) {
-      newFormErrors[constraint.id] = currErrors;
-    } else {
-      delete newFormErrors[constraint.id];
+      if (Object.keys(currErrors).length > 0) {
+        newFormErrors[constraint.id] = currErrors;
+      } else {
+        delete newFormErrors[constraint.id];
+      }
+      console.log(newFormErrors);
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
     }
-    return newFormErrors;
   });
+
+  if (importError) throw importError;
 }
 
-// Validate each constraint and update formErrors if there are errors or throw an error if a required field is missing
-function validateAllConstraints(constraints, setFormErrors, componentList, throwable = false) {
+function validateConstraint(constraint, setFormErrors, componentList, throwable = false) {
+  let importError = null;
+
   setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
-    constraints.forEach(constraint => {
+    try {
+      const newFormErrors = { ...formErrors };
       const currErrors = newFormErrors[constraint.id] || {};
 
       Object.entries(constraint).forEach(([name, value]) => {
@@ -132,9 +109,58 @@ function validateAllConstraints(constraints, setFormErrors, componentList, throw
       } else {
         delete newFormErrors[constraint.id];
       }
-    });
-    return newFormErrors;
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
+    }
   });
+
+  if (importError) throw importError;
+}
+
+// Validate each constraint and update formErrors if there are errors or throw an error if a required field is missing
+function validateAllConstraints(constraints, setFormErrors, componentList, throwable = false) {
+  let importError = null;
+
+  setFormErrors((formErrors) => {
+    try {
+      const newFormErrors = { ...formErrors };
+      constraints.forEach(constraint => {
+        const currErrors = newFormErrors[constraint.id] || {};
+
+        Object.entries(constraint).forEach(([name, value]) => {
+          if (name === 'id') return; // Skip id
+
+          try {
+            constraintSchema(componentList).validateSyncAt(name, constraint);
+            // Remove error message from the name key of the object
+            delete currErrors[name];
+
+          } catch (error) {
+            console.log(error);
+            const { message } = error;
+
+            // Throw error during import if the missing field is required
+            if (throwable) throwErrorIfMissingFields(message);
+            currErrors[name] = message;
+          }
+        });
+
+        if (Object.keys(currErrors).length > 0) {
+          newFormErrors[constraint.id] = currErrors;
+        } else {
+          delete newFormErrors[constraint.id];
+        }
+      });
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
+    }
+  });
+
+  if (importError) throw importError;
 }
 
 export { validateConstraintAt, validateConstraint, validateAllConstraints };

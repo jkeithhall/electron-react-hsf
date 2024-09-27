@@ -54,44 +54,52 @@ const evaluatorSchema = (componentList, pythonSrc) => object({
 });
 
 function validateEvaluator(evaluator, setFormErrors, componentList, pythonSrc, throwable = false) {
+  let importError = null;
   setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
+    try {
+      const newFormErrors = { ...formErrors };
 
-    Object.entries(evaluator).forEach(([name, value]) => {
-      if (name === 'keyRequests') {
-        value.forEach((keyRequest, index) => {
+      Object.entries(evaluator).forEach(([name, value]) => {
+        if (name === 'keyRequests') {
+          value.forEach((keyRequest, index) => {
+            try {
+              // validateEvaluatorAt(keyRequest, `keyRequests[${index}]`, componentList, pythonSrc);
+              evaluatorSchema(componentList, pythonSrc).validateSyncAt(`keyRequests[${index}]`, evaluator);
+              // Remove error message from the name key of the object
+              delete newFormErrors[`keyRequests[${index}]`];
+
+            } catch (error) {
+              console.log(error);
+              const { message } = error;
+
+              if (throwable) throwErrorIfMissingFields(message);
+              newFormErrors[`keyRequests[${index}]`] = message;
+            }
+          });
+        } else {
           try {
-            // validateEvaluatorAt(keyRequest, `keyRequests[${index}]`, componentList, pythonSrc);
-            evaluatorSchema(componentList, pythonSrc).validateSyncAt(`keyRequests[${index}]`, evaluator);
+            evaluatorSchema(componentList, pythonSrc).validateSyncAt(name, evaluator);
             // Remove error message from the name key of the object
-            delete newFormErrors[`keyRequests[${index}]`];
+            delete newFormErrors[name];
 
           } catch (error) {
             console.log(error);
             const { message } = error;
 
+            // Throw error during import if the missing field is required
             if (throwable) throwErrorIfMissingFields(message);
-            newFormErrors[`keyRequests[${index}]`] = message;
+            newFormErrors[name] = message;
           }
-        });
-      } else {
-        try {
-          evaluatorSchema(componentList, pythonSrc).validateSyncAt(name, evaluator);
-          // Remove error message from the name key of the object
-          delete newFormErrors[name];
-
-        } catch (error) {
-          console.log(error);
-          const { message } = error;
-
-          // Throw error during import if the missing field is required
-          if (throwable) throwErrorIfMissingFields(message);
-          newFormErrors[name] = message;
         }
-      }
-    });
-    return newFormErrors;
+      });
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
+    }
   });
+
+  if (importError) throw importError;
 }
 
 export { validateEvaluator };

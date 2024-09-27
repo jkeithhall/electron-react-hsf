@@ -190,114 +190,16 @@ const subsystemSchema = (componentList, pythonSrc) => object({
 
 function validateComponentAt(component, name, setFormErrors, componentList, pythonSrc, throwable = false) {
   if (name === 'id') return; // Skip id
+  let importError = null;
+
   setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
-    const currErrors = newFormErrors[component.id] || {};
+    try {
+      const newFormErrors = { ...formErrors };
+      const currErrors = newFormErrors[component.id] || {};
 
-    switch (name) {
-      case 'integratorOptions':
-        Object.entries(component.integratorOptions).forEach(([key, value]) => {
-          try {
-            assetSchema.validateSyncAt(`integratorOptions.${key}`, component);
-            // Remove error message from the name key of the object
-            delete currErrors[`integratorOptions.${key}`];
-
-          } catch (error) {
-            console.log(error);
-            const { message } = error;
-            if (throwable) throwErrorIfMissingFields(message);
-
-            currErrors[`integratorOptions.${key}`] = message;
-          }
-        });
-        break;
-      case 'integratorParameters':
-        component.integratorParameters.forEach((parameter, index) => {
-          try {
-            assetSchema.validateSyncAt(`integratorParameters[${index}]`, component);
-            // Remove error message from the name key of the object
-            delete currErrors[`integratorParameters[${index}]`];
-
-          } catch (error) {
-            console.log(error);
-            const { message } = error;
-            if (throwable) throwErrorIfMissingFields(message);
-
-            currErrors[`integratorParameters[${index}]`] = message;
-          }
-        });
-        break;
-      case 'parameters':
-        component.parameters.forEach((parameter, index) => {
-          try {
-            subsystemSchema(componentList, pythonSrc).validateSyncAt(`parameters[${index}]`, component);
-            // Remove error message from the name key of the object
-            delete currErrors[`parameters[${index}]`];
-
-          } catch (error) {
-            console.log(error);
-            const { message } = error;
-            if (throwable) throwErrorIfMissingFields(message);
-
-            currErrors[`parameters[${index}]`] = message;
-          }
-        });
-        break;
-      case 'states':
-        component.states.forEach((state, index) => {
-          try {
-            subsystemSchema(componentList, pythonSrc).validateSyncAt(`states[${index}]`, component);
-            // Remove error message from the name key of the object
-            delete currErrors[`states[${index}]`];
-
-          } catch (error) {
-            console.log(error);
-            const { message } = error;
-            if (throwable) throwErrorIfMissingFields(message);
-
-            currErrors[`states[${index}]`] = message;
-          }
-        });
-        break;
-      default:
-        try {
-          if (component.parent === undefined) { // Asset
-            assetSchema.validateSyncAt(name, component);
-          } else { // Subsystem
-            subsystemSchema(componentList, pythonSrc).validateSyncAt(name, component);
-          }
-          // Remove error message from the name key of the object
-          delete currErrors[name];
-
-        } catch (error) {
-          console.log(error);
-          const { message } = error;
-          if (throwable) throwErrorIfMissingFields(message);
-
-          currErrors[name] = message;
-        }
-    }
-
-    if (Object.keys(currErrors).length > 0) {
-      newFormErrors[component.id] = currErrors;
-    } else {
-      delete newFormErrors[component.id];
-    }
-    return newFormErrors;
-  });
-}
-
-function validateComponent(component, setFormErrors, componentList, pythonSrc, throwable = false) {
-  setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
-    const currErrors = newFormErrors[component.id] || {};
-
-    Object.entries(component).forEach(([name, value]) => {
       switch (name) {
-        case 'id':
-          break; // Skip id
         case 'integratorOptions':
-          Object.entries(value).forEach(([key, value]) => {
+          Object.entries(component.integratorOptions).forEach(([key, value]) => {
             try {
               assetSchema.validateSyncAt(`integratorOptions.${key}`, component);
               // Remove error message from the name key of the object
@@ -313,7 +215,7 @@ function validateComponent(component, setFormErrors, componentList, pythonSrc, t
           });
           break;
         case 'integratorParameters':
-          value.forEach((parameter, index) => {
+          component.integratorParameters.forEach((parameter, index) => {
             try {
               assetSchema.validateSyncAt(`integratorParameters[${index}]`, component);
               // Remove error message from the name key of the object
@@ -329,7 +231,7 @@ function validateComponent(component, setFormErrors, componentList, pythonSrc, t
           });
           break;
         case 'parameters':
-          value.forEach((parameter, index) => {
+          component.parameters.forEach((parameter, index) => {
             try {
               subsystemSchema(componentList, pythonSrc).validateSyncAt(`parameters[${index}]`, component);
               // Remove error message from the name key of the object
@@ -345,7 +247,7 @@ function validateComponent(component, setFormErrors, componentList, pythonSrc, t
           });
           break;
         case 'states':
-          value.forEach((state, index) => {
+          component.states.forEach((state, index) => {
             try {
               subsystemSchema(componentList, pythonSrc).validateSyncAt(`states[${index}]`, component);
               // Remove error message from the name key of the object
@@ -378,22 +280,29 @@ function validateComponent(component, setFormErrors, componentList, pythonSrc, t
             currErrors[name] = message;
           }
       }
-    });
 
-    if (Object.keys(currErrors).length > 0) {
-      newFormErrors[component.id] = currErrors;
-    } else {
-      delete newFormErrors[component.id];
+      if (Object.keys(currErrors).length > 0) {
+        newFormErrors[component.id] = currErrors;
+      } else {
+        delete newFormErrors[component.id];
+      }
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
     }
-    return newFormErrors;
   });
+
+  if (importError) throw importError;
 }
 
-function validateAllComponents(componentList, setFormErrors, pythonSrc, throwable = false) {
-  // Validate each component and update formErrors if there are errors
+function validateComponent(component, setFormErrors, componentList, pythonSrc, throwable = false) {
+  let importError = null;
+
+  // Validate each parameter and update formErrors if there are errors
   setFormErrors((formErrors) => {
-    const newFormErrors = { ...formErrors };
-    componentList.forEach(component => {
+    try {
+      const newFormErrors = { ...formErrors };
       const currErrors = newFormErrors[component.id] || {};
 
       Object.entries(component).forEach(([name, value]) => {
@@ -483,14 +392,132 @@ function validateAllComponents(componentList, setFormErrors, pythonSrc, throwabl
             }
         }
       });
+
       if (Object.keys(currErrors).length > 0) {
         newFormErrors[component.id] = currErrors;
       } else {
         delete newFormErrors[component.id];
       }
-    });
-    return newFormErrors;
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
+    }
   });
+
+  if (importError) throw importError;
+}
+
+function validateAllComponents(componentList, setFormErrors, pythonSrc, throwable = false) {
+  let importError = null;
+  // Validate each component and update formErrors if there are errors
+  setFormErrors((formErrors) => {
+    try {
+      const newFormErrors = { ...formErrors };
+      componentList.forEach(component => {
+        const currErrors = newFormErrors[component.id] || {};
+
+        Object.entries(component).forEach(([name, value]) => {
+          switch (name) {
+            case 'id':
+              break; // Skip id
+            case 'integratorOptions':
+              Object.entries(value).forEach(([key, value]) => {
+                try {
+                  assetSchema.validateSyncAt(`integratorOptions.${key}`, component);
+                  // Remove error message from the name key of the object
+                  delete currErrors[`integratorOptions.${key}`];
+
+                } catch (error) {
+                  console.log(error);
+                  const { message } = error;
+                  if (throwable) throwErrorIfMissingFields(message);
+
+                  currErrors[`integratorOptions.${key}`] = message;
+                }
+              });
+              break;
+            case 'integratorParameters':
+              value.forEach((parameter, index) => {
+                try {
+                  assetSchema.validateSyncAt(`integratorParameters[${index}]`, component);
+                  // Remove error message from the name key of the object
+                  delete currErrors[`integratorParameters[${index}]`];
+
+                } catch (error) {
+                  console.log(error);
+                  const { message } = error;
+                  if (throwable) throwErrorIfMissingFields(message);
+
+                  currErrors[`integratorParameters[${index}]`] = message;
+                }
+              });
+              break;
+            case 'parameters':
+              value.forEach((parameter, index) => {
+                try {
+                  subsystemSchema(componentList, pythonSrc).validateSyncAt(`parameters[${index}]`, component);
+                  // Remove error message from the name key of the object
+                  delete currErrors[`parameters[${index}]`];
+
+                } catch (error) {
+                  console.log(error);
+                  const { message } = error;
+                  if (throwable) throwErrorIfMissingFields(message);
+
+                  currErrors[`parameters[${index}]`] = message;
+                }
+              });
+              break;
+            case 'states':
+              value.forEach((state, index) => {
+                try {
+                  subsystemSchema(componentList, pythonSrc).validateSyncAt(`states[${index}]`, component);
+                  // Remove error message from the name key of the object
+                  delete currErrors[`states[${index}]`];
+
+                } catch (error) {
+                  console.log(error);
+                  const { message } = error;
+                  if (throwable) throwErrorIfMissingFields(message);
+
+                  currErrors[`states[${index}]`] = message;
+                }
+              });
+              break;
+            default:
+              try {
+                if (component.parent === undefined) { // Asset
+                  assetSchema.validateSyncAt(name, component);
+                } else { // Subsystem
+                  subsystemSchema(componentList, pythonSrc).validateSyncAt(name, component);
+                }
+                // Remove error message from the name key of the object
+                delete currErrors[name];
+
+              } catch (error) {
+                console.log(error);
+                const { message } = error;
+                if (throwable) throwErrorIfMissingFields(message);
+
+                currErrors[name] = message;
+              }
+          }
+        });
+        if (Object.keys(currErrors).length > 0) {
+          newFormErrors[component.id] = currErrors;
+        } else {
+          delete newFormErrors[component.id];
+        }
+      });
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
+    }
+  });
+
+  if (importError) throw importError;
 }
 
 export { validateComponentAt, validateComponent, validateAllComponents };
