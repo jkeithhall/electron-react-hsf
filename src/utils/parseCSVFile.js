@@ -20,9 +20,14 @@ export default function parseCSVFile(content, setTaskList, setTaskErrors) {
       'Altitude': null,
       'EOMS': null,
     }
+    if (header.length < Object.keys(columnIndex).length) {
+      throw new Error('Invalid number of columns');
+    }
     header.forEach((column, index) => {
       if (column in columnIndex) {
         columnIndex[column] = index;
+      } else {
+        throw new Error(`Invalid column name: ${column}`);
       }
     });
 

@@ -33,13 +33,15 @@ const dependencySchema = (componentList) => object({
       return componentList.find((component) => component.id === value && component.parent === depAsset) !== undefined;
     }),
   fcnName: string('Function Name must be a string')
-    .min(1, 'Function Name must be at least 1 character')
-    .test('no-injection', 'Function Name contains invalid characters', noInjection),
+    .optional()
+    .test('no-injection', 'Function Name contains invalid characters', noInjection)
 });
 
 // Currently dependencies are validated only on import; no errors are set in state and all errors are thrown during import
 function validateDependency(dependency, componentList) {
+  console.log('Validating dependency', dependency);
   Object.entries(dependency).forEach(([name, value]) => {
+    if (name === 'id') return; // Skip id
     dependencySchema(componentList).validateSyncAt(name, dependency);
   });
 }

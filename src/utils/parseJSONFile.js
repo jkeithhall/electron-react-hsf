@@ -69,17 +69,15 @@ function setModel(
   const throwable = true; // Throw error if required fields are missing rather than setting validation errors in state
 
   validateAllComponents(systemComponents, setModelErrors, pythonSrc, throwable);
-  setComponentList(systemComponents);
-
   // Currently any dependency errors will be thrown during import: any errors result in a failed import
   // There is no dependency error state to set
   validateAllDependencies(systemDependencies, systemComponents);
-  setDependencyList(systemDependencies);
-
   validateAllConstraints(systemConstraints, setConstraintErrors, systemComponents, throwable);
-  setConstraints(systemConstraints);
-
   validateEvaluator(systemEvaluator, setScenarioErrors, systemComponents, pythonSrc, throwable);
+
+  setComponentList(systemComponents);
+  setDependencyList(systemDependencies);
+  setConstraints(systemConstraints);
   setEvaluator(systemEvaluator);
   return { systemComponents, systemDependencies, systemConstraints, systemEvaluator };
 }
@@ -97,7 +95,7 @@ export default function parseJSONFile(fileType, content, setStateMethods, setVal
         return setTasks(parsedJSON, setTaskList, setTaskErrors);
       case 'System Model':
         return setModel(
-          parseModel(parsedJSON),
+          parseModel(parsedJSON.model),
           pythonSrc,
           setComponentList,
           setDependencyList,
