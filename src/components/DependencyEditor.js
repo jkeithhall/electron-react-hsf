@@ -10,6 +10,8 @@ import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
 import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 
+import { validateDependency } from '../utils/validateDependencies';
+
 export default function DependencyEditor ({
   componentA,
   componentB,
@@ -17,6 +19,8 @@ export default function DependencyEditor ({
   setEdges,
   dependencyList,
   setDependencyList,
+  dependencyErrors,
+  setDependencyErrors,
 }) {
   const [ abDependencyID, setABDependencyID ] = useState(() => {
     return dependencyList.find((dependency) => {
@@ -119,6 +123,12 @@ export default function DependencyEditor ({
     direction === 'ab' ? setABDependencyID(null) : setBADependencyID(null);
   }
 
+  const handleBlur = (direction) => () => {
+    const dependencyId = direction === 'ab' ? abDependencyID : baDependencyID;
+    const dependency = dependencyList.find((dependency) => dependency.id === dependencyId);
+    validateDependency(dependency, setDependencyErrors, componentList);
+  }
+
   const abFcnName = dependencyList.find((dependency) => dependency.id === abDependencyID)?.fcnName ?? '';
   const baFcnName = dependencyList.find((dependency) => dependency.id === baDependencyID)?.fcnName ?? '';
 
@@ -162,8 +172,11 @@ export default function DependencyEditor ({
             variant="outlined"
             color='primary'
             value={abFcnName}
+            error={dependencyErrors[abDependencyID]?.fcnName !== undefined}
+            helperText={dependencyErrors[abDependencyID]?.fcnName}
             type='text'
             onChange={handleDepFcnChange('ab')}
+            onBlur={handleBlur('ab')}
           />
         }
       </Box>
@@ -225,8 +238,11 @@ export default function DependencyEditor ({
             variant="outlined"
             color='primary'
             value={baFcnName}
+            error={dependencyErrors[baDependencyID]?.fcnName !== undefined}
+            helperText={dependencyErrors[baDependencyID]?.fcnName}
             type='text'
             onChange={handleDepFcnChange('ba')}
+            onBlur={handleBlur('ba')}
           />
         }
       </Box>

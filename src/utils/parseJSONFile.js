@@ -52,6 +52,7 @@ function setModel(
   setEvaluator,
   setScenarioErrors,
   setModelErrors,
+  setDependencyErrors,
   setConstraintErrors) {
   let { systemComponents, systemDependencies, systemConstraints, systemEvaluator } = parsedModel;
   if (!systemComponents) { // Check for components
@@ -69,9 +70,7 @@ function setModel(
   const throwable = true; // Throw error if required fields are missing rather than setting validation errors in state
 
   validateAllComponents(systemComponents, setModelErrors, pythonSrc, throwable);
-  // Currently any dependency errors will be thrown during import: any errors result in a failed import
-  // There is no dependency error state to set
-  validateAllDependencies(systemDependencies, systemComponents);
+  validateAllDependencies(systemDependencies, setDependencyErrors, systemComponents, throwable);
   validateAllConstraints(systemConstraints, setConstraintErrors, systemComponents, throwable);
   validateEvaluator(systemEvaluator, setScenarioErrors, systemComponents, pythonSrc, throwable);
 
@@ -84,7 +83,7 @@ function setModel(
 
 export default function parseJSONFile(fileType, content, setStateMethods, setValidationErrors, pythonSrc) {
   const { setSimulationInput, setTaskList, setComponentList, setDependencyList, setConstraints, setEvaluator } = setStateMethods;
-  const { setScenarioErrors, setTaskErrors, setModelErrors, setConstraintErrors } = setValidationErrors;
+  const { setScenarioErrors, setTaskErrors, setModelErrors, setDependencyErrors, setConstraintErrors } = setValidationErrors;
   try {
     const parsedJSON = JSON.parse(content);
 
@@ -103,6 +102,7 @@ export default function parseJSONFile(fileType, content, setStateMethods, setVal
           setEvaluator,
           setScenarioErrors,
           setModelErrors,
+          setDependencyErrors,
           setConstraintErrors);
       case 'SIM':
         const { tasks, model, ...scenario } = parsedJSON;
@@ -119,6 +119,7 @@ export default function parseJSONFile(fileType, content, setStateMethods, setVal
           setEvaluator,
           setScenarioErrors,
           setModelErrors,
+          setDependencyErrors,
           setConstraintErrors
         );
 

@@ -170,12 +170,14 @@ function validateAllTasks(tasks, setFormErrors, throwable = false) {
           delete newFormErrors[task.id];
         }
       });
+
       return newFormErrors;
     } catch (thrownImportError) {
       importError = thrownImportError;
       return formErrors;
     }
   });
+
   if (importError) throw importError;
 }
 

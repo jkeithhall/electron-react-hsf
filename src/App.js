@@ -57,6 +57,7 @@ export default function App() {
   const [scenarioErrors, setScenarioErrors] = useState({});
   const [taskErrors, setTaskErrors] = useState({});
   const [modelErrors, setModelErrors] = useState({});
+  const [dependencyErrors, setDependencyErrors] = useState({});
   const [constraintErrors, setConstraintErrors] = useState({});
 
   // Bundling state methods
@@ -81,6 +82,7 @@ export default function App() {
     setScenarioErrors,
     setTaskErrors,
     setModelErrors,
+    setDependencyErrors,
     setConstraintErrors,
   }
 
@@ -331,6 +333,8 @@ export default function App() {
               componentList={componentList}
               dependencyList={dependencyList}
               setDependencyList={setDependencyList}
+              dependencyErrors={dependencyErrors}
+              setDependencyErrors={setDependencyErrors}
             />,
           'Constraints':
             <ConstraintsTable
@@ -352,8 +356,13 @@ export default function App() {
               scenarioErrors={scenarioErrors}
               tasksErrors={taskErrors}
               modelErrors={modelErrors}
+              dependencyErrors={dependencyErrors}
               constraintsErrors={constraintErrors}
+              taskList={taskList}
               componentList={componentList}
+              dependencyList={dependencyList}
+              constraints={constraints}
+              evaluator={evaluator}
             />,
           'Analyze': <></>
           }[activeStep]}

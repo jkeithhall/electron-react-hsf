@@ -35,8 +35,13 @@ export default function SimulateStep({
   scenarioErrors,
   tasksErrors,
   modelErrors,
+  dependencyErrors,
   constraintsErrors,
+  taskList,
   componentList,
+  dependencyList,
+  constraints,
+  evaluator,
 }) {
   const theme = useTheme();
   const [precheckStep, setPrecheckStep] = useState(0);
@@ -54,32 +59,60 @@ export default function SimulateStep({
   };
 
   const validateParameters = () => {
-    console.log('Validating parameters');
+    console.log('Checking for errors in parameters');
     const hasScenarioErrors = Object.keys(scenarioErrors).length > 0;
-    const hasModelErrors = Object.keys(modelErrors).length > 0;
     const hasTasksErrors = Object.keys(tasksErrors).length > 0;
+    const hasModelErrors = Object.keys(modelErrors).length > 0;
+    const hasDependencyErrors = Object.keys(dependencyErrors).length > 0;
     const hasConstraintsErrors = Object.keys(constraintsErrors).length > 0;
 
-    if (hasScenarioErrors || hasModelErrors || hasTasksErrors || hasConstraintsErrors) {
+    if (hasScenarioErrors ||
+        hasTasksErrors ||
+        hasModelErrors ||
+        hasDependencyErrors ||
+        hasConstraintsErrors) {
       let errorMessage = '';
       if (hasScenarioErrors) {
         errorMessage += 'Please correct errors in the scenario step.\n';
       }
       if (hasTasksErrors) {
-        errorMessage += 'Please correct errors in the tasks step.\n';
+        errorMessage += 'Please correct errors in the following rows in the tasks table:\n';
+        Object.keys(tasksErrors).forEach((key, index) => {
+          const task = taskList.find((t) => t.id === key);
+          const taskIndex = taskList.indexOf(task) + 1;
+
+          errorMessage += `Row ${taskIndex}` + (index < Object.keys(tasksErrors).length - 1 ? ', ' : '.\n');
+        });
       }
       if (hasModelErrors) {
-        errorMessage += `Please correct errors in model component${Object.keys(modelErrors).length > 1 ? 's' : ''}\n`;
-        Object.keys(modelErrors).forEach((key) => {
+        errorMessage += `Please correct errors in the following components:\n`;
+        Object.keys(modelErrors).forEach((key, index) => {
           const component = componentList.find((c) => c.id === key);
           const parentName = componentList.find((c) => c.id === component.parent)?.name;
           const displayName = `${component.name}` + (parentName ? ` (${parentName})` : '');
-          errorMessage += `${displayName}, `;
+          errorMessage += `${displayName}` + (index < Object.keys(modelErrors).length - 1 ? ', ' : '.\n');
         });
-        errorMessage = errorMessage.slice(0, -2) + '.\n';
+      }
+      if (hasDependencyErrors) {
+        errorMessage += `Please correct errors in the following dependencies:\n`;
+        Object.entries(dependencyErrors).forEach(([key, value], index) => {
+          const dependency = dependencyList.find((d) => d.id === key);
+          const subsystem = componentList.find((c) => c.id === dependency.subsystem)?.name;
+          const depSubsystem = componentList.find((c) => c.id === dependency.depSubsystem)?.name;
+          const asset = componentList.find((c) => c.id === dependency.asset)?.name;
+          const depAsset = componentList.find((c) => c.id === dependency.depAsset)?.name;
+          const dependencyName = `${subsystem} (${asset}) → ${depSubsystem} (${depAsset})`;
+          errorMessage += `${dependencyName}` + (index < Object.keys(dependencyErrors).length - 1 ? ', ' : '.\n');
+        });
       }
       if (hasConstraintsErrors) {
-        errorMessage += 'Please correct errors in the constraints step.\n';
+        errorMessage += 'Please correct errors in the following rows in the constraints table:\n';
+        Object.keys(constraintsErrors).forEach((key, index) => {
+          const constraint = constraints.find((c) => c.id === key);
+          const constraintIndex = constraints.indexOf(constraint) + 1;
+
+          errorMessage += `Row ${constraintIndex}` + (index < Object.keys(constraintsErrors).length - 1 ? ', ' : '.\n');
+        });
       }
       setStepStatus((prevStepStatus) => ({
         ...prevStepStatus,

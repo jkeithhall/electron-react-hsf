@@ -18,6 +18,8 @@ export default function DependencyGraph({
   componentList,
   dependencyList,
   setDependencyList,
+  dependencyErrors,
+  setDependencyErrors,
 }) {
   const { initialDependencyNodes, initialDependencyEdges } = createDependencyNodesEdges(componentList, dependencyList);
   const [nodes, setNodes, onNodesChange] = useNodesState(initialDependencyNodes);
@@ -283,6 +285,8 @@ export default function DependencyGraph({
           setEdges={setEdges}
           dependencyList={dependencyList}
           setDependencyList={setDependencyList}
+          dependencyErrors={dependencyErrors}
+          setDependencyErrors={setDependencyErrors}
           handlePaletteClose={handlePaletteClose}
         />
       }

@@ -1,5 +1,5 @@
 import { string, object } from 'yup';
-import { noInjection, throwErrorIfMissingFields } from './validateScenario';
+import { noInjection } from './validateScenario';
 
 const dependencySchema = (componentList) => object({
   asset: string('Asset must be a string')
@@ -37,20 +37,90 @@ const dependencySchema = (componentList) => object({
     .test('no-injection', 'Function Name contains invalid characters', noInjection)
 });
 
-// Currently dependencies are validated only on import; no errors are set in state and all errors are thrown during import
-function validateDependency(dependency, componentList) {
-  console.log('Validating dependency', dependency);
-  Object.entries(dependency).forEach(([name, value]) => {
-    if (name === 'id') return; // Skip id
-    dependencySchema(componentList).validateSyncAt(name, dependency);
+// Currently all errors are thrown during import
+function validateDependency(dependency, setFormErrors, componentList, throwable = false) {
+  let importError = null;
+
+  setFormErrors((formErrors) => {
+    try {
+      const newFormErrors = { ...formErrors };
+      const currErrors = newFormErrors[dependency.id] || {};
+
+      Object.entries(dependency).forEach(([name, value]) => {
+        if (name === 'id') return; // Skip id
+
+        try {
+          dependencySchema(componentList).validateSyncAt(name, dependency);
+          // Remove error message from the name key of the object
+          delete currErrors[name];
+
+        } catch (error) {
+          console.log(error);
+          const { message } = error;
+
+          // Throw error if the missing fields are required
+          if (throwable) throw new Error(message);
+          currErrors[name] = message;
+        }
+      });
+
+      if (Object.keys(currErrors).length > 0) {
+        newFormErrors[dependency.id] = currErrors;
+      } else {
+        delete newFormErrors[dependency.id];
+      }
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+    }
   });
+
+  if (importError) throw importError;
 }
 
-// Currently dependencies are validated only on import; no errors are set in state and all errors are thrown during import
-function validateAllDependencies(dependencies, componentList) {
-  dependencies.forEach(dependency => {
-    validateDependency(dependency, componentList);
+// Currently all errors are thrown during import
+function validateAllDependencies(dependencies, setFormErrors, componentList, throwable = false) {
+  let importError = null;
+
+  setFormErrors((formErrors) => {
+    try {
+      const newFormErrors = { ...formErrors };
+      dependencies.forEach((dependency, index) => {
+        const currErrors = newFormErrors[dependency.id] || {};
+
+        Object.entries(dependency).forEach(([name, value]) => {
+          if (name === 'id') return; // Skip id
+
+          try {
+            dependencySchema(componentList).validateSyncAt(name, dependency);
+            // Remove error message from the name key of the object
+            delete currErrors[name];
+
+          } catch (error) {
+            console.log(error);
+            const { message } = error;
+
+            // Throw error if the missing fields are required
+            if (throwable) throw new Error(message);
+            currErrors[name] = message;
+          }
+        });
+
+        if (Object.keys(currErrors).length > 0) {
+          newFormErrors[dependency.id] = currErrors;
+        } else {
+          delete newFormErrors[dependency.id];
+        }
+      });
+
+      return newFormErrors;
+    } catch (thrownImportError) {
+      importError = thrownImportError;
+      return formErrors;
+    }
   });
+
+  if (importError) throw importError;
 }
 
 export { validateDependency, validateAllDependencies };
