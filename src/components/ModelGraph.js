@@ -9,6 +9,9 @@ import EditingPalette from './EditingPalette.js';
 
 export default function ModelGraph({
   navOpen,
+  activeStep,
+  setActiveStep,
+  pythonSrc,
   componentList,
   setComponentList,
   dependencyList,
@@ -16,9 +19,6 @@ export default function ModelGraph({
   constraints,
   setConstraints,
   setEvaluator,
-  activeStep,
-  setActiveStep,
-  pythonSrc,
   nodes,
   edges,
   setNodes,
@@ -27,6 +27,8 @@ export default function ModelGraph({
   onEdgesChange,
   modelErrors,
   setModelErrors,
+  constraintErrors,
+  setConstraintErrors,
   setErrorModalOpen,
   setErrorMessage
 }) {
@@ -86,6 +88,7 @@ export default function ModelGraph({
                 componentList={componentList}
                 setComponentList={setComponentList}
                 dependencyList={dependencyList}
+                setDependencyList={setDependencyList}
                 setConstraints={setConstraints}
                 selectedNodeId={selectedNodeId}
                 setSelectedNodeData={setSelectedNodeData}
@@ -118,6 +121,8 @@ export default function ModelGraph({
           pythonSrc={pythonSrc}
           modelErrors={modelErrors}
           setModelErrors={setModelErrors}
+          constraintErrors={constraintErrors}
+          setConstraintErrors={setConstraintErrors}
         />}
     </>
   );

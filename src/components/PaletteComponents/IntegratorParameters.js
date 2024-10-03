@@ -97,8 +97,8 @@ export default function IntegratorParameters({integratorParameters, id, setCompo
                 value={value}
                 type='text'
                 onChange={handleChange}
-                error={errors[key] !== undefined}
-                helperText={errors[key]}
+                error={errors[`integratorParameters[${index}]`] !== undefined}
+                helperText={errors[`integratorParameters[${index}]`]}
                 onBlur={handleBlur}
               />
               <DeleteParameterButton
@@ -125,8 +125,8 @@ export default function IntegratorParameters({integratorParameters, id, setCompo
                 name={key}
                 value={value}
                 onChange={handleChange}
-                error={errors[key] !== undefined}
-                helperText={errors[key]}
+                error={errors[`integratorParameters[${index}]`] !== undefined}
+                helperText={errors[`integratorParameters[${index}]`]}
                 onBlur={handleBlur}
               >
                 <MenuItem key='true' value='true'>True</MenuItem>
@@ -142,8 +142,8 @@ export default function IntegratorParameters({integratorParameters, id, setCompo
               />
             </Stack>
           );
-        } else { // type === 'vector'
-          const errorMessage = errors[key];
+        } else { // type === 'vector' || type === 'Matrix
+          const errorMessage = errors[`integratorParameters[${index}]`];
           const invalidComponents = [];
           if (errorMessage) {
             ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach((component, index) => {

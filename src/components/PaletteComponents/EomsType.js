@@ -2,8 +2,9 @@ import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 
-export default function EomsType({ value, setComponentList, id, errors, handleBlur }) {
-  const eomsOptions = ['orbitalEOMS', 'EarthPerts', 'scriptedEOMS'];
+const eomsOptions = ['orbitalEOMS', 'EarthPerts', 'scriptedEOMS'];
+
+function EomsType({ value, setComponentList, id, errors, handleBlur }) {
   const handleChange = (e) => {
     let { name, value } = e.target;
 
@@ -40,3 +41,5 @@ export default function EomsType({ value, setComponentList, id, errors, handleBl
     </Grid>
   )
 }
+
+export { eomsOptions, EomsType };

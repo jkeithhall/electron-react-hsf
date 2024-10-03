@@ -1,4 +1,5 @@
 import { copyParameters } from './parseModel';
+import typecastNumbers from './typecastNumbers';
 
 export default function reformatModel(componentList, dependencyList, constraints, parsedEvaluator) {
   const assets = [];
@@ -10,12 +11,12 @@ export default function reformatModel(componentList, dependencyList, constraints
         name: component.name,
         dynamicState: {
           type: component.dynamicStateType,
-          stateData: [...component.stateData],
+          stateData: typecastNumbers([...component.stateData]),
           Eoms: {
             type: component.eomsType,
           },
-          integratorOptions: {...component.integratorOptions},
-          integratorParameters: copyParameters(component.integratorParameters),
+          integratorOptions: typecastNumbers({...component.integratorOptions}),
+          integratorParameters: typecastNumbers(copyParameters(component.integratorParameters)),
         },
         subsystems: [],
         constraints: [],
@@ -36,10 +37,10 @@ export default function reformatModel(componentList, dependencyList, constraints
         className: component.className,
       };
       if (component.parameters.length > 0) {
-        subsystem.parameters = component.parameters;
+        subsystem.parameters = typecastNumbers(component.parameters);
       }
       if (component.states.length > 0) {
-        subsystem.states = component.states;
+        subsystem.states = typecastNumbers(component.states);
       }
       const parent = assets.find((asset) => asset.id === component.parent);
       parent.subsystems.push(subsystem);
@@ -51,7 +52,7 @@ export default function reformatModel(componentList, dependencyList, constraints
             name: constraint.name,
             subsystemName: component.name,
             type: constraint.type,
-            value: constraint.value,
+            value: typecastNumbers(constraint.value),
             state: {type: constraint.stateType, key: constraint.stateKey},
           });
         }
@@ -100,5 +101,7 @@ export default function reformatModel(componentList, dependencyList, constraints
     }),
   };
 
-  return { assets, dependencies, evaluator };
+  return {
+    model: { assets, dependencies, evaluator }
+  };
 }

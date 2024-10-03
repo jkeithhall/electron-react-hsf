@@ -7,6 +7,25 @@ const assetWidth = 500;
 const subcomponentHeight = 40;
 const subcomponentWidth = 120;
 
+const assetColors = {};
+
+const assetType = 'asset';
+const subcomponentType = 'subcomponent';
+
+const modelEdgeConfig = {
+  type: 'smoothstep',
+  markerEnd: {
+    type: 'arrowclosed',
+    width: 15,
+    height: 15,
+    color: '#000',
+  },
+  style: {
+    strokeWidth: 2,
+    stroke: '#000',
+  },
+};
+
 const createModelNodesEdges = function(componentList, dependencyList) {
   let nodes = [];
   let edges = [];
@@ -22,21 +41,25 @@ const createModelNodesEdges = function(componentList, dependencyList) {
       data: { label: component.name, data: component },
     }
     if (component.parent === undefined) { // Asset
-      node.type = 'asset';
+      node.type = assetType;
       node.position = { x: assetCount * (assetWidth + 50), y: 0 };
-      const backgroundColor = randomColor({
-        hue: BASE_COLORS[assetCount % BASE_COLORS.length],
-        luminosity: 'light',
-        format: 'rgba',
-        alpha: 0.5,
-      });
-      node.data.backgroundColor = backgroundColor;
+
+      if (!assetColors[component.id]) {
+        const backgroundColor = randomColor({
+          hue: BASE_COLORS[assetCount % BASE_COLORS.length],
+          luminosity: 'light',
+          format: 'rgba',
+          alpha: 0.5,
+        });
+        assetColors[component.id] = backgroundColor;
+      }
+      node.data.backgroundColor = assetColors[component.id];
       node.style = { width: assetWidth, height: assetHeight };
       assetCount++;
       subsystemCount[component.id] = 0;
     } else { // Subcomponent
       const subsystemNum = subsystemCount[component.parent];
-      node.type = 'subcomponent';
+      node.type = subcomponentType;
       node.position = { x: 87 * subsystemNum, y: -90 * subsystemNum + (assetHeight - 40) };
       node.style = { width: subcomponentWidth, height: subcomponentHeight };
       node.extent = 'parent';
@@ -51,24 +74,16 @@ const createModelNodesEdges = function(componentList, dependencyList) {
   dependencyList.forEach((dependency) => {
     edges.push({
       id: dependency.id,
-      source: dependency.depSubsystem,
-      target: dependency.subsystem,
+      source: dependency.subsystem,
+      target: dependency.depSubsystem,
       data: dependency.fcnName,
-      type: 'smoothstep',
-      markerEnd: {
-        type: 'arrowclosed',
-        width: 15,
-        height: 15,
-        color: '#000',
-      },
-      style: {
-        strokeWidth: 2,
-        stroke: '#000',
-      },
+      type: modelEdgeConfig.type,
+      markerEnd: { ...modelEdgeConfig.markerEnd },
+      style: { ...modelEdgeConfig.style },
     });
   });
 
   return { initialNodes: nodes, initialEdges: edges };
 }
 
-export default createModelNodesEdges;
+export { createModelNodesEdges, assetType, subcomponentType, modelEdgeConfig };

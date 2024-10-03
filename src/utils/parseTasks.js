@@ -1,7 +1,7 @@
 import { randomId } from '@mui/x-data-grid-generator';
 
-const flattenTasks = (taskList) => {
-  const flattenedTasks = taskList.map(task => {
+const flattenTasks = ({ tasks }) => {
+  const flattenedTasks = tasks.map(task => {
     const { target, ...rest } = task;
     const { name, type, value, dynamicState } = target;
     const { integratorType, stateData, eoms } = dynamicState;

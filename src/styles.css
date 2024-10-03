@@ -1,6 +1,7 @@
 :root {
     --font-secondary: 'Poppins', sans-serif;
     --font-primary: 'Roboto Mono', monospace;
+    --font-monospace: 'Courier Prime', monospace;
     --primary-background-color: #1f2330;
     --secondary--background-color: #2f3e4e;
     --react-flow-background-color: #535671;
@@ -16,6 +17,7 @@
     --work-space-padding: 30px;
     --work-space-height: calc(100vh - var(--header-height) -
     - 2 * var(--work-space-padding) - var(--footer-height));
+    --dependency-drop-down-height: 76px;
     --sources-width: 570px;
     --evaluator-parameters-width: 500px;
     --simulation-parameters-width: 300px;
@@ -66,6 +68,7 @@ p, h1, h2, h3, h4, h5, h6 {
 @import url('https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200;400;500;600;800&family=VT323&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 body {
     font-family: var(--font-primary);
@@ -282,11 +285,23 @@ footer {
     2 * var(--work-space-padding));
 }
 
+.dependency-editor {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0px;
+}
+
 .react-flow-board {
     align-self: first baseline;
     width: 100%;
     height: calc(100vh - var(--header-height) -
     2 * var(--work-space-padding) - var(--footer-height));
+}
+
+.dependency-flow-board {
+    height: calc(100vh - var(--header-height) -
+    2 * var(--work-space-padding) - var(--footer-height) -
+    var(--dependency-drop-down-height));
 }
 
 .react-flow__renderer {
@@ -352,14 +367,22 @@ footer {
 
 .calendar-stacking-context {
     background-color: white;
+    border-radius: 5px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
     align-items: space-between;
     position: absolute;
+    transform: translate(0, -119%);
     z-index: 2;
     height: var(--calendar-stacking-context-height);
     width: var(--calendar-stacking-context-width);
+}
+
+@media (max-width: 1349px) {
+    .calendar-stacking-context {
+        transform: translate(-101%, -19%);
+    }
 }
 
 .drag-drop-container {

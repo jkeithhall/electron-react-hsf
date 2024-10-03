@@ -30,6 +30,10 @@ export default function EditingPalette({
   pythonSrc,
   modelErrors,
   setModelErrors,
+  dependencyErrors,
+  setDependencyErrors,
+  constraintErrors,
+  setConstraintErrors,
  }) {
 
   return (
@@ -79,6 +83,8 @@ export default function EditingPalette({
         pythonSrc={pythonSrc}
         modelErrors={modelErrors}
         setModelErrors={setModelErrors}
+        constraintErrors={constraintErrors}
+        setConstraintErrors={setConstraintErrors}
         setEvaluator={setEvaluator}
         setNodes={setNodes}
         setEdges={setEdges}
@@ -103,6 +109,8 @@ export default function EditingPalette({
         setEdges={setEdges}
         dependencyList={dependencyList}
         setDependencyList={setDependencyList}
+        dependencyErrors={dependencyErrors}
+        setDependencyErrors={setDependencyErrors}
       />}
     </Drawer>
   );

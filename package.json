@@ -33,6 +33,7 @@
   "main": "public/main.js",
   "homepage": "./",
   "scripts": {
+    "postinstall": "git submodule update --init --recursive && cd Horizon && git checkout 5d3a10a",
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "jest /__tests__/ --config=jest.config.js",

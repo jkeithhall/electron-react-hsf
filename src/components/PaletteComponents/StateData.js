@@ -1,6 +1,7 @@
 import Typography from '@mui/material/Typography';
 import Grid from '@mui/material/Grid';
 import TextField from '@mui/material/TextField';
+import InputAdornment from '@mui/material/InputAdornment';
 
 const stateComponents = ['x', 'y', 'z', 'v_x', 'v_y', 'v_z'];
 
@@ -55,6 +56,10 @@ export default function StateData({ stateData, setComponentList, id, errors, han
                 onChange={handleChange}
                 error={stateDataError && stateDataErrorIndices.includes(index)}
                 onBlur={handleBlur}
+                // Units are km
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">{index < 3 ? 'km' : 'km/s'}</InputAdornment>,
+                }}
               />
             </Grid>
           )

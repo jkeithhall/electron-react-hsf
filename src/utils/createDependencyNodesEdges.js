@@ -1,5 +1,19 @@
 const nodeSize = 50;
 
+const depEdgeConfig = {
+  type: 'function',
+  markerEnd: {
+    type: 'arrowclosed',
+    width: 15,
+    height: 15,
+    color: '#EEE',
+  },
+  style: {
+    strokeWidth: 1,
+    stroke: '#EEE',
+  },
+};
+
 const createDependencyNodesEdges = function(componentList, dependencyList) {
   let initialDependencyNodes = [];
   let initialDependencyEdges = [];
@@ -45,37 +59,29 @@ const createDependencyNodesEdges = function(componentList, dependencyList) {
     depAsset,
     fcnName,
   }) => {
-    let sourceHandle = 'right';
-    let targetHandle = 'top';
+    let sourceHandle = 'left';
+    let targetHandle = 'bottom';
     const firstComponent = componentList.find(c => c.id === subsystem || c.id === depSubsystem);
     if (firstComponent.id === subsystem) {
-      sourceHandle = 'left';
+      sourceHandle = 'right';
       targetHandle = 'top';
     }
 
     initialDependencyEdges.push({
       id,
-      source: depSubsystem,
-      target: subsystem,
+      source: subsystem,
+      target: depSubsystem,
       sourceHandle,
       targetHandle,
       data: fcnName,
-      type: 'function',
+      type: depEdgeConfig.type,
       label: fcnName ? '⨍' : null,
-      markerEnd: {
-        type: 'arrowclosed',
-        width: 15,
-        height: 15,
-        color: '#EEE',
-      },
-      style: {
-        strokeWidth: 1,
-        stroke: '#EEE',
-      },
+      markerEnd: { ...depEdgeConfig.markerEnd },
+      style: { ...depEdgeConfig.style },
     });
   });
 
   return { initialDependencyNodes, initialDependencyEdges };
 }
 
-export default createDependencyNodesEdges ;
+export { createDependencyNodesEdges, depEdgeConfig };

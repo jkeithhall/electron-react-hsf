@@ -5,6 +5,7 @@ import {
   GridActionsCellItem,
   GridRowEditStopReasons,
 } from '@mui/x-data-grid';
+import { styled, useTheme } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
 import DeleteIcon from '@mui/icons-material/Delete';
 import Tooltip from '@mui/material/Tooltip';
@@ -13,18 +14,65 @@ import ConfirmationModal from './ConfirmationModal';
 
 import { constraintTypeOptions } from './PaletteComponents/Constraints';
 import { convertDisplayName } from '../utils/displayNames';
+import { validateConstraintAt } from '../utils/validateConstraints';
 
-export default function ConstraintsTable({ navOpen, constraints, setConstraints, componentList }) {
+const StyledGrid = styled('div')(({ theme }) => ({
+  width: '100%',
+  height: '100%',
+  backgroundColor: '#eeeeee',
+  '& .Mui-error': {
+    backgroundColor: `rgb(126,10,15, ${theme.palette.mode === 'dark' ? 0 : 0.1})`,
+    color: theme.palette.error.main,
+  },
+}));
+
+const validateCellProps = (field, setConstraintErrors, componentList) => (params) => {
+  const { otherFieldsProps, id } = params;
+    const otherParams = Object.keys(otherFieldsProps).reduce((acc, key) => {
+      acc[key] = otherFieldsProps[key].value;
+      return acc;
+    }, {});
+  const constraint = { ...otherParams, id, [field]: params.props.value };
+  console.log(`Validating constraint ${id} at field ${field} with value ${params.props.value}`);
+  validateConstraintAt(constraint, field, setConstraintErrors, componentList);
+  return { ...params.props };
+}
+
+const ConstraintCell = ({ params, constraintErrors }) => {
+  const { id, field } = params;
+
+  return constraintErrors[id] && constraintErrors[id][field] ? (
+    <Tooltip title={constraintErrors[id][field]} placement="top">
+      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
+        {params.value}
+      </div>
+    </Tooltip>
+  ) : (
+    <div>{params.value}</div>
+  );
+};
+
+export default function ConstraintsTable({
+  navOpen,
+  constraints,
+  setConstraints,
+  componentList,
+  constraintErrors,
+  setConstraintErrors,
+}) {
+  const theme = useTheme();
   const [ rowModesModel, setRowModesModel ] = useState({});
   const [ confirmModalOpen, setConfirmModalOpen ] = useState(false);
   const [ selectedConstraintId, setSelectedConstraintId ] = useState('');
   const [ selectedConstraintName, setSelectedConstraintName ] = useState('');
 
+  // Create a map of component IDs to component names
   const componentNames = componentList.reduce((acc, component) => {
     acc[component.id] = component.name;
     return acc;
   }, {});
 
+  // Create a map of subsystem IDs to subsystem labels: component name [(parent name)]
   const subsystemLabels = componentList.reduce((acc, component) => {
     const { id, parent, states } = component;
     if (parent) {
@@ -36,6 +84,7 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
     return acc;
   }, {});
 
+  // Create an array of subsystem label options for the subsystem column
   const subsystemValueOptions = Object.entries(subsystemLabels).map(([id, label]) => {
     return { value: id, label: label };
   });
@@ -53,7 +102,7 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
       });
     }
     return options;
-  }
+  };
 
   const handleRowModesModelChange = (newRowModesModel) => {
     setRowModesModel(newRowModesModel);
@@ -62,7 +111,9 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
   const processRowUpdate = (newRow) => {
     const updatedRow = { ...newRow, isNew: false };
     const { stateKey } = newRow;
-    const stateType = stateKey ? componentList.find((component) => component.id === newRow.subsystem).states.find((state) => state.key === newRow.stateKey).type : '';
+    const stateType = stateKey ? componentList
+      .find((component) => component.id === newRow.subsystem).states
+      .find((state) => state.key === newRow.stateKey)?.type : null;
     const newConstraint = { ...newRow, stateType };
     delete newConstraint.isNew;
     setConstraints(constraints.map((row) => (row.id === newRow.id ? newConstraint : row)));
@@ -76,6 +127,11 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
       event.defaultMuiPrevented = true;
     }
   };
+
+  const getCellClassName = (params) => {
+    const { id, field } = params;
+    return constraintErrors[id] && constraintErrors[id][field] ? 'error' : '';
+  }
 
   const handleDeleteClick = (id) => () => {
     const constraint = constraints.find((row) => row.id === id);
@@ -91,6 +147,11 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
 
   const handleDeleteConfirm = (deleteRowId) => {
     setConstraints(constraints.filter((row) => row.id !== deleteRowId));
+    setConstraintErrors((prevErrors) => {
+      const updatedErrors = { ...prevErrors };
+      delete updatedErrors[selectedConstraintId];
+      return updatedErrors;
+    });
     setSelectedConstraintName('');
     setSelectedConstraintId('');
     setConfirmModalOpen(false);
@@ -120,22 +181,36 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
         ];
       },
     },
-    { field: 'name', headerName: 'Constraint Name', width: 150, editable: true },
+    {
+      field: 'name',
+      headerName: 'Constraint Name',
+      width: 150,
+      editable: true,
+      preProcessEditCellProps: validateCellProps('name', setConstraintErrors),
+      renderCell: (params) => <ConstraintCell params={params} constraintErrors={constraintErrors} />,
+    },
     {
       field: 'subsystem',
       headerName: 'Subsystem',
       type: 'singleSelect',
       valueOptions: subsystemValueOptions,
       width: 200,
-      editable: true
+      editable: true,
+      preProcessEditCellProps: validateCellProps('subsystem', setConstraintErrors, componentList),
     },
     {
       field: 'stateKey',
       headerName: 'State Key',
       type: 'singleSelect',
       valueOptions: stateKeyOptions,
+      valueSetter: ({value, row}) => {
+        const options = stateKeyOptions({ row }).map(option => option.value);
+        // If the value is not in the options, reset it to null
+        return { ...row, stateKey: options.includes(value) ? value : null };
+      },
       width: 250,
-      editable: true
+      editable: true,
+      preProcessEditCellProps: validateCellProps('stateKey', setConstraintErrors, componentList),
     },
     {
       field: 'type',
@@ -143,9 +218,18 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
       type: 'singleSelect',
       valueOptions: constraintTypeOptions,
       width: 270,
-      editable: true
+      editable: true,
+      preProcessEditCellProps: validateCellProps('type', setConstraintErrors),
+      renderCell: (params) => <ConstraintCell params={params} constraintErrors={constraintErrors} />,
     },
-    { field: 'value', headerName: 'Value', width: 100, editable: true },
+    {
+      field: 'value',
+      headerName: 'Value',
+      width: 100,
+      editable: true,
+      preProcessEditCellProps: validateCellProps('value', setConstraintErrors),
+      renderCell: (params) => <ConstraintCell params={params} constraintErrors={constraintErrors} />,
+    }
   ];
 
   const removeModalMessage = selectedConstraintName === '' ? 'Are you sure you want to remove this constraint (unnamed)?' : `Are you sure you want to remove the constraint "${selectedConstraintName}"?`;
@@ -167,29 +251,38 @@ export default function ConstraintsTable({ navOpen, constraints, setConstraints,
         className={`constraints-table ${navOpen ? 'constraints-table-nav-open' : 'constraints-table-nav-closed'}`}
         sx={{ padding: 1, backgroundColor: '#282D3d', height: 675, width: 1100 }}
       >
-        <DataGrid
-          rows={constraints}
-          columns={columns}
-          initialState={{
-            pagination: {
-              paginationModel: { pageSize: 10, page: 0 },
-            },
-          }}
-          editMode="row"
-          rowModesModel={rowModesModel}
-          onRowModesModelChange={handleRowModesModelChange}
-          onRowEditStop={handleRowEditStop}
-          processRowUpdate={processRowUpdate}
-          onProcessRowUpdateError={console.error}
-          slots={{
-            toolbar: ConstraintsTableToolbar,
-          }}
-          slotProps={{
-            toolbar: { setConstraints, setRowModesModel },
-          }}
-          sx={{ width: '100%', backgroundColor: '#eeeeee' }}
-          density="compact"
-        />
+        <StyledGrid sx={{ width: '100%', backgroundColor: '#eeeeee' }}>
+          <DataGrid
+            rows={constraints}
+            columns={columns}
+            initialState={{
+              pagination: {
+                paginationModel: { pageSize: 10, page: 0 },
+              },
+            }}
+            pageSizeOptions={[10]}
+            editMode="row"
+            rowModesModel={rowModesModel}
+            onRowModesModelChange={handleRowModesModelChange}
+            onRowEditStop={handleRowEditStop}
+            processRowUpdate={processRowUpdate}
+            onProcessRowUpdateError={console.error}
+            getCellClassName={getCellClassName}
+            slots={{
+              toolbar: ConstraintsTableToolbar,
+            }}
+            slotProps={{
+              toolbar: { setConstraints, setRowModesModel },
+            }}
+            density="compact"
+            sx={{
+              '& .error': {
+                backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                color: theme.palette.error.main,
+              },
+            }}
+          />
+        </StyledGrid>
       </Paper>
     </>
   )

@@ -1,6 +1,7 @@
 import { randomId } from '@mui/x-data-grid-generator';
+import { validateAllTasks } from './validateTasks';
 
-export default function parseCSVFile(content, setTaskList) {
+export default function parseCSVFile(content, setTaskList, setTaskErrors) {
   try {
     const parsedCSV = content.split('\r\n').map(row => row.split(';'));
 
@@ -19,9 +20,14 @@ export default function parseCSVFile(content, setTaskList) {
       'Altitude': null,
       'EOMS': null,
     }
+    if (header.length < Object.keys(columnIndex).length) {
+      throw new Error('Invalid number of columns');
+    }
     header.forEach((column, index) => {
       if (column in columnIndex) {
         columnIndex[column] = index;
+      } else {
+        throw new Error(`Invalid column name: ${column}`);
       }
     });
 
@@ -42,6 +48,10 @@ export default function parseCSVFile(content, setTaskList) {
         eomsType: row[columnIndex['EOMS']],
       };
     });
+
+    // Throw error if required fields are missing rather than setting validation errors in state
+    const throwable = true;
+    validateAllTasks(taskList, setTaskErrors, throwable);
     setTaskList(taskList);
   } catch (error) {
     console.log(`Error parsing CSV file: ${error.message}`);

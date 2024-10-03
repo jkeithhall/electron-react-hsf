@@ -88,6 +88,7 @@ export default function SubsystemParameters({
     <>
       <Typography variant="h6" color="secondary" mt={2}>Parameters</Typography>
       {parameters.map((parameter, index) => {
+        const errorMessage = errors[`parameters[${index}]`];
         const { name, value, type } = parameter;
         if (type === 'double' || type === 'int') {
           return (
@@ -95,7 +96,7 @@ export default function SubsystemParameters({
               key={name}
               name={name}
               value={value}
-              errors={errors}
+              error={errorMessage}
               constraint={null}
               handleChange={handleChange}
               handleBlur={handleBlur}
@@ -113,7 +114,7 @@ export default function SubsystemParameters({
               key={name}
               name={name}
               value={value}
-              errors={errors}
+              error={errorMessage}
               constraint={null}
               handleChange={handleChange}
               handleBlur={handleBlur}
@@ -125,17 +126,7 @@ export default function SubsystemParameters({
               handleDeleteClicked={handleDeleteClicked}
             />
           );
-        } else { // vector/matrix
-          const errorMessage = errors[name];
-          const invalidComponents = [];
-          if (errorMessage) {
-            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach((component, index) => {
-              if (errorMessage.indexOf(component) !== -1) {
-                invalidComponents.push(index);
-              }
-            });
-          }
-
+        } else { // Vector or Matrix
           return (
             <VectorState
               key={name}
@@ -151,7 +142,6 @@ export default function SubsystemParameters({
               setHovered={setHovered}
               setMarkedForDeletion={setMarkedForDeletion}
               handleDeleteClicked={handleDeleteClicked}
-              invalidComponents={invalidComponents}
             />
           )
         }

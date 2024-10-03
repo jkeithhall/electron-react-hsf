@@ -9,7 +9,7 @@ import { convertDisplayName } from '../../utils/displayNames';
 export default function BoolState({
   name,
   value,
-  errors,
+  error,
   constraint,
   scrollToConstraint,
   handleChange,
@@ -35,8 +35,8 @@ export default function BoolState({
         select
         align='left'
         onChange={handleChange}
-        error={errors[name] !== undefined}
-        helperText={errors[name]}
+        error={error !== undefined}
+        helperText={error}
         onBlur={handleBlur}
       >
         <MenuItem key='true' value='true'>True</MenuItem>

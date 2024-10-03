@@ -23,38 +23,40 @@ function DependencyNode({ data, selected }) {
 
   return (
     <Tooltip title={`${component.name} (${assetName})`}>
-      <Handle
-        type="target"
-        position={Position.Top}
-        id="top"
-        isConnectableStart={false}
-        isConnectableEnd={true}
-        style={{ visibility: 'hidden' }}
-      />
-      <Handle
-        type="source"
-        position={Position.Right}
-        id="right"
-        isConnectableStart={true}
-        isConnectableEnd={false}
+      <div>
+        <Handle
+          type="target"
+          position={Position.Top}
+          id="top"
+          isConnectableStart={false}
+          isConnectableEnd={true}
+          style={{ visibility: 'hidden' }}
         />
-      <Handle
-        type="source"
-        position={Position.Left}
-        id="left"
-        isConnectableStart={true}
-        isConnectableEnd={false}
+        <Handle
+          type="source"
+          position={Position.Right}
+          id="right"
+          isConnectableStart={true}
+          isConnectableEnd={false}
+          />
+        <Handle
+          type="source"
+          position={Position.Left}
+          id="left"
+          isConnectableStart={true}
+          isConnectableEnd={false}
+          />
+        <Handle
+          type="target"
+          position={Position.Bottom}
+          id="bottom"
+          isConnectableStart={false}
+          isConnectableEnd={true}
+          style={{ visibility: 'hidden' }}
         />
-      <Handle
-        type="target"
-        position={Position.Bottom}
-        id="bottom"
-        isConnectableStart={false}
-        isConnectableEnd={true}
-        style={{ visibility: 'hidden' }}
-      />
-      <div className={`dependency-node ${selected ? 'selected-node' : ''}`}>
-        <Icon sx={{ color: '#FFFFFF' }}/>
+        <div className={`dependency-node ${selected ? 'selected-node' : ''}`}>
+          <Icon sx={{ color: '#FFFFFF' }}/>
+        </div>
       </div>
     </Tooltip>
   );

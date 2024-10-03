@@ -89,6 +89,7 @@ export default function SubsystemStates({
       <Typography variant="h6" color="secondary" mt={2}>States</Typography>
       {states.map((state, index) => {
         const { key, value, type } = state;
+        const errorMessage = errors[`states[${index}]`];
         const constraint = constraints.find((constraint) => constraint.subsystem === id && constraint.stateKey === key);
         if (type === 'double' || type === 'int') {
           return (
@@ -96,7 +97,7 @@ export default function SubsystemStates({
               <NumericalState
                 name={key}
                 value={value}
-                errors={errors}
+                error={errorMessage}
                 constraint={constraint}
                 scrollToConstraint={scrollToConstraint}
                 handleChange={handleChange}
@@ -116,7 +117,7 @@ export default function SubsystemStates({
               <BoolState
                 name={key}
                 value={value}
-                errors={errors}
+                error={errorMessage}
                 constraint={constraint}
                 scrollToConstraint={scrollToConstraint}
                 handleChange={handleChange}
@@ -131,16 +132,6 @@ export default function SubsystemStates({
             </Fragment>
           )
         } else { // 'Matrix' or 'Vector'
-          const errorMessage = errors[key];
-          const invalidComponents = [];
-          if (errorMessage) {
-            ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach((component, index) => {
-              if (errorMessage.indexOf(component) !== -1) {
-                invalidComponents.push(index);
-              }
-            });
-          }
-
           return (
             <Fragment key={key}>
               <VectorState
@@ -157,7 +148,6 @@ export default function SubsystemStates({
                 setHovered={setHovered}
                 setMarkedForDeletion={setMarkedForDeletion}
                 handleDeleteClicked={handleDeleteClicked}
-                invalidComponents={invalidComponents}
               />
             </Fragment>
           )

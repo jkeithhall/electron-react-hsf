@@ -5,6 +5,7 @@ import {
   GridActionsCellItem,
   GridRowEditStopReasons,
 } from '@mui/x-data-grid';
+import { styled, useTheme } from '@mui/material/styles';
 import Paper from '@mui/material/Paper';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditLocationIcon from '@mui/icons-material/EditLocation';
@@ -14,6 +15,7 @@ import ConfirmationModal from './ConfirmationModal';
 import LocationModal from './LocationModal';
 
 import { dynStateTypeOptions } from './PaletteComponents/DynamicStateType';
+import { validateTaskAt } from '../utils/validateTasks';
 
 // Default pin location in map selector view for added tasks without location
 const DEFAULT_LATITUDE = 51.4778;
@@ -21,8 +23,39 @@ const DEFAULT_LONGITUDE = 0;
 const DEFAULT_ALTITUDE = 0;
 const DEFAULT_LOCATION = { lat: DEFAULT_LATITUDE, lon: DEFAULT_LONGITUDE, alt: DEFAULT_ALTITUDE };
 
-export default function TaskTable({ navOpen, taskList, setTaskList }) {
-  const [ formErrorCount, setFormErrorCount] = useState(0);
+const StyledGrid = styled('div')(({ theme }) => ({
+  width: '100%',
+  height: '100%',
+  backgroundColor: '#eeeeee',
+  '& .Mui-error': {
+    backgroundColor: `rgb(126,10,15, ${theme.palette.mode === 'dark' ? 0 : 0.1})`,
+    color: theme.palette.error.main,
+  },
+}));
+
+const validateCellProps = (field, setTaskErrors) => (params) => {
+  const task = { ...params.row, [field]: params.props.value };
+  validateTaskAt(task, field, setTaskErrors);
+  return { ...params.props };
+}
+
+const TaskCell = ({ params, taskErrors }) => {
+  const { id, field } = params;
+
+  return taskErrors[id] && taskErrors[id][field] ? (
+    <Tooltip title={taskErrors[id][field]} placement="top">
+      <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center' }}>
+        {params.value}
+      </div>
+    </Tooltip>
+  ) : (
+    <div>{params.value}</div>
+  );
+};
+
+export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, setTaskErrors }) {
+  const theme = useTheme();
+
   const [rowModesModel, setRowModesModel] = useState({});
   const [confirmModalOpen, setConfirmModalOpen ] = useState(false);
   const [locationModalOpen, setLocationModalOpen ] = useState(false);
@@ -48,6 +81,11 @@ export default function TaskTable({ navOpen, taskList, setTaskList }) {
     }
   };
 
+  const getCellClassName = (params) => {
+    const { id, field } = params;
+    return taskErrors[id] && taskErrors[id][field] ? 'error' : '';
+  }
+
   const handleDeleteClick = (id) => () => {
     setSelectedTaskId(id);
 
@@ -59,6 +97,11 @@ export default function TaskTable({ navOpen, taskList, setTaskList }) {
 
   const handleDeleteConfirm = () => {
     setTaskList(taskList.filter((row) => row.id !== selectedTaskId));
+    setTaskErrors((prevErrors) => {
+      const updatedErrors = { ...prevErrors };
+      delete updatedErrors[selectedTaskId];
+      return updatedErrors;
+    });
     setSelectedTaskName('');
     setSelectedTaskId('');
     setConfirmModalOpen(false);
@@ -133,7 +176,14 @@ export default function TaskTable({ navOpen, taskList, setTaskList }) {
         ];
       },
     },
-    { field: 'name', headerName: 'Task Name', width: 150, editable: true },
+    {
+      field: 'name',
+      headerName: 'Task Name',
+      width: 150,
+      editable: true,
+      preProcessEditCellProps: validateCellProps('name', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
+     },
     {
       field: 'type',
       headerName: 'Type',
@@ -143,21 +193,46 @@ export default function TaskTable({ navOpen, taskList, setTaskList }) {
         'IMAGING',
       ],
       width: 100,
-      editable: true
+      editable: true,
+      preProcessEditCellProps: validateCellProps('type', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
     },
-    { field: 'maxTimes', type: 'number', headerName: 'Max Times', width: 100, editable: true },
-    { field: 'targetName', headerName: 'Target Name', width: 150, editable: true },
+    {
+      field: 'maxTimes',
+      type: 'number',
+      headerName: 'Max Times',
+      width: 100,
+      editable: true,
+      preProcessEditCellProps: validateCellProps('maxTimes', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
+    },
+    {
+      field: 'targetName',
+      headerName: 'Target Name',
+      width: 150,
+      editable: true,
+      preProcessEditCellProps: validateCellProps('targetName', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
+     },
     {
       field: 'targetType',
       headerName: 'Target Type',
       type: 'singleSelect',
-      valueOptions: [
-        'FacilityTarget',
-        'LocationTarget',
-      ],
+      valueOptions: [ 'FacilityTarget', 'LocationTarget'],
       width: 130,
-      editable: true },
-    { field: 'targetValue', type: 'number', headerName: 'Value', width: 80, editable: true },
+      editable: true,
+      preProcessEditCellProps: validateCellProps('targetType', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
+     },
+    {
+      field: 'targetValue',
+      type: 'number',
+      headerName: 'Value',
+      width: 80,
+      editable: true,
+      preProcessEditCellProps: validateCellProps('targetValue', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
+    },
     {
       field: 'Map Selector',
       type: 'actions',
@@ -176,19 +251,56 @@ export default function TaskTable({ navOpen, taskList, setTaskList }) {
         ];
       },
     },
-    { field: 'latitude', headerName: 'Latitude', width: 100, editable: true },
-    { field: 'longitude', headerName: 'Longitude', width: 100, editable: true },
-    { field: 'altitude', headerName: 'Altitude', width: 90, editable: true },
+    {
+      field: 'latitude',
+      headerName: 'Latitude',
+      width: 100,
+      editable: true,
+      preProcessEditCellProps: validateCellProps('latitude', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
+    },
+    {
+      field: 'longitude',
+      headerName: 'Longitude',
+      width: 100,
+      editable: true,
+      preProcessEditCellProps: validateCellProps('longitude', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
+    },
+    {
+      field: 'altitude',
+      headerName: 'Altitude',
+      width: 90,
+      editable: true,
+      preProcessEditCellProps: validateCellProps('altitude', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
+    },
     {
       field: 'dynamicStateType',
       headerName: 'Dyn. State Type',
       type: 'singleSelect',
       valueOptions: dynStateTypeOptions,
       width: 120,
-      editable: true
+      editable: true,
+      preProcessEditCellProps: validateCellProps('dynamicStateType', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
     },
-    { field: 'integratorType', headerName: 'Integrator', width: 90, editable: true },
-    { field: 'eomsType', headerName: 'EOMS', width: 90, editable: true },
+    {
+      field: 'integratorType',
+      headerName: 'Integrator',
+      width: 90,
+      editable: true,
+      preProcessEditCellProps: validateCellProps('integratorType', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
+    },
+    {
+      field: 'eomsType',
+      headerName: 'EOMS',
+      width: 90,
+      editable: true,
+      preProcessEditCellProps: validateCellProps('eomsType', setTaskErrors),
+      renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
+     },
   ];
 
   const removeModalMessage = selectedTaskName === '' ? 'Are you sure you want to remove this task (unnamed)?' : `Are you sure you want to remove ${selectedTaskName}?`;
@@ -217,25 +329,35 @@ export default function TaskTable({ navOpen, taskList, setTaskList }) {
             onCancel={handleLocationCancel}
           />
       </div>)}
-      <Paper className={`tasks-table ${navOpen ? 'tasks-table-nav-open' : 'tasks-table-nav-closed'}`}
-        sx={{ padding: 1, backgroundColor: '#282D3d' }} >
-        <DataGrid
-          rows={taskList}
-          columns={columns}
-          editMode="row"
-          rowModesModel={rowModesModel}
-          onRowModesModelChange={handleRowModesModelChange}
-          onRowEditStop={handleRowEditStop}
-          processRowUpdate={processRowUpdate}
-          slots={{
-            toolbar: TaskTableToolbar,
-          }}
-          slotProps={{
-            toolbar: { setTaskList, setRowModesModel },
-          }}
-          sx={{ width: '100%', backgroundColor: '#eeeeee' }}
-          density="compact"
-        />
+      <Paper
+        className={`tasks-table ${navOpen ? 'tasks-table-nav-open' : 'tasks-table-nav-closed'}`}
+        sx={{ padding: 1, backgroundColor: '#282D3d' }}
+      >
+        <StyledGrid>
+          <DataGrid
+            rows={taskList}
+            columns={columns}
+            editMode="row"
+            rowModesModel={rowModesModel}
+            onRowModesModelChange={handleRowModesModelChange}
+            onRowEditStop={handleRowEditStop}
+            processRowUpdate={processRowUpdate}
+            getCellClassName={getCellClassName}
+            slots={{
+              toolbar: TaskTableToolbar,
+            }}
+            slotProps={{
+              toolbar: { setTaskList, setRowModesModel },
+            }}
+            density="compact"
+            sx={{
+              '& .error': {
+                backgroundColor: 'rgba(255, 0, 0, 0.1)',
+                color: theme.palette.error.main,
+              },
+            }}
+          />
+        </StyledGrid>
       </Paper>
     </>
   );

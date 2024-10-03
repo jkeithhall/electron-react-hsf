@@ -21,10 +21,12 @@ import AddIcon from '@mui/icons-material/Add';
 
 import { randomId } from '@mui/x-data-grid-generator';
 import { shortenPath } from '../utils/shortenPath.js';
-import { validateEvaluator } from '../utils/validateParameters';
+import { validateEvaluator } from '../utils/validateEvaluator';
 import { convertDisplayName } from '../utils/displayNames';
 
-export default function Evaluator ({ evaluator, setEvaluator, formErrors, setFormErrors, componentList, pythonDirectorySrc }) {
+const evaluatorTypeOptions = [ 'scripted', 'TargetValueEvaluator', 'default' ];
+
+function Evaluator ({ evaluator, setEvaluator, formErrors, setFormErrors, componentList, pythonDirectorySrc }) {
   const { type, src, className, keyRequests } = evaluator;
   const [ rowModesModel, setRowModesModel ] = useState({});
   const [ confirmModalOpen, setConfirmModalOpen ] = useState(false);
@@ -37,14 +39,14 @@ export default function Evaluator ({ evaluator, setEvaluator, formErrors, setFor
   }
 
   const handleBlur = () => {
-    validateEvaluator(evaluator, pythonDirectorySrc, setFormErrors);
+    validateEvaluator(evaluator, setFormErrors, componentList, pythonDirectorySrc);
   }
 
   const handleFileSelected = (filePath) => {
     setEvaluator((prevEvaluator) => {
       return { ...prevEvaluator, src: filePath };
     });
-    validateEvaluator({ ...evaluator, src: filePath }, pythonDirectorySrc, setFormErrors);
+    validateEvaluator({ ...evaluator, src: filePath }, setFormErrors, componentList, pythonDirectorySrc);
   }
 
   const handleFileClick = () => {
@@ -141,7 +143,30 @@ export default function Evaluator ({ evaluator, setEvaluator, formErrors, setFor
       type: 'singleSelect',
       valueOptions: subsystemValueOptions,
       width: 250,
-      editable: true
+      editable: true,
+      preProcessEditCellProps: (params) => {
+        const hasError = !Object.values(subsystemValueOptions).map(option => option.value).includes(params.props.value);
+        setFormErrors(prevErrors => {
+          const updatedErrors = { ...prevErrors };
+
+          if (hasError) {
+            updatedErrors[params.id] = {
+              ...updatedErrors[params.id],
+              subsystem: 'Subsystem must be selected',
+            };
+          } else if (updatedErrors[params.id]) {
+            delete updatedErrors[params.id].subsystem;
+
+            // If the object is empty after deletion, remove the key entirely
+            if (Object.keys(updatedErrors[params.id]).length === 0) {
+              delete updatedErrors[params.id];
+            }
+          }
+
+            return updatedErrors;
+          });
+          return { ...params.props, error: hasError };
+      }
     },
     {
       field: 'type',
@@ -149,7 +174,30 @@ export default function Evaluator ({ evaluator, setEvaluator, formErrors, setFor
       type: 'singleSelect',
       valueOptions: [ 'float', 'double', 'int' ],
       width: 100,
-      editable: true
+      editable: true,
+      preProcessEditCellProps: (params) => {
+        const hasError = ![ 'float', 'double', 'int' ].includes(params.props.value);
+        setFormErrors(prevErrors => {
+          const updatedErrors = { ...prevErrors };
+
+          if (hasError) {
+            updatedErrors[params.id] = {
+              ...updatedErrors[params.id],
+              evaluatorType: 'Evaluator type must be selected',
+            };
+          } else if (updatedErrors[params.id]) {
+            delete updatedErrors[params.id].evaluatorType;
+
+            // If the object is empty after deletion, remove the key entirely
+            if (Object.keys(updatedErrors[params.id]).length === 0) {
+              delete updatedErrors[params.id];
+            }
+          }
+
+            return updatedErrors;
+          });
+          return { ...params.props, error: hasError };
+      }
     },
   ];
 
@@ -166,7 +214,7 @@ export default function Evaluator ({ evaluator, setEvaluator, formErrors, setFor
             cancelText={"Cancel"}
           />
       </div>)}
-      <Box sx={{ padding: '5px', backgroundColor: '#eeeeee', borderRadius: '5px', height: 500 }}>
+      <Box sx={{ padding: '5px', backgroundColor: '#eeeeee', borderRadius: '5px', height: 500, overflow: 'scroll' }}>
         <Box my={1}>
           <TextField
             fullWidth
@@ -179,7 +227,7 @@ export default function Evaluator ({ evaluator, setEvaluator, formErrors, setFor
             onChange={handleChange}
             select
           >
-            {[ 'scripted', 'TargetValueEvaluator', 'default'].map((option) => (
+            {evaluatorTypeOptions.map((option) => (
               <MenuItem key={option} value={option}>
                 {convertDisplayName(option)}
               </MenuItem>
@@ -189,7 +237,7 @@ export default function Evaluator ({ evaluator, setEvaluator, formErrors, setFor
         <Box my={1}>
           {type === 'scripted' ? <TextField
             fullWidth
-            label={'Source file'}
+            label={'Source File'}
             variant="outlined"
             color='primary'
             name={src}
@@ -277,3 +325,5 @@ function KeyRequestToolbar({ setEvaluator, setRowModesModel }) {
     </GridToolbarContainer>
   );
 }
+
+export { Evaluator, evaluatorTypeOptions };

@@ -13,6 +13,7 @@ import MenuItem from '@mui/material/MenuItem';
 import AddConstraintModal from './AddConstraintModal';
 
 import { convertDisplayName } from '../../utils/displayNames';
+import { validateConstraint } from '../../utils/validateConstraints';
 
 const constraintTypeOptions = ['FAIL_IF_HIGHER', 'FAIL_IF_LOWER', 'FAIL_IF_EQUAL', 'FAIL_IF_NOT_EQUAL', 'FAIL_IF_HIGHER_OR_EQUAL', 'FAIL_IF_LOWER_OR_EQUAL'];
 
@@ -46,11 +47,18 @@ const DeleteConstraintButton = ({markedForDeletion, index, hovered, buttonRef, s
   }
 }
 
-const Constraints = forwardRef(({ states, componentId, constraints, setConstraints, setComponentList }, ref) => {
+const Constraints = forwardRef(({
+  states,
+  componentId,
+  constraints,
+  setConstraints,
+  componentList,
+  setComponentList,
+  errors,
+  setErrors }, ref) => {
   const [ hovered, setHovered ] = useState(null);
   const [ markedForDeletion, setMarkedForDeletion ] = useState(null);
   const [ modalOpen, setModalOpen ] = useState(false);
-  const [ errorMessages, setErrorMessages ] = useState({})
   const buttonRef = useRef(null);
 
   const handleChange = (e, id) => {
@@ -67,31 +75,8 @@ const Constraints = forwardRef(({ states, componentId, constraints, setConstrain
   }
 
   const handleBlur = (e, id) => {
-    const { value } = e.target;
-    const stateType = constraints.find((constraint) => constraint.id === id).stateType;
-    if (stateType === 'int') {
-      if (!Number.isInteger(parseFloat(value))) {
-        setErrorMessages(prevErrors => {
-          return { ...prevErrors, [id]: 'Value must be an integer' };
-        });
-      } else {
-        setErrorMessages(prevErrors => {
-          delete prevErrors[id];
-          return { ...prevErrors };
-        });
-      }
-    } else {
-      if (Number(value) !== parseFloat(value)) {
-        setErrorMessages(prevErrors => {
-          return { ...prevErrors, [id]: 'Value must be a number' };
-        });
-      } else {
-        setErrorMessages(prevErrors => {
-          delete prevErrors[id];
-          return { ...prevErrors };
-        });
-      }
-    }
+    const constraint = constraints.find((constraint) => constraint.id === id);
+    validateConstraint(constraint, setErrors, componentList);
   }
 
   const handleDeleteClicked = (e, id) => {
@@ -153,7 +138,10 @@ const Constraints = forwardRef(({ states, componentId, constraints, setConstrain
               color='primary'
               name='name'
               value={constraint.name}
+              error={errors[constraint.id]?.name !== undefined}
+              helperText={errors[constraint.id]?.name}
               onChange={(e) => handleChange(e, constraint.id)}
+              onBlur={(e) => handleBlur(e, constraint.id)}
             />
             <Grid container spacing={2} mt={1}>
               <Grid item xs={6}>
@@ -165,9 +153,12 @@ const Constraints = forwardRef(({ states, componentId, constraints, setConstrain
                   color='primary'
                   name='type'
                   value={constraint.type}
+                  error={errors[constraint.id]?.type !== undefined}
+                  helperText={errors[constraint.id]?.type}
                   select
                   align='left'
                   onChange={(e) => handleChange(e, constraint.id)}
+                  onBlur={(e) => handleBlur(e, constraint.id)}
                 >
                   {constraintTypeOptions.map((type) => <MenuItem key={type} value={type}>{type}</MenuItem>)}
                 </TextField>
@@ -181,8 +172,8 @@ const Constraints = forwardRef(({ states, componentId, constraints, setConstrain
                   color='primary'
                   name='value'
                   value={constraint.value}
-                  error={errorMessages[constraint.id] !== undefined}
-                  helperText={errorMessages[constraint.id]}
+                  error={errors[constraint.id]?.value !== undefined}
+                  helperText={errors[constraint.id]?.value}
                   onChange={(e) => handleChange(e, constraint.id)}
                   onBlur={(e) => handleBlur(e, constraint.id)}
                 />

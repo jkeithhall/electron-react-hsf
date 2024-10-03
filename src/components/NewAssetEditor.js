@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { validateAssetParameters } from '../utils/validateParameters';
+import { validateComponent } from '../utils/validateComponents';
 
 import NameField from './PaletteComponents/NameField';
 import StateData from './PaletteComponents/StateData';
 import { DynamicStateType } from './PaletteComponents/DynamicStateType';
-import EomsType from './PaletteComponents/EomsType';
+import { EomsType } from './PaletteComponents/EomsType';
 import IntegratorOptions from './PaletteComponents/IntegratorOptions';
 import IntegratorParameters from './PaletteComponents/IntegratorParameters';
 
@@ -53,7 +53,7 @@ export default function NewAssetEditor({
     format: 'rgba',
  }));
 
-  const [ id, setId ] = useState(randomId());
+  const [ id ] = useState(randomId());
   const [ name, setName ] = useState('');
   const [ dynamicStateType, setDynamicStateType ] = useState('PREDETERMINED_ECI');
   const [ eomsType, setEomsType ] = useState('orbitalEOMS');
@@ -97,7 +97,7 @@ export default function NewAssetEditor({
   }
 
   const handleBlur = () => {
-    validateAssetParameters(data, setNewNodeErrors);
+    validateComponent(data, setNewNodeErrors);
   }
 
   const handleColorChange = (event) => {

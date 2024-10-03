@@ -22,8 +22,15 @@ export default function VectorState({
   setHovered,
   setMarkedForDeletion,
   handleDeleteClicked,
-  invalidComponents
 }) {
+  const invalidComponents = [];
+  if (errorMessage) {
+    ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].forEach((component, index) => {
+      if (errorMessage.indexOf(component) !== -1) {
+        invalidComponents.push(index);
+      }
+    });
+  }
 
   return (
     <>
