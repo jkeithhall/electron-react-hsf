@@ -17,7 +17,7 @@ const {
 let mainWindow;
 let splashWindow;
 
-function createWindow() {
+function createWindows() {
   splashWindow = new BrowserWindow({
     width: 400,
     height: 400,
@@ -35,35 +35,28 @@ function createWindow() {
     splashWindow.focus();
   });
 
-  // Create the browser window.
-  setTimeout(() => {
-    mainWindow = new BrowserWindow({
-      fullscreen: true,
-      backgroundColor: '#1f2330',
-      show: false,
-      webPreferences: {
-        nodeIntegration: true,
-        devTools: isDev,
-        preload: path.join(__dirname, 'preload.js'),
-      }
-    });
+  mainWindow = new BrowserWindow({
+    fullscreen: false,
+    backgroundColor: '#1f2330',
+    show: false,
+    webPreferences: {
+      nodeIntegration: true,
+      devTools: isDev,
+      preload: path.join(__dirname, 'preload.js'),
+    }
+  });
 
-    mainWindow.loadURL(
-      isDev
-        ? 'http://localhost:3000'
-        : `file://${path.join(__dirname, '../build/index.html')}`
-    );
-    createMenu(mainWindow);
-
-    mainWindow.once('ready-to-show', () => {
-      mainWindow.show();
-      splashWindow.close();
-    });
-  }, 2000);
+  mainWindow.loadURL(
+    isDev
+      ? 'http://localhost:3000'
+      : `file://${path.join(__dirname, '../build/index.html')}`
+  );
+  createMenu(mainWindow);
+  mainWindow.hide();
 }
 
-// Create the window when the app is ready
-app.on('ready', createWindow);
+// Create the splash window and main window when the app is ready
+app.on('ready', createWindows);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
@@ -77,7 +70,14 @@ app.on('window-all-closed', function () {
 app.on('activate', function () {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+  if (BrowserWindow.getAllWindows().length === 0) createWindows();
+});
+
+// When the React app has finished rendering, show the main window
+ipcMain.on('render-complete', () => {
+  mainWindow.setFullScreenable(true);
+  mainWindow.setFullScreen(true);
+  splashWindow.close();
 });
 
 ipcMain.on('show-save-dialog', (event, fileType, content, updateCache) => {

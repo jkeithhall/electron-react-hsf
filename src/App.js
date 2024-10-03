@@ -284,14 +284,15 @@ export default function App() {
   };
 
   useEffect(() => {
-    // If running in Electron, register event handlers for menu bar file selection
     if (window.electronApi) {
+      // Register event handlers on initial render and notify Electron that React has rendered
       window.electronApi.onNewFile(handleNewFile);
       window.electronApi.onFileOpen(handleFileOpen);
       window.electronApi.onFileUpdate(handleFileUpdate);
       window.electronApi.onRevert(openSimFile);
+      window.electronApi.notifyRenderComplete();
     }
-  }, []);  // Register event handlers only once: do not remove empty dependency array
+  }, []);  // Register event handlers only on first render (empty dependency array)
 
   useEffect(() => {
     setHasUnsavedChanges(true);
@@ -302,12 +303,11 @@ export default function App() {
       window.electronApi.onAutoSave(handleSaveFile, () => {}, true, appState);
       window.electronApi.onFileDownload(handleFileDownload, appState);
     }
-  }, [appState]); // Re-register event handlers when appState changes
+  }, [appState]); // Re-register file menu event handlers when appState changes
 
-  // Update model nodes and edges when dependency list changes
   useEffect(() => {
     updateModelGraph(componentList, dependencyList);
-  }, [dependencyList]);
+  }, [dependencyList]); // Update model nodes and edges when dependency list changes
 
   return (
     <NavDrawer

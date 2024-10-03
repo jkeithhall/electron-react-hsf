@@ -14,6 +14,7 @@ const api = {
   baseSrc: path.join(__dirname, '../Horizon/output'),
   pythonSrc: path.join(__dirname, '../Horizon/samples/Aeolus/pythonScripts'),
   getRelativePath: (from, to) => path.relative(from, to),
+  notifyRenderComplete: () => ipcRenderer.send('render-complete'),
   onNewFile: (handleNewFile) => {
     ipcRenderer.removeAllListeners('new-file-click');
 
