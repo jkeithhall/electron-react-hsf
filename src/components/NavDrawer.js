@@ -81,10 +81,10 @@ export default function NavDrawer({
   filePath,
   hasUnsavedChanges,
   handleSaveFile,
-  setStateMethods,
+  appState,
   children
  }) {
-  const saveDisabled = filePath !== '' && !hasUnsavedChanges;
+  const saveEnabled = filePath === '' || hasUnsavedChanges;
 
   return (
     <Box sx={{ display: 'flex', className: "App" }}>
@@ -147,12 +147,12 @@ export default function NavDrawer({
               {window.electronApi &&
                 <ListItem key={'save'} disablePadding sx={{ display: 'block' }}>
                   <ListItemButton
-                    disabled={saveDisabled}
+                    disabled={!saveEnabled}
                     sx={{
                       minHeight: 50,
                       px: 2.5,
                     }}
-                    onClick={() => handleSaveFile(() => {})}
+                    onClick={() => handleSaveFile(() => {}, true, appState)}
                   >
                     <ListItemIcon
                       sx={{
@@ -162,7 +162,7 @@ export default function NavDrawer({
                         justifyContent: 'center',
                       }}
                     >
-                      <SaveIcon color={saveDisabled ? 'light' : 'inherit'}/>
+                      <SaveIcon color={saveEnabled ? 'inherit' : 'light'} />
                     </ListItemIcon>
                     <ListItemText primary={'Save'} sx={{ opacity: navOpen ? 1 : 0 }} />
                   </ListItemButton>

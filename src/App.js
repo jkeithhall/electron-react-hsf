@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import NavDrawer from './components/NavDrawer';
 import Footer from './components/Footer';
@@ -21,10 +21,8 @@ import { parseModel } from './utils/parseModel';
 import parseJSONFile from './utils/parseJSONFile';
 import parseCSVFile from './utils/parseCSVFile';
 import buildDownloadJSON from './utils/buildDownloadJSON';
-import buildSimFile from './utils/buildSimFile';
-import parseSimFile from './utils/parseSimFile';
 import downloadCSV from './utils/downloadCSV';
-import createModelNodesEdges from './utils/createModelNodesEdges';
+import { createModelNodesEdges } from './utils/createModelNodesEdges';
 
 const { systemComponents, systemDependencies, systemEvaluator, systemConstraints } = parseModel(initModel);
 
@@ -60,22 +58,37 @@ export default function App() {
   const [dependencyErrors, setDependencyErrors] = useState({});
   const [constraintErrors, setConstraintErrors] = useState({});
 
+  // States saved in file download/save
+  const appState = useMemo(() => ({
+    simulationInput,
+    taskList,
+    componentList,
+    dependencyList,
+    evaluator,
+    constraints,
+    modelNodes,
+    modelEdges,
+  }), [
+    simulationInput,
+    taskList,
+    componentList,
+    dependencyList,
+    evaluator,
+    constraints,
+    modelNodes,
+    modelEdges
+  ]);
+
   // Bundling state methods
-  const setStateMethods = {
+  const setAppStateMethods = {
     setSimulationInput,
     setTaskList,
     setComponentList,
     setDependencyList,
     setEvaluator,
     setConstraints,
-  };
-
-  const savedStateMethods = {
-    ...setStateMethods,
     setModelNodes,
     setModelEdges,
-    setErrorMessage,
-    setModelErrors,
   };
 
   const setValidationErrors = {
@@ -88,33 +101,41 @@ export default function App() {
 
   const navDrawerWidth = 220;
   const [ navOpen, setNavOpen ] = useState(true);
-
   const toggleNav = () => {
     setNavOpen(!navOpen);
   }
 
   // Called when user selects a file to open OR upload using the Electron File Menu
-  const handleFileUpload = (fileType, fileName, content) => {
-    setConfirmationHandler(() => () => handleUploadConfirm(fileType, null, fileName, content));
+  function handleFileUpload(fileType, fileName, content, componentList, pythonSrc) {
+    setConfirmationHandler(() => () => {
+      handleUploadConfirm(
+        fileType,
+        null,
+        fileName,
+        content,
+        componentList,
+        pythonSrc);
+    });
     setConfirmationModalOpen(true);
   };
 
-  const handleFileOpen = (filePath, fileName, content) => {
+  function handleFileOpen(filePath, fileName, content) {
     setConfirmationHandler(() => () => openSimFile(filePath, content));
     setConfirmationModalOpen(true);
   }
 
-  const handleNewFile = () => {
+  function handleNewFile() {
     setHasUnsavedChanges(hasUnsavedChanges => {
       if (hasUnsavedChanges) {
         setSaveConfirmationModalOpen(true);
       } else {
         resetFile();
       }
+      return hasUnsavedChanges;
     });
-  };
+  }
 
-  const resetFile = () => {
+  function resetFile() {
     setSimulationInput(initSimulationInput);
     setTaskList(flattenedInitTasks);
     setComponentList(systemComponents);
@@ -130,40 +151,40 @@ export default function App() {
     }
   }
 
-  const handleFileDownload = async (fileType) => {
-    if (fileType === 'CSV') {
-      downloadCSV(setTaskList); // Downloads from front end (change to back end later?)
-    } else {
-      return await buildDownloadJSON(fileType, setStateMethods);  // Downloads from back end
-    }
-  };
-
-  const handleSaveReset = () => {
-    handleSaveFile(resetFile);
-  }
-
-  const handleDontSaveReset = () => {
+  function handleDontSaveReset() {
     resetFile();
   }
 
   // Called when user confirms file selection
-  const handleUploadConfirm = (fileType, filePath, fileName, content) => {
+  function handleUploadConfirm(
+    fileType,
+    filePath,
+    fileName,
+    content,
+    componentList,
+    pythonSrc,
+  ) {
     // Parse file content
     try {
       switch(fileType) {
         case 'Scenario':
-          parseJSONFile(fileType, content, setStateMethods, setValidationErrors);
+          parseJSONFile(fileType, content, setAppStateMethods, setValidationErrors, componentList);
           setActiveStep('Scenario');
           break;
         case 'Tasks':
-          parseJSONFile(fileType, content, setStateMethods, setValidationErrors);
+          parseJSONFile(fileType, content, setAppStateMethods, setValidationErrors);
           setActiveStep('Tasks');
           break;
         case 'System Model':
-          const {
-            systemComponents,
-            systemDependencies } = parseJSONFile(fileType, content, setStateMethods, setValidationErrors, simulationInput.dependencies.pythonSrc);
-          updateModelGraph(systemComponents, systemDependencies);
+          parseJSONFile(
+            fileType,
+            content,
+            setAppStateMethods,
+            setValidationErrors,
+            componentList,
+            pythonSrc,
+            updateModelGraph
+          );
           setActiveStep('System Model');
           break;
         case 'CSV':
@@ -185,16 +206,15 @@ export default function App() {
   }
 
   // Called when user cancels file selection
-  const handleUploadCancel = () => {
+  function handleUploadCancel() {
     // Close modal and reset selected file
     setConfirmationModalOpen(false);
     setConfirmationHandler(() => {});
   }
 
-  const openSimFile = (filePath, content) => {
+  function openSimFile(filePath, content) {
     try {
-      // TO DO: Replace with parseJSONFile
-      parseSimFile(content, savedStateMethods, setValidationErrors);
+      parseJSONFile('SIM', content, setAppStateMethods, setValidationErrors, componentList);
       setFilePath(filePath);
       setHasUnsavedChanges(false);
       window.electronApi.confirmFileOpened(filePath, content);
@@ -210,36 +230,64 @@ export default function App() {
     }
   }
 
-  const handleSaveFile = async (callback, updateCache = false) => {
-    if (window.electronApi) {
-      const content = buildSimFile(savedStateMethods);
-      window.electronApi.saveCurrentFile(content, updateCache);
-      window.electronApi.onSaveConfirm(setFilePath, setHasUnsavedChanges, callback);
-    }
-  };
-
-  const handleFileUpdate = (fileUpdateStatus) => {
+  function handleFileUpdate(fileUpdateStatus) {
     setHasUnsavedChanges(fileUpdateStatus);
     if (window.electronApi) {
       window.electronApi.hasUnsavedChanges(fileUpdateStatus);
     }
   }
 
-  const updateModelGraph = (componentList, dependencyList) => {
+  function updateModelGraph(componentList, dependencyList) {
     const { initialNodes, initialEdges } = createModelNodesEdges(componentList, dependencyList);
     setModelNodes(initialNodes);
     setModelEdges(initialEdges);
   }
+
+  async function handleSaveFile(callback, updateCache, appState) {
+    if (window.electronApi) {
+      const {
+        simulationInput,
+        taskList,
+        componentList,
+        dependencyList,
+        evaluator,
+        constraints,
+        modelNodes,
+        modelEdges,
+      } = appState;
+
+      const content = JSON.stringify({
+        simulationInput,
+        taskList,
+        componentList,
+        dependencyList,
+        evaluator,
+        constraints,
+        modelNodes,
+        modelEdges,
+      }, null, 2);
+      window.electronApi.saveCurrentFile(content, updateCache);
+      window.electronApi.onSaveConfirm(setFilePath, setHasUnsavedChanges, callback);
+    }
+  };
+
+  function handleSaveReset(resetFile, appState) {
+    handleSaveFile(resetFile, true, appState);
+  }
+
+  async function handleFileDownload(fileType, appState) {
+    if (fileType === 'CSV') {
+      downloadCSV(appState.taskList);
+    } else {
+      return await buildDownloadJSON(fileType, appState);
+    }
+  };
 
   useEffect(() => {
     // If running in Electron, register event handlers for menu bar file selection
     if (window.electronApi) {
       window.electronApi.onNewFile(handleNewFile);
       window.electronApi.onFileOpen(handleFileOpen);
-      window.electronApi.onFileUpload(handleFileUpload);
-      window.electronApi.onFileDownload(handleFileDownload);
-      window.electronApi.onSaveFileClick(handleSaveFile);
-      window.electronApi.onAutoSave(handleSaveFile);
       window.electronApi.onFileUpdate(handleFileUpdate);
       window.electronApi.onRevert(openSimFile);
     }
@@ -248,18 +296,13 @@ export default function App() {
   useEffect(() => {
     setHasUnsavedChanges(true);
     if (window.electronApi) {
+      window.electronApi.onFileUpload(handleFileUpload, componentList, simulationInput.dependencies.pythonSrc);
       window.electronApi.hasUnsavedChanges(true);
+      window.electronApi.onSaveFileClick(handleSaveFile, () => {}, true, appState);
+      window.electronApi.onAutoSave(handleSaveFile, () => {}, true, appState);
+      window.electronApi.onFileDownload(handleFileDownload, appState);
     }
-  }, [
-    simulationInput,
-    taskList,
-    componentList,
-    dependencyList,
-    evaluator,
-    constraints,
-    modelNodes,
-    modelEdges
-  ]);
+  }, [appState]); // Re-register event handlers when appState changes
 
   // Update model nodes and edges when dependency list changes
   useEffect(() => {
@@ -274,9 +317,9 @@ export default function App() {
       setActiveStep={setActiveStep}
       drawerWidth={navDrawerWidth}
       handleSaveFile={handleSaveFile}
+      appState={appState}
       filePath={filePath}
       hasUnsavedChanges={hasUnsavedChanges}
-      setStateMethods={setStateMethods}
     >
       <div className={`work-space ${navOpen ? 'work-space-nav-open' : 'work-space-nav-closed'}`} >
         {{'Scenario':
@@ -285,7 +328,6 @@ export default function App() {
               setActiveStep={setActiveStep}
               simulationInput={simulationInput}
               setSimulationInput={setSimulationInput}
-              setStateMethods={setStateMethods}
               componentList={componentList}
               evaluator={evaluator}
               setEvaluator={setEvaluator}
@@ -306,7 +348,6 @@ export default function App() {
               activeStep={activeStep}
               setActiveStep={setActiveStep}
               pythonSrc={simulationInput.dependencies.pythonSrc}
-              setStateMethods={setStateMethods}
               componentList={componentList}
               setComponentList={setComponentList}
               dependencyList={dependencyList}
@@ -351,7 +392,7 @@ export default function App() {
               setErrorMessage={setErrorMessage}
               setErrorModalOpen={setErrorModalOpen}
               setActiveStep={setActiveStep}
-              setStateMethods={setStateMethods}
+              appState={appState}
               outputPath={simulationInput.dependencies.outputPath}
               scenarioErrors={scenarioErrors}
               tasksErrors={taskErrors}
@@ -373,7 +414,7 @@ export default function App() {
                 title={'Overwrite parameters?'}
                 message={'Are you sure you want to overwrite with the current file?'}
                 onConfirm={confirmationHandler}
-                onCancel={handleUploadCancel}
+                onCancel={() => handleUploadCancel()}
                 confirmText={'Confirm'}
                 cancelText={'Cancel'}
               />
@@ -383,8 +424,8 @@ export default function App() {
             saveConfirmationModalOpen && (
             <div className='stacking-context'>
               <SaveConfirmationModal
-                onSaveConfirm={handleSaveReset}
-                onDontSaveConfirm={handleDontSaveReset}
+                onSaveConfirm={() => handleSaveReset(resetFile, appState)}
+                onDontSaveConfirm={() => handleDontSaveReset()}
                 onClose={() => setSaveConfirmationModalOpen(false)}
               />
             </div>)

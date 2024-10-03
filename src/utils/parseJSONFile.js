@@ -6,6 +6,7 @@ import { validateAllConstraints } from './validateConstraints';
 import { validateAllComponents } from './validateComponents';
 import { validateAllDependencies } from './validateDependencies';
 import { validateEvaluator} from './validateEvaluator';
+import { validateModelNodes, validateModelEdges } from './validateNodesEdges';
 
  const flattenScenario = (scenario) => {
     const { name, version, dependencies, simulationParameters, schedulerParameters } = scenario;
@@ -13,15 +14,8 @@ import { validateEvaluator} from './validateEvaluator';
     return { name, version, pythonSrc, outputPath, ...simulationParameters, ...schedulerParameters };
   }
 
-function setScenario(parsedScenario, setSimulationInput, setComponentList, setScenarioErrors) {
-  // TODO: Import updated componentList using useEffect
-  let componentList;
-  setComponentList((currentComponentList) => {
-    componentList = currentComponentList;
-    return currentComponentList;
-  });
-
-  let pythonSourceFiles = componentList
+function setScenario(parsedScenario, setSimulationInput, componentList, setScenarioErrors) {
+  const pythonSourceFiles = componentList
     .filter((component) => component.parent && component.type.toLowerCase() === 'scripted')
     .map((component) => component.src);
 
@@ -46,26 +40,23 @@ function setTasks(parsedTasks, setTaskList, setTaskErrors) {
 function setModel(
   parsedModel,
   pythonSrc,
-  setComponentList,
-  setDependencyList,
-  setConstraints,
-  setEvaluator,
-  setScenarioErrors,
-  setModelErrors,
-  setDependencyErrors,
-  setConstraintErrors) {
+  setAppStateMethods,
+  setValidationErrors) {
   let { systemComponents, systemDependencies, systemConstraints, systemEvaluator } = parsedModel;
+  const { setComponentList, setDependencyList, setConstraints, setEvaluator } = setAppStateMethods;
+  const { setModelErrors, setDependencyErrors, setConstraintErrors, setScenarioErrors } = setValidationErrors
+
   if (!systemComponents) { // Check for components
     throw new Error('Components field is missing');
   }
-  if (!systemComponents.find(c => c.parent === undefined)) { // Check for at least one asset
-    throw new Error('At least one asset must be defined');
-  }
-  if (!systemComponents.find(c => c.parent !== undefined)) { // Check for at least one subsystem
-    throw new Error('At least one subsystem must be defined');
-  }
   if (!systemDependencies) { // Check for dependencies
     throw new Error('Dependencies field is missing');
+  }
+  if (!systemConstraints) { // Check for constraints
+    throw new Error('Constraints field is missing');
+  }
+  if (!systemEvaluator) { // Check for evaluator
+    throw new Error('Evaluator field is missing');
   }
   const throwable = true; // Throw error if required fields are missing rather than setting validation errors in state
 
@@ -78,52 +69,97 @@ function setModel(
   setDependencyList(systemDependencies);
   setConstraints(systemConstraints);
   setEvaluator(systemEvaluator);
-  return { systemComponents, systemDependencies, systemConstraints, systemEvaluator };
+  return { systemComponents, systemDependencies };
 }
 
-export default function parseJSONFile(fileType, content, setStateMethods, setValidationErrors, pythonSrc) {
-  const { setSimulationInput, setTaskList, setComponentList, setDependencyList, setConstraints, setEvaluator } = setStateMethods;
-  const { setScenarioErrors, setTaskErrors, setModelErrors, setDependencyErrors, setConstraintErrors } = setValidationErrors;
+function setAppState(parsedJSON, setAppStateMethods, setValidationErrors) {
+  const {
+    simulationInput,
+    taskList,
+    componentList,
+    dependencyList,
+    evaluator,
+    constraints,
+    modelNodes,
+    modelEdges,
+  } = parsedJSON;
+  const {
+    setSimulationInput,
+    setTaskList,
+    setComponentList,
+    setDependencyList,
+    setEvaluator,
+    setConstraints,
+    setModelNodes,
+    setModelEdges,
+  } = setAppStateMethods;
+  const {
+    setScenarioErrors,
+    setTaskErrors,
+    setModelErrors,
+    setDependencyErrors,
+    setConstraintErrors,
+  } = setValidationErrors;
+
+  const throwable = true; // Throw error if required fields are missing rather than setting validation errors in state
+
+  const flattenedScenario = flattenScenario(simulationInput);
+  const pythonSourceFiles = componentList
+    .filter((component) => component.parent && component.type.toLowerCase() === 'scripted')
+    .map((component) => component.src);
+
+  validateScenario(flattenedScenario, setScenarioErrors, pythonSourceFiles, throwable);
+  validateAllTasks(taskList, setTaskErrors, throwable);
+  validateAllComponents(componentList, setModelErrors, pythonSourceFiles, throwable);
+  validateAllDependencies(dependencyList, setDependencyErrors, componentList, throwable);
+  validateAllConstraints(constraints, setConstraintErrors, componentList, throwable);
+  validateEvaluator(evaluator, setScenarioErrors, componentList, pythonSourceFiles, throwable);
+
+  // All errors in the model graph are thrown during import
+  validateModelNodes(modelNodes, componentList);
+  validateModelEdges(modelEdges, modelNodes);
+
+  setSimulationInput(simulationInput);
+  setTaskList(taskList);
+  setComponentList(componentList);
+  setDependencyList(dependencyList);
+  setEvaluator(evaluator);
+  setConstraints(constraints);
+  setModelNodes(modelNodes);
+  setModelEdges(modelEdges);
+}
+
+export default function parseJSONFile(
+  fileType,
+  content,
+  setAppStateMethods,
+  setValidationErrors,
+  componentList,
+  pythonSrc,
+  updateModelGraph) {
+  const { setSimulationInput, setTaskList } = setAppStateMethods;
+  const { setScenarioErrors, setTaskErrors } = setValidationErrors;
   try {
     const parsedJSON = JSON.parse(content);
 
     switch (fileType) {
       case 'Scenario':
-        return setScenario(parsedJSON, setSimulationInput, setComponentList, setScenarioErrors);
+        setScenario(parsedJSON, setSimulationInput, componentList, setScenarioErrors);
+        return;
       case 'Tasks':
-        return setTasks(parsedJSON, setTaskList, setTaskErrors);
+        setTasks(parsedJSON, setTaskList, setTaskErrors);
+        return;
       case 'System Model':
-        return setModel(
+        const { systemComponents, systemDependencies } = setModel(
           parseModel(parsedJSON.model),
           pythonSrc,
-          setComponentList,
-          setDependencyList,
-          setConstraints,
-          setEvaluator,
-          setScenarioErrors,
-          setModelErrors,
-          setDependencyErrors,
-          setConstraintErrors);
+          setAppStateMethods,
+          setValidationErrors);
+        updateModelGraph(systemComponents, systemDependencies);
+        return;
       case 'SIM':
-        const { tasks, model, ...scenario } = parsedJSON;
-        const parsedModel = parseModel(model);
-
-        setScenario(scenario, setSimulationInput, setComponentList, setScenarioErrors);
-        setTasks(tasks, setTaskList, setTaskErrors);
-        setModel(
-          parsedModel,
-          pythonSrc,
-          setComponentList,
-          setDependencyList,
-          setConstraints,
-          setEvaluator,
-          setScenarioErrors,
-          setModelErrors,
-          setDependencyErrors,
-          setConstraintErrors
-        );
-
-        return { tasks: flattenTasks(tasks), model: parsedModel, ...scenario };
+        setAppState(parsedJSON, setAppStateMethods, setValidationErrors);
+        return;
       default:
         return null;
     }

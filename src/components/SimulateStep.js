@@ -30,7 +30,7 @@ export default function SimulateStep({
   setErrorMessage,
   setErrorModalOpen,
   setActiveStep,
-  setStateMethods,
+  appState,
   outputPath,
   scenarioErrors,
   tasksErrors,
@@ -170,9 +170,9 @@ export default function SimulateStep({
     try {
       // Build input files
       console.log('Building input files');
-      const simulationJSON = await buildDownloadJSON('Scenario', setStateMethods);
-      const tasksJSON = await buildDownloadJSON('Tasks', setStateMethods);
-      const modelJSON = await buildDownloadJSON('System Model', setStateMethods);
+      const simulationJSON = await buildDownloadJSON('Scenario', appState);
+      const tasksJSON = await buildDownloadJSON('Tasks', appState);
+      const modelJSON = await buildDownloadJSON('System Model', appState);
       const fileContents = {
         simulationJSON,
         tasksJSON,

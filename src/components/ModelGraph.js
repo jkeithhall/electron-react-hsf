@@ -9,6 +9,9 @@ import EditingPalette from './EditingPalette.js';
 
 export default function ModelGraph({
   navOpen,
+  activeStep,
+  setActiveStep,
+  pythonSrc,
   componentList,
   setComponentList,
   dependencyList,
@@ -16,9 +19,6 @@ export default function ModelGraph({
   constraints,
   setConstraints,
   setEvaluator,
-  activeStep,
-  setActiveStep,
-  pythonSrc,
   nodes,
   edges,
   setNodes,
