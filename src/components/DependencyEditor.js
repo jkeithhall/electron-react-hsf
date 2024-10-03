@@ -11,6 +11,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import LinkOffIcon from '@mui/icons-material/LinkOff';
 
 import { validateDependency } from '../utils/validateDependencies';
+import { depEdgeConfig } from '../utils/createDependencyNodesEdges';
 
 export default function DependencyEditor ({
   componentA,
@@ -72,35 +73,27 @@ export default function DependencyEditor ({
       return [...prevDependencyList, newDependency];
     });
 
-    let sourceHandle = 'right';
-    let targetHandle = 'top';
+    let sourceHandle = 'left';
+    let targetHandle = 'bottom';
     const firstComponent = componentList.find(c => c.id === componentA.id || c.id === componentB.id);
     if ((direction === 'ab' && firstComponent.id === componentB.id) ||
         (direction === 'ba' && firstComponent.id === componentA.id)) {
-      sourceHandle = 'left';
-      targetHandle = 'bottom';
+      sourceHandle = 'right';
+      targetHandle = 'top';
     }
 
     setEdges((prevEdges) => {
       return [...prevEdges, {
         id: newDependencyId,
-        source: newDependency.depSubsystem,
-        target: newDependency.subsystem,
+        source: newDependency.subsystem,
+        target: newDependency.depSubsystem,
         sourceHandle,
         targetHandle,
         data: newDependency.fcnName,
-        type: 'function',
+        type: depEdgeConfig.type,
         label: newDependency.fcnName ? '⨍' : null,
-        markerEnd: {
-          type: 'arrowclosed',
-          width: 15,
-          height: 15,
-          color: '#eee',
-        },
-        style: {
-          strokeWidth: 1,
-          stroke: '#EEE'
-        },
+        markerEnd: { ...depEdgeConfig.markerEnd },
+        style: { ...depEdgeConfig.style },
         selected: true,
       }];
     });
@@ -144,7 +137,7 @@ export default function DependencyEditor ({
           my={2}
           sx={{ flexGrow: 1, textAlign: 'center' }}
         >
-          {`${componentA.name} (${assetAName}) → ${componentB.name} (${assetBName})`}
+          {`${componentB.name} (${assetBName}) → ${componentA.name} (${assetAName})`}
         </Typography>
         <Stack
           direction="row"
@@ -210,7 +203,7 @@ export default function DependencyEditor ({
           my={2}
           sx={{ flexGrow: 1, textAlign: 'center' }}
         >
-          {`${componentB.name} (${assetBName}) → ${componentA.name} (${assetAName})`}
+          {`${componentA.name} (${assetAName}) → ${componentB.name} (${assetBName})`}
         </Typography>
         <Stack
           direction="row"

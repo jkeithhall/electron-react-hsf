@@ -77,10 +77,10 @@ export default function ModelFlow ({
         ...prevDependencyList,
         {
           id: newDependencyId,
-          depSubsystem: source,
-          subsystem: target,
-          asset: componentList.find((component) => component.id === target).parent,
-          depAsset: componentList.find((component) => component.id === source).parent,
+          depSubsystem: target,
+          subsystem: source,
+          asset: componentList.find((component) => component.id === source).parent,
+          depAsset: componentList.find((component) => component.id === target).parent,
           fcnName: '',
         }
       ];

@@ -24,10 +24,10 @@ export default function AddComponentDial({ componentList, onLayout, handleNewNod
         onLayout('RL');
       }
     } else { // Default is vertical layout
-      if (e.altKey) { // If option/alt key is pressed, layout top to bottom
-        onLayout('TB');
-      } else { // Default is bottom to top
+      if (e.altKey) { // If option/alt key is pressed, layout bottom to top
         onLayout('BT');
+      } else { // Default is top to bottom
+        onLayout('TB');
       }
     }
   };

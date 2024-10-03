@@ -9,7 +9,7 @@ import TextField from '@mui/material/TextField';
 import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
 import EditingPalette from './EditingPalette';
-import createDependencyNodesEdges from '../utils/createDependencyNodesEdges';
+import { createDependencyNodesEdges, depEdgeConfig } from '../utils/createDependencyNodesEdges';
 
 import '@xyflow/react/dist/style.css';
 
@@ -117,10 +117,10 @@ export default function DependencyGraph({
     setDependencyList((prevList) => {
       return [...prevList, {
         id,
-        depSubsystem: source,
-        subsystem: target,
-        asset: componentList.find((component) => component.id === target).parent,
-        depAsset: componentList.find((component) => component.id === source).parent,
+        depSubsystem: target,
+        subsystem: source,
+        asset: componentList.find((component) => component.id === source).parent,
+        depAsset: componentList.find((component) => component.id === target).parent,
         fcnName: '',
       }];
     });
@@ -132,17 +132,9 @@ export default function DependencyGraph({
         sourceHandle,
         targetHandle,
         data: '',
-        type: 'function',
-        markerEnd: {
-          type: 'arrowclosed',
-          width: 15,
-          height: 15,
-          color: '#EEE',
-        },
-        style: {
-          strokeWidth: 1,
-          stroke: '#EEE',
-        },
+        type: depEdgeConfig.type,
+        markerEnd: { ...depEdgeConfig.markerEnd },
+        style: { ...depEdgeConfig.style },
       }];
     });
 

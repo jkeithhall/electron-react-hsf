@@ -12,7 +12,7 @@ const assetColors = {};
 const assetType = 'asset';
 const subcomponentType = 'subcomponent';
 
-const edgeConfig = {
+const modelEdgeConfig = {
   type: 'smoothstep',
   markerEnd: {
     type: 'arrowclosed',
@@ -74,16 +74,16 @@ const createModelNodesEdges = function(componentList, dependencyList) {
   dependencyList.forEach((dependency) => {
     edges.push({
       id: dependency.id,
-      source: dependency.depSubsystem,
-      target: dependency.subsystem,
+      source: dependency.subsystem,
+      target: dependency.depSubsystem,
       data: dependency.fcnName,
-      type: edgeConfig.type,
-      markerEnd: { ...edgeConfig.markerEnd },
-      style: { ...edgeConfig.style },
+      type: modelEdgeConfig.type,
+      markerEnd: { ...modelEdgeConfig.markerEnd },
+      style: { ...modelEdgeConfig.style },
     });
   });
 
   return { initialNodes: nodes, initialEdges: edges };
 }
 
-export { createModelNodesEdges, assetType, subcomponentType, edgeConfig };
+export { createModelNodesEdges, assetType, subcomponentType, modelEdgeConfig };

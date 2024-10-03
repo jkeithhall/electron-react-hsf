@@ -1,6 +1,6 @@
 import { string, number, object, boolean } from 'yup';
 import { noInjection } from './validateScenario';
-import { assetType, subcomponentType, edgeConfig } from './createModelNodesEdges';
+import { assetType, subcomponentType, modelEdgeConfig } from './createModelNodesEdges';
 
 function isValidRGBColor(string) {
   return /rgba?\((\d{1,3}), (\d{1,3}), (\d{1,3})(, \d?(\.\d{1,2})?)?\)/.test(string);
@@ -135,16 +135,16 @@ const edgeSchema = (modelNodes) => object({
     }),
   markerEnd: object()
     .test('valid-marker-end', 'Marker End must be a valid marker end', function(value) {
-      return JSON.stringify(value) === JSON.stringify(edgeConfig.markerEnd);
+      return JSON.stringify(value) === JSON.stringify(modelEdgeConfig.markerEnd);
     }),
   selected: boolean('Selected must be a boolean'),
   style: object()
     .test('valid-style', 'Style must be a valid style', function(value) {
-      return JSON.stringify(value) === JSON.stringify(edgeConfig.style);
+      return JSON.stringify(value) === JSON.stringify(modelEdgeConfig.style);
     }),
   type: string('Type must be a string')
     .test('valid-type', 'Type must be a valid type', function(value) {
-      return value === edgeConfig.type;
+      return value === modelEdgeConfig.type;
     }),
 });
 

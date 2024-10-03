@@ -43,11 +43,11 @@ function SubcomponentNode({ data, selected }) {
   const selectedClass = selected ? 'selected-node' : '';
   return (
     <>
-      <Handle type="source" position={Position.Top} />
+      <Handle type="target" position={Position.Top} />
       <div className={`subcomponent-node ${selectedClass}`}>
         <Typography variant="body2">{data.label}</Typography>
       </div>
-      <Handle type="target" position={Position.Bottom} />
+      <Handle type="source" position={Position.Bottom} />
     </>
   );
 }
