@@ -8,6 +8,7 @@ import ModelGraph from './components/ModelGraph';
 import DependencyGraph from './components/DependencyGraph';
 import ConstraintsTable from './components/ConstraintsTable';
 import SimulateStep from './components/SimulateStep';
+import Analyze from './components/Analyze';
 import ConfirmationModal from './components/ConfirmationModal';
 import SaveConfirmationModal from './components/SaveConfirmationModal';
 import ErrorModal from './components/ErrorModal';
@@ -405,7 +406,10 @@ export default function App() {
               constraints={constraints}
               evaluator={evaluator}
             />,
-          'Analyze': <></>
+          'Analyze': <Analyze
+            outputPath={simulationInput.dependencies.outputPath}
+            startJD={simulationInput.simulationParameters.startJD}
+          />,
           }[activeStep]}
           {
             confirmationModalOpen && (

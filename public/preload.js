@@ -175,7 +175,13 @@ const api = {
       handleSimulationResults(data);
     });
     ipcRenderer.send('run-simulation', inputFiles, outputFiles);
-  }
+  },
+  fetchTimelineData: async (outputPath, handleOutput) => {
+    ipcRenderer.send('fetch-latest-timeline-data', outputPath);
+    ipcRenderer.on('latest-timeline-data', (_, data) => {
+      handleOutput(data);
+    });
+  },
 }
 /*
   contextBridge exposes methods to the window object (accessed on a given API name).

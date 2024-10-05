@@ -408,6 +408,12 @@ footer {
     gap: var(--confirm-close-gap);
 }
 
+.analyze-timeline {
+    background-color: var(--secondary--background-color);
+    width: 100%;
+    height: 500;
+}
+
 .overlay {
     z-index: 2;
     position: fixed;

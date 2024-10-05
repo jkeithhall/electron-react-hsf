@@ -1,6 +1,6 @@
 const { app, dialog } = require('electron');
 const { existsSync, mkdirSync } = require('fs');
-const { readFile, writeFile } = require('fs').promises;
+const { readFile, writeFile, readdir } = require('fs').promises;
 const { join, basename } = require('path');
 
 const currentFile = { content: '', filePath: null };
@@ -153,8 +153,24 @@ const buildOutputDir = () => {
   }
 }
 
+const fetchLatestTimelineData = async (filePath) => {
+  try {
+    const fileNames = await readdir(filePath);
+    const latestFile = fileNames.filter((file) => file.includes('output-')).sort().pop();
+
+    if (!latestFile) {
+      throw new Error('No output files found');
+    }
+
+    const content = await readFile(join(filePath, latestFile), { encoding: 'utf-8' });
+    return content;
+  } catch (error) {
+    console.error('Error fetching timeline data:', error);
+    throw error;
+  }
+}
+
 const buildInputFiles = async (browserWindow, fileContents) => {
-  console.log('Building input files in fileHandlers.js');
   const baseSrc = join(__dirname, '../Horizon/output');
   const { simulationJSON, tasksJSON, modelJSON } = fileContents;
   const fileNames = {
@@ -196,6 +212,7 @@ module.exports = {
   showSaveDialog,
   showDirectorySelectDialog,
   buildOutputDir,
+  fetchLatestTimelineData,
   buildInputFiles,
   updateCurrentFile,
   checkUnsavedChanges,

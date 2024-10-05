@@ -9,6 +9,7 @@ const {
   saveFile,
   showSaveDialog,
   showDirectorySelectDialog,
+  fetchLatestTimelineData,
   buildInputFiles,
   updateCurrentFile,
   checkUnsavedChanges,
@@ -155,11 +156,11 @@ ipcMain.on('set-revert-status', (event, status) => {
   Menu.getApplicationMenu().getMenuItemById('revert-changes').enabled = status;
 });
 
-ipcMain.handle('get-current-filepath', async (event) => {
+ipcMain.handle('get-current-filepath', async () => {
   return await getFilePath();
 });
 
-ipcMain.handle('get-current-filecontent', async (event) => {
+ipcMain.handle('get-current-filecontent', async () => {
   return await getContent();
 });
 
@@ -311,4 +312,16 @@ ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
       code: null,
     });
   }
+});
+
+ipcMain.on('fetch-latest-timeline-data', (event, filePath) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  fetchLatestTimelineData(filePath)
+    .then((data) => {
+      browserWindow.webContents.send('latest-timeline-data', data);
+    })
+    .catch((error) => {
+      console.error(error);
+    });
 });
