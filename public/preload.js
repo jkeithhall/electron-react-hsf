@@ -176,8 +176,14 @@ const api = {
     });
     ipcRenderer.send('run-simulation', inputFiles, outputFiles);
   },
-  fetchTimelineData: async (outputPath, handleOutput) => {
-    ipcRenderer.send('fetch-latest-timeline-data', outputPath);
+  fetchRunTimes: async (outputPath, handleOutput) => {
+    ipcRenderer.send('fetch-run-times', outputPath);
+    ipcRenderer.on('run-times', (_, data) => {
+      handleOutput(data);
+    });
+  },
+  fetchTimelineData: async (outputPath, selectedRunTime, handleOutput) => {
+    ipcRenderer.send('fetch-latest-timeline-data', outputPath, selectedRunTime);
     ipcRenderer.on('latest-timeline-data', (_, data) => {
       handleOutput(data);
     });

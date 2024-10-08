@@ -153,17 +153,19 @@ const buildOutputDir = () => {
   }
 }
 
-const fetchLatestTimelineData = async (filePath) => {
+const fetchRunTimes = async (outputPath) => {
   try {
-    const fileNames = await readdir(filePath);
-    const latestFile = fileNames.filter((file) => file.includes('output-')).sort().pop();
+    const fileContents = await readdir(outputPath);
+    return fileContents.filter((file) => file.startsWith('output'));
+  } catch (error) {
+    console.error('Error fetching run times:', error);
+    throw error;
+  }
+}
 
-    if (!latestFile) {
-      throw new Error('No output files found');
-    }
-
-    const content = await readFile(join(filePath, latestFile), { encoding: 'utf-8' });
-    return content;
+const fetchLatestTimelineData = async (filePath, fileName) => {
+  try {
+    return await readFile(join(filePath, fileName), { encoding: 'utf-8' });
   } catch (error) {
     console.error('Error fetching timeline data:', error);
     throw error;
@@ -212,6 +214,7 @@ module.exports = {
   showSaveDialog,
   showDirectorySelectDialog,
   buildOutputDir,
+  fetchRunTimes,
   fetchLatestTimelineData,
   buildInputFiles,
   updateCurrentFile,

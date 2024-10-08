@@ -8,9 +8,9 @@ export default function formatTimeline(scheduleContent, startJD) {
   let items = [];
   let groups = [];
 
-  const firstSchedule = scheduleContent.split("\n").filter((line) => line !== "");
+  const lines = scheduleContent.split("\n").filter((line) => line !== "");
 
-  firstSchedule.forEach((line, index) => {
+  lines.forEach((line, index) => {
     if (index === 0) {
       scheduleValue = line.split("Schedule Value: ")[1];
     } else {

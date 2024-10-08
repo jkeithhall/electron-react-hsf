@@ -42,6 +42,7 @@ export default function SimulateStep({
   dependencyList,
   constraints,
   evaluator,
+  setLastRun
 }) {
   const theme = useTheme();
   const [precheckStep, setPrecheckStep] = useState(0);
@@ -242,6 +243,7 @@ export default function SimulateStep({
             setErrorModalOpen(true);
           } else if (type === 'close') {
             setStatus('success');
+            setLastRun(new Date());
             setActiveStep('Analyze');
           } else {
             setProgressValue(data);

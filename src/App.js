@@ -59,6 +59,8 @@ export default function App() {
   const [dependencyErrors, setDependencyErrors] = useState({});
   const [constraintErrors, setConstraintErrors] = useState({});
 
+  const [lastRun, setLastRun] = useState(null);
+
   // States saved in file download/save
   const appState = useMemo(() => ({
     simulationInput,
@@ -405,10 +407,12 @@ export default function App() {
               dependencyList={dependencyList}
               constraints={constraints}
               evaluator={evaluator}
+              setLastRun={setLastRun}
             />,
           'Analyze': <Analyze
             outputPath={simulationInput.dependencies.outputPath}
             startJD={simulationInput.simulationParameters.startJD}
+            lastRun={lastRun}
           />,
           }[activeStep]}
           {

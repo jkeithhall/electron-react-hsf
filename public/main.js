@@ -9,11 +9,14 @@ const {
   saveFile,
   showSaveDialog,
   showDirectorySelectDialog,
+  fetchRunTimes,
   fetchLatestTimelineData,
   buildInputFiles,
   updateCurrentFile,
   checkUnsavedChanges,
   showFileSelectDialog } = require('./fileHandlers');
+
+let firstLoad = true;
 
 let mainWindow;
 let splashWindow;
@@ -76,9 +79,14 @@ app.on('activate', function () {
 
 // When the React app has finished rendering, show the main window
 ipcMain.on('render-complete', () => {
-  mainWindow.setFullScreenable(true);
-  mainWindow.setFullScreen(true);
-  splashWindow.close();
+  if (firstLoad) {
+    mainWindow.setFullScreenable(true);
+    mainWindow.setFullScreen(true);
+    mainWindow.show();
+    mainWindow.focus();
+    splashWindow.close();
+    firstLoad = false;
+  }
 });
 
 ipcMain.on('show-save-dialog', (event, fileType, content, updateCache) => {
@@ -314,14 +322,18 @@ ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
   }
 });
 
-ipcMain.on('fetch-latest-timeline-data', (event, filePath) => {
+ipcMain.on('fetch-run-times', (event, outputPath) => {
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
-  fetchLatestTimelineData(filePath)
-    .then((data) => {
-      browserWindow.webContents.send('latest-timeline-data', data);
-    })
-    .catch((error) => {
-      console.error(error);
-    });
+  fetchRunTimes(outputPath)
+    .then((data) => browserWindow.webContents.send('run-times', data))
+    .catch((error) => console.error(error));
+});
+
+ipcMain.on('fetch-latest-timeline-data', (event, filePath, fileName) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  fetchLatestTimelineData(filePath, fileName)
+    .then((data) => browserWindow.webContents.send('latest-timeline-data', data))
+    .catch((error) => console.error(error));
 });
