@@ -156,7 +156,7 @@ const buildOutputDir = () => {
 const fetchTimelineFiles = async (outputPath) => {
   try {
     const fileContents = await readdir(outputPath);
-    return fileContents.filter((file) => file.startsWith('output'));
+    return fileContents.filter((file) => file.startsWith('output')).reverse();
   } catch (error) {
     console.error('Error fetching timeline files:', error);
     throw error;
@@ -188,7 +188,10 @@ const fetchLatestTimelineData = async (filePath, fileName) => {
 
 const fetchLatestStateData = async (filePath, fileName) => {
   try {
-    return await readFile(join(filePath, 'HorizonLog', fileName), { encoding: 'utf-8' });
+    const content = await readFile(join(filePath, 'HorizonLog', fileName), { encoding: 'utf-8' });
+    const startJDContent = await readFile(join(filePath, 'jdValues.csv'), { encoding: 'utf-8' });
+    const startJD = startJDContent.split('\n').findLast((line) => line !== '').split(',')[1];
+    return { content, startJD };
   } catch (error) {
     console.error('Error fetching state data:', error);
     throw error;

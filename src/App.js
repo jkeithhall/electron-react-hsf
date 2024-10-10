@@ -408,7 +408,7 @@ export default function App() {
             />,
           'Analyze': <Analyze
             outputPath={simulationInput.dependencies.outputPath}
-            startJD={simulationInput.simulationParameters.startJD}
+            lastStartJD={simulationInput.simulationParameters.startJD}
           />,
           }[activeStep]}
           {

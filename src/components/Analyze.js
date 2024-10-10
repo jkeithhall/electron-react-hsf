@@ -11,26 +11,26 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Timeline from 'react18-vis-timeline';
 import { DataSet } from 'vis-data';
+import { ResponsiveLine } from '@nivo/line'
 
 import '../timelinestyles.css';
 
 import formatTimeline from '../utils/formatTimeline';
+import formatPlotData from '../utils/formatPlotData';
 import { julianToDate } from '../utils/julianConversion';
 
 const timelineItems = new DataSet([]);
 const timelineGroups = new DataSet([]);
-const plotItems = new DataSet([]);
 
 const timelineOptions = {
   width: "100%",
   height: "300px",
   align: "left",
-  showTooltips: true,
   timeAxis: {scale: 'second', step: 5},
   groupHeightMode: 'fixed',
 }
 
-export default function Analyze({ outputPath, startJD }) {
+export default function Analyze({ outputPath, lastStartJD }) {
   const theme = useTheme();
   const timelineRef = useRef(null);
   const [finishedLoadingTimeline, setFinishedLoadingTimeline] = useState(false);
@@ -40,16 +40,46 @@ export default function Analyze({ outputPath, startJD }) {
   const [selectedTimelineFile, setSelectedTimelineFile] = useState(undefined);
   const [selectedStateDataFile, setSelectedStateDataFile] = useState(undefined);
   const [scheduleValue, setScheduleValue] = useState('');
+  const [plotData, setPlotData] = useState([]);
+  const [xAxisLegend, setXAxisLegend] = useState('');
+  const [yAxisLegend, setYAxisLegend] = useState('');
   const [accordionOpen, setAccordionOpen] = useState(null);
+
+  async function fetchTimelineFiles(outputPath) {
+    return new Promise((resolve, reject) => {
+      if (window.electronApi) {
+        try {
+          window.electronApi.fetchTimelineFiles(outputPath, resolve);
+        } catch (error) {
+          console.error("Error while fetching timelines files: ", error);
+          reject(error);
+        }
+      }
+    });
+  }
+
+  async function fetchStateDataFiles(outputPath) {
+    return new Promise((resolve, reject) => {
+      if (window.electronApi) {
+        try {
+          window.electronApi.fetchStateDataFiles(outputPath, resolve);
+        } catch (error) {
+          console.error("Error while fetching state data files: ", error);
+          reject(error);
+        }
+      }
+    });
+  }
 
  async function fetchTimelineData(outputPath, selectedTimelineFile) {
   return new Promise((resolve, reject) => {
       if (window.electronApi) {
-        console.log("Fetching timeline data for:", selectedTimelineFile);
         window.electronApi.fetchLatestTimelineData(outputPath, selectedTimelineFile, ({ content, startJD }) => {
           const firstSchedule = content.split("Schedule Number: ")[1].slice(1);
           formatTimeline(firstSchedule, startJD).then(resolve).catch(reject);
         });
+      } else {
+        reject("No electron API found");
       }
     });
   }
@@ -88,42 +118,25 @@ export default function Analyze({ outputPath, startJD }) {
   }
 
   function fetchStateData(outputPath, selectedStateDataFile) {
-    console.log("Fetching state data for:", selectedStateDataFile);
-    if (window.electronApi) {
-      window.electronApi.fetchLatestStateData(outputPath, selectedStateDataFile, (content) => {
-        try {
-          console.log("State data content:", content);
-        } catch (error) {
-          console.error("Error while fetching state data: ", error);
-        }
-      });
-    }
-  }
-
- async function fetchTimelineFiles(outputPath) {
     return new Promise((resolve, reject) => {
       if (window.electronApi) {
-        try {
-          window.electronApi.fetchTimelineFiles(outputPath, resolve);
-        } catch (error) {
-          console.error("Error while fetching timelines files: ", error);
-          reject(error);
-        }
+        window.electronApi.fetchLatestStateData(outputPath, selectedStateDataFile, ({ content, startJD }) => {
+          console.log(content, startJD);
+          formatPlotData(content, startJD).then(resolve).catch(reject);
+        });
+      } else {
+        reject("No electron API found");
       }
     });
   }
 
-  async function fetchStateDataFiles(outputPath) {
-    return new Promise((resolve, reject) => {
-      if (window.electronApi) {
-        try {
-          window.electronApi.fetchStateDataFiles(outputPath, resolve);
-        } catch (error) {
-          console.error("Error while fetching state data files: ", error);
-          reject(error);
-        }
-      }
-    });
+  function updatePlot(data) {
+    const { plotData, xAxisLegend, yAxisLegend } = data;
+    console.log("Plot data:", plotData);
+    setPlotData(plotData);
+    setXAxisLegend(`Seconds after ${xAxisLegend} (s)`);
+    setYAxisLegend(yAxisLegend);
+    setFinishedLoadingStateData(true);
   }
 
   // Converts file names of the form "output-2024-10-02-1_22_13_38.txt" to "2024-10-02 1:22:13"
@@ -148,9 +161,12 @@ export default function Analyze({ outputPath, startJD }) {
     setAccordionOpen('state-data');
   }
 
+  const handleAccordionChange = (panel) => (event, isExpanded) => {
+    setAccordionOpen(isExpanded ? panel : null);
+  }
+
   // Fetch last output data on first render
   useEffect(() => {
-    fetchStateDataFiles(outputPath);
     (async () => {
       try {
         const timelineFiles = await fetchTimelineFiles(outputPath);
@@ -166,8 +182,9 @@ export default function Analyze({ outputPath, startJD }) {
       } catch (error) {
         console.error("Error while fetching state data files: ", error);
       }
+      // Preset timeline range to 15 seconds before and 90 seconds after the last start Julian date
       try {
-        const dayJs = await julianToDate(startJD);
+        const dayJs = await julianToDate(lastStartJD);
         const startDatetime = dayJs.clone().add(-15, 'seconds');
         const endDatetime = dayJs.clone().add(90, 'seconds');
         setTimelineRange(startDatetime, endDatetime);
@@ -203,7 +220,13 @@ export default function Analyze({ outputPath, startJD }) {
   // Fetch state data when selectedStateDataFile changes
   useEffect(() => {
     if (selectedStateDataFile) {
-      fetchStateData(outputPath, selectedStateDataFile);
+      (async() => {
+        try {
+           updatePlot(await fetchStateData(outputPath, selectedStateDataFile));
+        } catch (error) {
+          console.error("Error while fetching state data: ", error);
+        }
+      })();
     }
   }, [selectedStateDataFile]);
 
@@ -267,6 +290,7 @@ export default function Analyze({ outputPath, startJD }) {
       <Accordion
         disabled={selectedTimelineFile === undefined}
         expanded={accordionOpen === 'timeline'}
+        onChange={handleAccordionChange('timeline')}
         mt={2}
         sx={{
           width: '100%',
@@ -274,19 +298,7 @@ export default function Analyze({ outputPath, startJD }) {
           color: '#eee'
          }}
       >
-        <AccordionSummary
-          expandIcon={
-            <ExpandMoreIcon
-              sx={{ color: 'white' }}
-              onClick={() => setAccordionOpen(status => {
-                if (status === 'timeline') {
-                  return null;
-                } else {
-                  return 'timeline';
-                }
-              })}
-            />}
-        >
+        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }}/>}>
           <Typography variant="h5" fontWeight="bold">
             {`Top schedule ${scheduleValue? '(value: ' + scheduleValue + ')' : ''}`}
           </Typography>
@@ -311,37 +323,69 @@ export default function Analyze({ outputPath, startJD }) {
       <Accordion
         disabled={selectedStateDataFile === undefined}
         expanded={accordionOpen === 'state-data'}
+        onChange={handleAccordionChange('state-data')}
         sx={{
           width: '100%',
           backgroundColor: theme.palette.secondary.main,
           color: '#eee'
           }}
       >
-        <AccordionSummary
-          expandIcon={
-            <ExpandMoreIcon
-              sx={{ color: 'white' }}
-              onClick={() => setAccordionOpen(status => {
-                if (status === 'state-data') {
-                  return null;
-                } else {
-                  return 'state-data';
-                }
-              })}
-            />}
-        >
+        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }}/>}>
           <Typography variant="h5" fontWeight="bold">State data plots</Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Box
-            sx={{
-              backgroundColor: '#535671',
-              borderRadius: '5px',
-              padding: '20px',
-            }}
-          >
-            {/* State data plots go here */}
-          </Box>
+          {plotData.length > 0 &&
+            <Box
+              sx={{
+                backgroundColor: '#535671',
+                borderRadius: '5px',
+                height: '500px',
+                width: '100%',
+              }}
+            >
+              <ResponsiveLine
+                data={plotData}
+                margin={{ top: 30, right: 20, bottom: 50, left: 70 }}
+                curve="linear"
+                axisBottom={{
+                  format: '%S',
+                  tickSize: 5,
+                  tickPadding: 5,
+                  tickValues: 'every 5 seconds',
+                  legend: xAxisLegend,
+                  legendOffset: 36,
+                  legendPosition: 'middle',
+                }}
+                axisLeft={{
+                  legend: yAxisLegend,
+                  legendOffset: -50,
+                  legendPosition: 'middle',
+                }}
+                xScale={{
+                  type: 'time',
+                  format: '%Y-%m-%d %H:%M:%S',
+                  precision: 'second',
+                  useUTC: false,
+                }}
+                yScale={{
+                  type: 'linear',
+                  min: 'auto',
+                  max: 'auto',
+                }}
+                xFormat="time:%Y-%m-%d %H:%M:%S"
+                yFormat=" >-.4~f"
+                colors={{ scheme: 'set2' }}
+                pointSize={10}
+                pointColor={{ theme: 'background' }}
+                pointBorderWidth={3}
+                pointBorderColor={{ from: 'serieColor' }}
+                pointLabel="data.yFormatted"
+                pointLabelYOffset={-20}
+                enableTouchCrosshair={false}
+                useMesh={true}
+              />
+            </Box>
+          }
         </AccordionDetails>
       </Accordion>
     </ThemeProvider>
