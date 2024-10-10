@@ -14,7 +14,7 @@
     --nav-drawer-width-closed: 60px;
     --nav-drawer-width-open: 220px;
     --editing-palette-width: 500px;
-    --work-space-padding: 30px;
+    --work-space-padding: 20px;
     --work-space-height: calc(100vh - var(--header-height) -
     - 2 * var(--work-space-padding) - var(--footer-height));
     --dependency-drop-down-height: 76px;

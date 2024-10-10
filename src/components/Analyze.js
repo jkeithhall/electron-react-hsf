@@ -14,6 +14,7 @@ import { DataSet } from 'vis-data';
 import { ResponsiveLine } from '@nivo/line'
 
 import '../timelinestyles.css';
+import { lineChartProps } from '../nivoconfig';
 
 import formatTimeline from '../utils/formatTimeline';
 import formatPlotData from '../utils/formatPlotData';
@@ -38,6 +39,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
   const [timelineFiles, setTimelineFiles] = useState([]);
   const [stateDataFiles, setStateDataFiles] = useState([]);
   const [selectedTimelineFile, setSelectedTimelineFile] = useState(undefined);
+  const [latestSimulation, setLatestSimulation] = useState(null);
   const [selectedStateDataFile, setSelectedStateDataFile] = useState(undefined);
   const [scheduleValue, setScheduleValue] = useState('');
   const [plotData, setPlotData] = useState([]);
@@ -84,6 +86,10 @@ export default function Analyze({ outputPath, lastStartJD }) {
     });
   }
 
+  // vis-timeline is an old library that doesn't support React 18
+  // react18-vis-timeline is a fork of vis-timeline that supports React 18
+  // but it wants data updates to use the API on the DataSet objects
+  // instead of directly modifying the data array
   function setTimelineData(items, groups) {
     if (timelineRef.current) {
       const { timeline, props } = timelineRef.current;
@@ -151,8 +157,11 @@ export default function Analyze({ outputPath, lastStartJD }) {
     return `${asset}: ${state}`;
   }
 
-  function handleRunTimeChange(event) {
+  function handleSimulationFileChange(event) {
     setSelectedTimelineFile(event.target.value);
+    if (event.target.value !== latestSimulation) {
+      setSelectedStateDataFile(undefined);
+    }
     setAccordionOpen('timeline');
   }
 
@@ -170,6 +179,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
     (async () => {
       try {
         const timelineFiles = await fetchTimelineFiles(outputPath);
+        setLatestSimulation(timelineFiles[0]);
         setTimelineFiles(timelineFiles);
         setFinishedLoadingTimeline(true);
       } catch (error) {
@@ -230,6 +240,10 @@ export default function Analyze({ outputPath, lastStartJD }) {
     }
   }, [selectedStateDataFile]);
 
+  const stateDataSelectorDisabled = !finishedLoadingStateData ||
+    stateDataFiles.length === 0 ||
+    selectedTimelineFile !== latestSimulation;
+
   return (
     <ThemeProvider theme={theme}>
       <Stack
@@ -243,7 +257,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           padding: '10px',
           margin: '10px',
           borderRadius: '5px',
-          width: '900px',
+          width: '840px',
         }}
       >
         <TextField
@@ -252,7 +266,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           size="small"
           select
           value={selectedTimelineFile || ""}
-          onChange={handleRunTimeChange}
+          onChange={handleSimulationFileChange}
           variant="outlined"
           color="primary"
           sx={{ width: '400px' }}
@@ -276,7 +290,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           variant="outlined"
           color="primary"
           sx={{ width: '400px' }}
-          disabled={!finishedLoadingStateData || stateDataFiles.length === 0}
+          disabled={stateDataSelectorDisabled}
           error={finishedLoadingStateData && stateDataFiles.length === 0}
           helperText={finishedLoadingStateData && stateDataFiles.length === 0 ? "No state data files found" : ""}
         >
@@ -345,8 +359,6 @@ export default function Analyze({ outputPath, lastStartJD }) {
             >
               <ResponsiveLine
                 data={plotData}
-                margin={{ top: 30, right: 20, bottom: 50, left: 70 }}
-                curve="linear"
                 axisBottom={{
                   format: '%S',
                   tickSize: 5,
@@ -361,28 +373,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
                   legendOffset: -50,
                   legendPosition: 'middle',
                 }}
-                xScale={{
-                  type: 'time',
-                  format: '%Y-%m-%d %H:%M:%S',
-                  precision: 'second',
-                  useUTC: false,
-                }}
-                yScale={{
-                  type: 'linear',
-                  min: 'auto',
-                  max: 'auto',
-                }}
-                xFormat="time:%Y-%m-%d %H:%M:%S"
-                yFormat=" >-.4~f"
-                colors={{ scheme: 'set2' }}
-                pointSize={10}
-                pointColor={{ theme: 'background' }}
-                pointBorderWidth={3}
-                pointBorderColor={{ from: 'serieColor' }}
-                pointLabel="data.yFormatted"
-                pointLabelYOffset={-20}
-                enableTouchCrosshair={false}
-                useMesh={true}
+                {...lineChartProps}
               />
             </Box>
           }
