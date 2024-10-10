@@ -27,14 +27,6 @@ import { julianToDate } from '../utils/julianConversion';
 const timelineItems = new DataSet([]);
 const timelineGroups = new DataSet([]);
 
-const timelineOptions = {
-  width: "100%",
-  height: "300px",
-  align: "left",
-  timeAxis: {scale: 'second', step: 5},
-  groupHeightMode: 'fixed',
-}
-
 export default function Analyze({ outputPath, lastStartJD }) {
   const theme = useTheme();
   const timelineRef = useRef(null);
@@ -44,7 +36,6 @@ export default function Analyze({ outputPath, lastStartJD }) {
   const [stateDataFiles, setStateDataFiles] = useState([]);
   const [selectedTimelineFile, setSelectedTimelineFile] = useState(undefined);
   const [scheduleValue, setScheduleValue] = useState('');
-  const [timelineOptions, setTimelineOptions] = useState({});
   const [latestSimulation, setLatestSimulation] = useState(null);
   const [selectedStateDataFile, setSelectedStateDataFile] = useState(undefined);
   const [useUTC, setUseUTC] = useState(true);
@@ -120,8 +111,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
       const elapsed = endDatetime.diff(startDatetime.clone());
 
       const options = {
-        // ...timelineOptions,
-        min: startDatetime.format().slice(0, -6),
+        min: startDatetime.format('YYYY-MM-DDTHH:mm:ss'),
         max: endDatetime.clone().add(90, 'seconds').format('YYYY-MM-DDTHH:mm:ss'),
         zoomMin: elapsed / 10,
         zoomMax: elapsed * 10,
@@ -371,7 +361,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           >
             {finishedLoadingTimeline && <Timeline
               ref={timelineRef}
-              options={timelineOptions}
+              options={{}}
               initialItems={timelineItems}
               initialGroups={timelineGroups}
             />}
