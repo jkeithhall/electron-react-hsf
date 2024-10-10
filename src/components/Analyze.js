@@ -4,6 +4,10 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
+import Checkbox from '@mui/material/Checkbox';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import LocationOffIcon from '@mui/icons-material/LocationOff';
 import MenuItem from '@mui/material/MenuItem';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -11,7 +15,7 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Timeline from 'react18-vis-timeline';
 import { DataSet } from 'vis-data';
-import { ResponsiveLine } from '@nivo/line'
+import { ResponsiveLine } from '@nivo/line';
 
 import '../timelinestyles.css';
 import { lineChartProps } from '../nivoconfig';
@@ -39,9 +43,11 @@ export default function Analyze({ outputPath, lastStartJD }) {
   const [timelineFiles, setTimelineFiles] = useState([]);
   const [stateDataFiles, setStateDataFiles] = useState([]);
   const [selectedTimelineFile, setSelectedTimelineFile] = useState(undefined);
+  const [scheduleValue, setScheduleValue] = useState('');
+  const [timelineOptions, setTimelineOptions] = useState({});
   const [latestSimulation, setLatestSimulation] = useState(null);
   const [selectedStateDataFile, setSelectedStateDataFile] = useState(undefined);
-  const [scheduleValue, setScheduleValue] = useState('');
+  const [useUTC, setUseUTC] = useState(true);
   const [plotData, setPlotData] = useState([]);
   const [xAxisLegend, setXAxisLegend] = useState('');
   const [yAxisLegend, setYAxisLegend] = useState('');
@@ -73,12 +79,12 @@ export default function Analyze({ outputPath, lastStartJD }) {
     });
   }
 
- async function fetchTimelineData(outputPath, selectedTimelineFile) {
+ async function fetchTimelineData(outputPath, selectedTimelineFile, useUTC) {
   return new Promise((resolve, reject) => {
       if (window.electronApi) {
         window.electronApi.fetchLatestTimelineData(outputPath, selectedTimelineFile, ({ content, startJD }) => {
           const firstSchedule = content.split("Schedule Number: ")[1].slice(1);
-          formatTimeline(firstSchedule, startJD).then(resolve).catch(reject);
+          formatTimeline(firstSchedule, startJD, useUTC).then(resolve).catch(reject);
         });
       } else {
         reject("No electron API found");
@@ -113,22 +119,23 @@ export default function Analyze({ outputPath, lastStartJD }) {
     if (timelineRef.current) {
       const elapsed = endDatetime.diff(startDatetime.clone());
 
-      timelineRef.current.timeline.setOptions({
-        ...timelineOptions,
-        min: startDatetime.toISOString(),
-        max: endDatetime.clone().add(90, 'seconds').toISOString(),
+      const options = {
+        // ...timelineOptions,
+        min: startDatetime.format().slice(0, -6),
+        max: endDatetime.clone().add(90, 'seconds').format('YYYY-MM-DDTHH:mm:ss'),
         zoomMin: elapsed / 10,
         zoomMax: elapsed * 10,
-      });
+      }
+
+      timelineRef.current.timeline.setOptions(options);
     }
   }
 
-  function fetchStateData(outputPath, selectedStateDataFile) {
+  function fetchStateData(outputPath, selectedStateDataFile, useUTC) {
     return new Promise((resolve, reject) => {
       if (window.electronApi) {
         window.electronApi.fetchLatestStateData(outputPath, selectedStateDataFile, ({ content, startJD }) => {
-          console.log(content, startJD);
-          formatPlotData(content, startJD).then(resolve).catch(reject);
+          formatPlotData(content, startJD, useUTC).then(resolve).catch(reject);
         });
       } else {
         reject("No electron API found");
@@ -136,17 +143,17 @@ export default function Analyze({ outputPath, lastStartJD }) {
     });
   }
 
-  function updatePlot(data) {
-    const { plotData, xAxisLegend, yAxisLegend } = data;
-    console.log("Plot data:", plotData);
+  function updatePlot(data, useUTC) {
+    const { plotData, xAxisLegend, yAxisLegend, timeRange } = data;
+
     setPlotData(plotData);
-    setXAxisLegend(`Seconds after ${xAxisLegend} (s)`);
+    setXAxisLegend(`Time after ${xAxisLegend + (useUTC ? ' (UTC)' : ' (local time)')} (s)`);
     setYAxisLegend(yAxisLegend);
     setFinishedLoadingStateData(true);
   }
 
   // Converts file names of the form "output-2024-10-02-1_22_13_38.txt" to "2024-10-02 1:22:13"
-  function formatRunTime(fileName) {
+  function formatSimulationFileName(fileName) {
     const [_, year, month, day, hour, minute, second] = fileName.split(/[-_]/);
     return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
   }
@@ -194,7 +201,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
       }
       // Preset timeline range to 15 seconds before and 90 seconds after the last start Julian date
       try {
-        const dayJs = await julianToDate(lastStartJD);
+        const dayJs = await julianToDate(lastStartJD, useUTC);
         const startDatetime = dayJs.clone().add(-15, 'seconds');
         const endDatetime = dayJs.clone().add(90, 'seconds');
         setTimelineRange(startDatetime, endDatetime);
@@ -214,7 +221,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
             startDatetime,
             endDatetime,
             items,
-            groups } = await fetchTimelineData(outputPath, selectedTimelineFile);
+            groups } = await fetchTimelineData(outputPath, selectedTimelineFile, useUTC);
 
           setScheduleValue(scheduleValue);
           setTimelineRange(startDatetime, endDatetime);
@@ -232,7 +239,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
     if (selectedStateDataFile) {
       (async() => {
         try {
-           updatePlot(await fetchStateData(outputPath, selectedStateDataFile));
+           updatePlot(await fetchStateData(outputPath, selectedStateDataFile, useUTC), useUTC);
         } catch (error) {
           console.error("Error while fetching state data: ", error);
         }
@@ -240,8 +247,37 @@ export default function Analyze({ outputPath, lastStartJD }) {
     }
   }, [selectedStateDataFile]);
 
-  const stateDataSelectorDisabled = !finishedLoadingStateData ||
-    stateDataFiles.length === 0 ||
+  useEffect(() => {
+    if (finishedLoadingTimeline && selectedTimelineFile) {
+      (async() => {
+        try {
+          const {
+            scheduleValue,
+            startDatetime,
+            endDatetime,
+            items,
+            groups } = await fetchTimelineData(outputPath, selectedTimelineFile, useUTC);
+
+          setScheduleValue(scheduleValue);
+          setTimelineRange(startDatetime, endDatetime);
+          setTimelineData(items, groups);
+        } catch (error) {
+          console.error("Error while fetching timeline data: ", error);
+        }
+      })();
+    }
+    if (finishedLoadingStateData && selectedStateDataFile) {
+      (async() => {
+        try {
+          updatePlot(await fetchStateData(outputPath, selectedStateDataFile, useUTC), useUTC);
+        } catch (error) {
+          console.error("Error while fetching state data: ", error);
+        }
+      })();
+    }
+  }, [useUTC]);
+
+  const stateDataSelectorDisabled = stateDataFiles.length === 0 ||
     selectedTimelineFile !== latestSimulation;
 
   return (
@@ -257,7 +293,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           padding: '10px',
           margin: '10px',
           borderRadius: '5px',
-          width: '840px',
+          width: '700px',
         }}
       >
         <TextField
@@ -269,14 +305,14 @@ export default function Analyze({ outputPath, lastStartJD }) {
           onChange={handleSimulationFileChange}
           variant="outlined"
           color="primary"
-          sx={{ width: '400px' }}
-          disabled={!finishedLoadingTimeline || timelineFiles.length === 0}
+          sx={{ width: '300px' }}
+          disabled={timelineFiles.length === 0}
           error={finishedLoadingTimeline && timelineFiles.length === 0}
           helperText={finishedLoadingTimeline && timelineFiles.length === 0 ? "No simulations found" : ""}
         >
-          {timelineFiles.map((runTime, index) => (
-            <MenuItem key={runTime} value={runTime}>
-              {(index === 0 ? "Latest Simulation: ": "") + formatRunTime(runTime)}
+          {timelineFiles.map((fileName, index) => (
+            <MenuItem key={fileName} value={fileName}>
+              {(index === 0 ? "Latest Simulation: ": "") + formatSimulationFileName(fileName)}
             </MenuItem>
           ))}
         </TextField>
@@ -289,7 +325,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           onChange={handleStateDataChange}
           variant="outlined"
           color="primary"
-          sx={{ width: '400px' }}
+          sx={{ width: '300px' }}
           disabled={stateDataSelectorDisabled}
           error={finishedLoadingStateData && stateDataFiles.length === 0}
           helperText={finishedLoadingStateData && stateDataFiles.length === 0 ? "No state data files found" : ""}
@@ -300,6 +336,14 @@ export default function Analyze({ outputPath, lastStartJD }) {
             </MenuItem>
           ))}
         </TextField>
+        <Tooltip title={`Displaying ${useUTC ? 'UTC' : 'local time'}`} placement="top">
+          <Checkbox
+            checked={!useUTC}
+            onChange={(event) => setUseUTC(!event.target.checked)}
+            icon={<LocationOffIcon />}
+            checkedIcon={<LocationOnIcon />}
+          />
+        </Tooltip>
       </Stack>
       <Accordion
         disabled={selectedTimelineFile === undefined}
@@ -345,7 +389,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           }}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }}/>}>
-          <Typography variant="h5" fontWeight="bold">State data plots</Typography>
+          <Typography variant="h5" fontWeight="bold">State data</Typography>
         </AccordionSummary>
         <AccordionDetails>
           {plotData.length > 0 &&
@@ -359,21 +403,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
             >
               <ResponsiveLine
                 data={plotData}
-                axisBottom={{
-                  format: '%S',
-                  tickSize: 5,
-                  tickPadding: 5,
-                  tickValues: 'every 5 seconds',
-                  legend: xAxisLegend,
-                  legendOffset: 36,
-                  legendPosition: 'middle',
-                }}
-                axisLeft={{
-                  legend: yAxisLegend,
-                  legendOffset: -50,
-                  legendPosition: 'middle',
-                }}
-                {...lineChartProps}
+                {...lineChartProps(xAxisLegend, yAxisLegend)}
               />
             </Box>
           }

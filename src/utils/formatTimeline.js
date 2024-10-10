@@ -1,14 +1,13 @@
 import { randomId } from '@mui/x-data-grid-generator';
 import { julianToDate } from './julianConversion';
-// import dayjs from 'dayjs';
 
-export default async function formatTimeline(scheduleContent, startJD) {
+export default async function formatTimeline(scheduleContent, startJD, useUTC = true) {
   let scheduleValue;
   let startTime = Number.POSITIVE_INFINITY
   let endTime = Number.NEGATIVE_INFINITY;
   let items = [];
   let groups = [];
-  const dayjs = await julianToDate(startJD);
+  const dayjs = await julianToDate(startJD, useUTC);
 
   const lines = scheduleContent.split("\n").filter((line) => line !== "");
 
@@ -103,26 +102,27 @@ function getItems(tokens, dayjs) {
         const taskStart = parseInt(token);
         if (taskStart < lineStartTime) lineStartTime = taskStart;
 
-        currTask.start = dayjs.clone().add(taskStart, 'seconds').toISOString();
+        // 2024-10-10T05:02:17-07:00 needs to be 2024-10-10T05:02:17
+        currTask.start = dayjs.clone().add(taskStart, 'seconds').format('YYYY-MM-DDTHH:mm:ss');
         break;
       case 5: // Event Start
         const eventStart = parseInt(token);
         if (eventStart < lineStartTime) lineStartTime = eventStart;
 
-        currEvent.start = dayjs.clone().add(eventStart, 'seconds').toISOString();
+        currEvent.start = dayjs.clone().add(eventStart, 'seconds').format('YYYY-MM-DDTHH:mm:ss');
         break;
       case 7: // Task End
         const taskEnd = parseInt(token);
         if (taskEnd > lineEndTime) lineEndTime = taskEnd;
 
-        currTask.end = dayjs.clone().add(taskEnd, 'seconds').toISOString();
+        currTask.end = dayjs.clone().add(taskEnd, 'seconds').format('YYYY-MM-DDTHH:mm:ss');
         items.push({ ...currTask });
         break;
       case 9: // Event End
         const eventEnd = parseInt(token);
         if (eventEnd > lineEndTime) lineEndTime = eventEnd;
 
-        currEvent.end = dayjs.clone().add(eventEnd, 'seconds').toISOString();
+        currEvent.end = dayjs.clone().add(eventEnd, 'seconds').format('YYYY-MM-DDTHH:mm:ss');
         items.push({ ...currEvent });
         break;
       default:
