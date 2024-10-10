@@ -176,15 +176,44 @@ const api = {
     });
     ipcRenderer.send('run-simulation', inputFiles, outputFiles);
   },
-  fetchRunTimes: async (outputPath, handleOutput) => {
-    ipcRenderer.send('fetch-run-times', outputPath);
-    ipcRenderer.on('run-times', (_, data) => {
+  saveJDValue: (outputPath, fileName, startJD, callback) => {
+    console.log('saveJDValue called in preload.js');
+    ipcRenderer.removeAllListeners('jd-value-error');
+
+    ipcRenderer.send('save-jd-value', outputPath, fileName, startJD);
+    ipcRenderer.on('jd-value-error', (_, error) => {
+      callback(error);
+    });
+  },
+  fetchTimelineFiles: async (outputPath, handleOutput) => {
+    ipcRenderer.removeAllListeners('timeline-files');
+
+    ipcRenderer.send('fetch-timeline-files', outputPath);
+    ipcRenderer.on('timeline-files', (_, data) => {
       handleOutput(data);
     });
   },
-  fetchTimelineData: async (outputPath, selectedRunTime, handleOutput) => {
-    ipcRenderer.send('fetch-latest-timeline-data', outputPath, selectedRunTime);
+  fetchStateDataFiles: async (outputPath, handleOutput) => {
+    ipcRenderer.removeAllListeners('state-data-files');
+
+    ipcRenderer.send('fetch-state-data-files', outputPath);
+    ipcRenderer.on('state-data-files', (_, data) => {
+      handleOutput(data);
+    });
+  },
+  fetchLatestTimelineData: async (outputPath, fileName, handleOutput) => {
+    ipcRenderer.removeAllListeners('latest-timeline-data');
+
+    ipcRenderer.send('fetch-latest-timeline-data', outputPath, fileName);
     ipcRenderer.on('latest-timeline-data', (_, data) => {
+      handleOutput(data);
+    });
+  },
+  fetchLatestStateData: async (outputPath, fileName, handleOutput) => {
+    ipcRenderer.removeAllListeners('latest-state-data');
+
+    ipcRenderer.send('fetch-latest-state-data', outputPath, fileName);
+    ipcRenderer.on('latest-state-data', (_, data) => {
       handleOutput(data);
     });
   },

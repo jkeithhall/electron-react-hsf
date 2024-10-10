@@ -1,12 +1,14 @@
 import { randomId } from '@mui/x-data-grid-generator';
 import { julianToDate } from './julianConversion';
+// import dayjs from 'dayjs';
 
-export default function formatTimeline(scheduleContent, startJD) {
+export default async function formatTimeline(scheduleContent, startJD) {
   let scheduleValue;
-  let startTime = julianToDate(startJD).toISOString();
-  let maxEndTime = 0;
+  let startTime = Number.POSITIVE_INFINITY
+  let endTime = Number.NEGATIVE_INFINITY;
   let items = [];
   let groups = [];
+  const dayjs = await julianToDate(startJD);
 
   const lines = scheduleContent.split("\n").filter((line) => line !== "");
 
@@ -18,14 +20,16 @@ export default function formatTimeline(scheduleContent, startJD) {
 
       if (index === 1) groups = groups.concat(getGroups(cleanTokens));
 
-      const { items: currItems, maxEndTime: currMaxEndTime } = getItems(cleanTokens, startJD, maxEndTime);
-      maxEndTime = currMaxEndTime;
+      const { items: currItems, lineStartTime, lineEndTime } = getItems(cleanTokens, dayjs);
       items = items.concat(currItems);
+      if (lineStartTime < startTime) startTime = lineStartTime;
+      if (lineEndTime > endTime) endTime = lineEndTime;
     }
   });
 
-  const endTime = julianToDate(startJD).add(maxEndTime, 'seconds').toISOString();
-  return { scheduleValue, startTime, endTime, items, groups };
+  const startDatetime = dayjs.clone().add(startTime, 'seconds');
+  const endDatetime = dayjs.clone().add(endTime, 'seconds');
+  return { scheduleValue, startDatetime, endDatetime, items, groups };
 }
 
 function separateNumeralName(token) {
@@ -64,9 +68,10 @@ function getGroups(tokens) {
   return groups;
 }
 
-function getItems(tokens, startJD, maxEndTime) {
-  const date = julianToDate(startJD); // Date object
+function getItems(tokens, dayjs) {
   const items = [];
+  let lineStartTime = Number.POSITIVE_INFINITY
+  let lineEndTime = Number.NEGATIVE_INFINITY;
 
   const currEvent = {
     id: '',
@@ -96,24 +101,28 @@ function getItems(tokens, startJD, maxEndTime) {
         break;
       case 3: // Task Start
         const taskStart = parseInt(token);
-        currTask.start = date.add(taskStart, 'seconds').toISOString();
+        if (taskStart < lineStartTime) lineStartTime = taskStart;
+
+        currTask.start = dayjs.clone().add(taskStart, 'seconds').toISOString();
         break;
       case 5: // Event Start
         const eventStart = parseInt(token);
-        currEvent.start = date.add(eventStart, 'seconds').toISOString();
+        if (eventStart < lineStartTime) lineStartTime = eventStart;
+
+        currEvent.start = dayjs.clone().add(eventStart, 'seconds').toISOString();
         break;
       case 7: // Task End
         const taskEnd = parseInt(token);
-        if (taskEnd > maxEndTime) maxEndTime = taskEnd;
+        if (taskEnd > lineEndTime) lineEndTime = taskEnd;
 
-        currTask.end = date.add(taskEnd, 'seconds').toISOString();
+        currTask.end = dayjs.clone().add(taskEnd, 'seconds').toISOString();
         items.push({ ...currTask });
         break;
       case 9: // Event End
         const eventEnd = parseInt(token);
-        if (eventEnd > maxEndTime) maxEndTime = eventEnd;
+        if (eventEnd > lineEndTime) lineEndTime = eventEnd;
 
-        currEvent.end = date.add(eventEnd, 'seconds').toISOString();
+        currEvent.end = dayjs.clone().add(eventEnd, 'seconds').toISOString();
         items.push({ ...currEvent });
         break;
       default:
@@ -121,5 +130,5 @@ function getItems(tokens, startJD, maxEndTime) {
     }
   });
 
-  return {items, maxEndTime};
+  return {items, lineStartTime, lineEndTime};
 }

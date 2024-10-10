@@ -1,0 +1,161 @@
+.vis-timeline {
+  border: 1px solid #23282c;
+}
+.vis-foreground .vis-group {
+  border-bottom: 1px solid #23282c;
+}
+
+.vis-nested-group {
+  background: transparent;
+}
+
+.vis-time-axis .vis-text {
+  color: white;
+}
+
+.vis-labelset .vis-label {
+  color: white;
+}
+
+.vis-labelset .vis-label {
+  border-bottom: 1px solid #23282c;
+}
+
+.vis-panel .vis-shadow {
+  visibility: visible !important;
+}
+
+.vis-panel.vis-bottom,
+.vis-panel.vis-center,
+.vis-panel.vis-left,
+.vis-panel.vis-right,
+.vis-panel.vis-top {
+  border: 1px #23282c;
+}
+
+.vis-time-axis .vis-grid.vis-minor {
+  border-color: #23282c;
+}
+
+.vis-time-axis .vis-grid.vis-major {
+  border-color: #23282c;
+}
+
+.vis-panel.vis-background.vis-horizontal .vis-grid.vis-minor {
+  border-color: #23282c;
+}
+
+.vis-grid.vis-saturday,
+.vis-grid.vis-sunday {
+  background-color: #32373c;
+}
+
+.vis-item {
+  border-color: #20a8d8;
+  background-color: #20a8d8;
+}
+
+.vis-item.vis-selected {
+  border-color: #f8cb00 !important;
+  background-color: #f8cb00 !important;
+  transition: all 0.3s ease;
+}
+
+.service-action-item {
+  border-color: #414e95;
+  background-color: #3c598a54;
+  color: #fff;
+}
+
+.service-action-item.vis-selected {
+  border-color: #414e95;
+  background-color: #3c598a90;
+}
+
+.vis-group.machine-group {
+  background-color: rgba(47, 47, 47, 0.15);
+}
+
+.vis-panel.vis-center,
+.vis-panel.vis-left,
+.vis-panel.vis-right {
+  border-top-style: solid;
+  border-bottom-style: solid;
+  overflow: hidden;
+}
+
+.vis-panel.vis-left {
+  border-right-style: solid;
+}
+
+.vis-panel.vis-bottom,
+.vis-panel.vis-top {
+  border-left-style: solid;
+}
+
+#save-timeline {
+  color: #fff;
+}
+
+.manpower-calc-overlay {
+  position: absolute;
+  width: 98%;
+  height: 207px;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.saving-overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  z-index: 100;
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.saving-overlay .sk-folding-cube {
+  top: 30%;
+}
+
+.saving-overlay .sk-folding-cube .sk-cube,
+.manpower-calc-overlay .sk-folding-cube .sk-cube {
+  background-color: #167597;
+}
+
+.manpower-calc-overlay .calc-message {
+  display: block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.vis-legend {
+  background-color: rgba(39, 39, 39, 0.65);
+  box-shadow: none;
+  border: none;
+}
+
+.vis-legend .vis-outline {
+  fill: transparent !important;
+  stroke: transparent !important;
+}
+
+.scanner-mp {
+  fill: #f79646 !important;
+  stroke: #f79646 !important;
+}
+.source-mp {
+  fill: #8c51cf !important;
+  stroke: #8c51cf !important;
+}
+
+.drive-mp {
+  fill: #20a8d8 !important;
+  stroke: #20a8d8 !important;
+}
+
+.max-line {
+  fill: red;
+  stroke: red;
+}

@@ -9,9 +9,12 @@ const {
   saveFile,
   showSaveDialog,
   showDirectorySelectDialog,
-  fetchRunTimes,
+  fetchTimelineFiles,
+  fetchStateDataFiles,
   fetchLatestTimelineData,
+  fetchLatestStateData,
   buildInputFiles,
+  saveJDValue,
   updateCurrentFile,
   checkUnsavedChanges,
   showFileSelectDialog } = require('./fileHandlers');
@@ -322,11 +325,27 @@ ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
   }
 });
 
-ipcMain.on('fetch-run-times', (event, outputPath) => {
+ipcMain.on('save-jd-value', (event, outputPath, fileName, startJD) => {
+  console.log('save-jd-value called in main.js');
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
-  fetchRunTimes(outputPath)
-    .then((data) => browserWindow.webContents.send('run-times', data))
+  saveJDValue(outputPath, fileName, startJD)
+    .catch((error) => browserWindow.webContents.send('jd-value-error', error));
+});
+
+ipcMain.on('fetch-timeline-files', (event, outputPath) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  fetchTimelineFiles(outputPath)
+    .then((data) => browserWindow.webContents.send('timeline-files', data))
+    .catch((error) => console.error(error));
+});
+
+ipcMain.on('fetch-state-data-files', (event, outputPath) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  fetchStateDataFiles(outputPath)
+    .then((data) => browserWindow.webContents.send('state-data-files', data))
     .catch((error) => console.error(error));
 });
 
@@ -335,5 +354,13 @@ ipcMain.on('fetch-latest-timeline-data', (event, filePath, fileName) => {
 
   fetchLatestTimelineData(filePath, fileName)
     .then((data) => browserWindow.webContents.send('latest-timeline-data', data))
+    .catch((error) => console.error(error));
+});
+
+ipcMain.on('fetch-latest-state-data', (event, filePath, fileName) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  fetchLatestStateData(filePath, fileName)
+    .then((data) => browserWindow.webContents.send('latest-state-data', data))
     .catch((error) => console.error(error));
 });

@@ -1,25 +1,33 @@
 import dayjs from 'dayjs';
 
-// JD is days since January 1, 4713 BC
-const JULIAN_START_YEAR = -4713;
-// UTC starts January 1, 1970
-const UTC_START_YEAR = 1970;
-const yearsDifference = UTC_START_YEAR - JULIAN_START_YEAR;
-const daysDifference = yearsDifference * 365.25;
+// Takes a Julian date $jd and returns a dayJS object
+const julianToDate = async (jd) => {
+  const response = await fetch(`https://aa.usno.navy.mil/api/calendardate?jd=${jd}`);
+  const { data } = await response.json();
+  let { year, month, day, time } = data[0]; // Time is string in format 'hh:mm:ss.s'
 
-const julianToDate = (jd) => {
-  const days = jd - daysDifference;
-  const milliseconds = days * 24 * 60 * 60 * 1000;
+  month = month.toString().padStart(2, '0');
+  day = day.toString().padStart(2, '0');
+  time = time.padEnd(12, '0');
 
-  return dayjs(new Date(milliseconds));
+  return dayjs(`${year}-${month}-${day}T${time}Z`);
 }
 
-const dateToJulian = ({ $d }) => {
-  const utcDate = new Date($d);
-  const milliseconds = utcDate.getTime();
-  const days = milliseconds / (24 * 60 * 60 * 1000);
-
-  return Math.round(days + daysDifference);
+// Takes a timezone-localized dayJS object and returns the Julian date
+const dateToJulian = async ({ $d }) => {
+  // $d is a Date object
+  const y = $d.getUTCFullYear();
+  const M = $d.getUTCMonth();
+  const D = $d.getUTCDate();
+  const H = $d.getUTCHours();
+  const m = $d.getUTCMinutes();
+  const s = $d.getUTCSeconds();
+  const ms = $d.getUTCMilliseconds();
+  const queryDate = `${y}-${M + 1}-${D}`;
+  const queryTime = `${H}:${m}:${s}.${ms}`;
+  const response = await fetch(`https://aa.usno.navy.mil/api/juliandate?date=${queryDate}&time=${queryTime}`);
+  const { data } = await response.json();
+  return Math.floor(data[0].jd);
 }
 
 export { julianToDate, dateToJulian };
