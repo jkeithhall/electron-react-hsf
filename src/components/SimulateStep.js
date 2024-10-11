@@ -30,6 +30,7 @@ export default function SimulateStep({
   setErrorMessage,
   setErrorModalOpen,
   setActiveStep,
+  setNavOpen,
   appState,
   outputPath,
   scenarioErrors,
@@ -254,6 +255,7 @@ export default function SimulateStep({
           } else if (type === 'close') {
             setStatus('success');
             setActiveStep('Analyze');
+            setNavOpen(false);
           } else {
             console.log(data);
             setLogsValue(data);

@@ -393,6 +393,7 @@ export default function App() {
               setErrorMessage={setErrorMessage}
               setErrorModalOpen={setErrorModalOpen}
               setActiveStep={setActiveStep}
+              setNavOpen={setNavOpen}
               appState={appState}
               outputPath={simulationInput.dependencies.outputPath}
               scenarioErrors={scenarioErrors}

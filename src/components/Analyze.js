@@ -15,25 +15,40 @@ import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Timeline from 'react18-vis-timeline';
 import { DataSet } from 'vis-data';
-import { ResponsiveLine } from '@nivo/line';
-
 import '../timelinestyles.css';
+
+import { ResponsiveLine } from '@nivo/line';
 import { lineChartProps } from '../nivoconfig';
 
 import formatTimeline from '../utils/formatTimeline';
 import formatPlotData from '../utils/formatPlotData';
 import { julianToDate } from '../utils/julianConversion';
+import moment from 'moment';
 
 const timelineItems = new DataSet([]);
 const timelineGroups = new DataSet([]);
 
-const timelineOptions = {
+const timelineOptions = (useUTC) => ({
   align: 'left',
   height: '500px',
-  tooltip: {
-    delay: 100,
-  }
-}
+  tooltip: { delay: 100 },
+  format: {
+    minorLabels: ({ _d }) => {
+      const minute = useUTC ? _d.getUTCMinutes() : _d.getMinutes();
+      const second = useUTC ? _d.getUTCSeconds() : _d.getSeconds();
+      return `${minute * 60 + second} s`;
+    },
+    majorLabels: ({ _d}) => {
+      const year = useUTC ? _d.getUTCFullYear() : _d.getFullYear();
+      const month = (useUTC ? _d.getUTCMonth() : _d.getMonth() + 1).toString().padStart(2, '0');
+      const day = (useUTC ? _d.getUTCDate() : _d.getDate()).toString().padStart(2, '0');
+      const hour = (useUTC ? _d.getUTCHours() : _d.getHours()).toString().padStart(2, '0');
+      const minute = (useUTC ? _d.getUTCMinutes() : _d.getMinutes()).toString().padStart(2, '0');
+
+      return `${year}-${month}-${day} ${hour}:${minute}` + (useUTC ? ' (UTC)' : ' (local time)');
+    }
+  },
+});
 
 export default function Analyze({ outputPath, lastStartJD }) {
   const theme = useTheme();
@@ -44,6 +59,8 @@ export default function Analyze({ outputPath, lastStartJD }) {
   const [stateDataFiles, setStateDataFiles] = useState([]);
   const [selectedTimelineFile, setSelectedTimelineFile] = useState(undefined);
   const [scheduleValue, setScheduleValue] = useState('');
+  const [startDatetime, setStartDatetime] = useState('');
+  const [endDatetime, setEndDatetime] = useState('');
   const [latestSimulation, setLatestSimulation] = useState(null);
   const [selectedStateDataFile, setSelectedStateDataFile] = useState(undefined);
   const [useUTC, setUseUTC] = useState(true);
@@ -79,12 +96,12 @@ export default function Analyze({ outputPath, lastStartJD }) {
     });
   }
 
- async function fetchTimelineData(outputPath, selectedTimelineFile, useUTC) {
+ async function fetchTimelineData(outputPath, selectedTimelineFile) {
   return new Promise((resolve, reject) => {
       if (window.electronApi) {
         window.electronApi.fetchLatestTimelineData(outputPath, selectedTimelineFile, ({ content, startJD }) => {
           const firstSchedule = content.split("Schedule Number: ")[1].slice(1);
-          formatTimeline(firstSchedule, startJD, useUTC).then(resolve).catch(reject);
+          formatTimeline(firstSchedule, startJD).then(resolve).catch(reject);
         });
       } else {
         reject("No electron API found");
@@ -99,9 +116,10 @@ export default function Analyze({ outputPath, lastStartJD }) {
   function setTimelineData(items, groups) {
     if (timelineRef.current) {
       const { timeline, props } = timelineRef.current;
-      timelineRef.current.timeline.on('click', (event) => {
+      timelineRef.current.timeline.on('click', (event, properties) => {
+        console.log("Clicked event:", event);
         const { item } = event;
-        console.log(timeline.getEventProperties(event));
+        // console.log(timeline.getEventProperties(event));
         if (item) {
           const clickedItem = timelineItems.get(item);
           console.log("Clicked item:", clickedItem);
@@ -117,19 +135,23 @@ export default function Analyze({ outputPath, lastStartJD }) {
     }
   }
 
-  function setTimelineRange(startDatetime, endDatetime) {
+  function setTimelineRange(startDatetime, endDatetime, useUTC) {
     if (timelineRef.current) {
       const elapsed = endDatetime.diff(startDatetime.clone());
 
       const options = {
-        ...timelineOptions,
-        min: startDatetime.format('YYYY-MM-DD HH:mm:ss'),
-        max: endDatetime.clone().add(120, 'seconds').format('YYYY-MM-DD HH:mm:ss'),
+        ...timelineOptions(useUTC),
+        min: startDatetime.format(),
+        max: endDatetime.clone().add(120, 'seconds').format(),
         zoomMin: elapsed / 100,
         zoomMax: elapsed * 10000,
       }
 
-      timelineRef.current.timeline.setWindow(startDatetime.format('YYYY-MM-DD HH:mm:ss'), endDatetime.clone().add(120, 'seconds').format('YYYY-MM-DD HH:mm:ss'));
+      if (useUTC) {
+        options.moment = (date) => moment(date).utc();
+      }
+
+      timelineRef.current.timeline.setWindow(startDatetime.format(), endDatetime.clone().add(120, 'seconds').format());
       timelineRef.current.timeline.setOptions(options);
     }
   }
@@ -201,7 +223,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
         const dayJs = await julianToDate(lastStartJD, useUTC);
         const startDatetime = dayJs.clone().add(-15, 'seconds');
         const endDatetime = dayJs.clone().add(90, 'seconds');
-        setTimelineRange(startDatetime, endDatetime);
+        setTimelineRange(startDatetime, endDatetime, useUTC);
       } catch (error) {
         console.error("Error while converting Julian date to date: ", error);
       }
@@ -218,10 +240,12 @@ export default function Analyze({ outputPath, lastStartJD }) {
             startDatetime,
             endDatetime,
             items,
-            groups } = await fetchTimelineData(outputPath, selectedTimelineFile, useUTC);
+            groups } = await fetchTimelineData(outputPath, selectedTimelineFile);
 
           setScheduleValue(scheduleValue);
-          setTimelineRange(startDatetime, endDatetime);
+          setStartDatetime(startDatetime);
+          setEndDatetime(endDatetime);
+          setTimelineRange(startDatetime, endDatetime, useUTC);
           setTimelineData(items, groups);
           setTimelineOpen(true);
         } catch (error) {
@@ -247,22 +271,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
 
   useEffect(() => {
     if (finishedLoadingTimeline && selectedTimelineFile) {
-      (async() => {
-        try {
-          const {
-            scheduleValue,
-            startDatetime,
-            endDatetime,
-            items,
-            groups } = await fetchTimelineData(outputPath, selectedTimelineFile, useUTC);
-
-          setScheduleValue(scheduleValue);
-          setTimelineRange(startDatetime, endDatetime);
-          setTimelineData(items, groups);
-        } catch (error) {
-          console.error("Error while fetching timeline data: ", error);
-        }
-      })();
+      setTimelineRange(startDatetime, endDatetime, useUTC);
     }
     if (finishedLoadingStateData && selectedStateDataFile) {
       (async() => {
@@ -394,7 +403,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           {plotData.length > 0 &&
             <Box
               sx={{
-                height: '500px',
+                height: '400px',
                 width: '100%',
               }}
             >

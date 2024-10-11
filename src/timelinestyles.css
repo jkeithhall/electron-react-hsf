@@ -2,7 +2,9 @@
 
 .vis-timeline {
   border: 1px solid #ccc;
-  font-family: 'Roboto Mono';
+  color: '#333';
+  font-size: 12px;
+  font-family: 'Helvetica';
 }
 
 .vis-foreground .vis-group {
@@ -10,13 +12,15 @@
 }
 
 .vis-time-axis .vis-text {
-  color: '#666';
-  font-family: 'Roboto Mono';
+  color: #666;
+  font-size: 12px;
+  font-family: 'Helvetica';
 }
 
 .vis-labelset .vis-label {
-  color: '#666';
-  font-family: 'Roboto Mono';
+  color: #666;
+  font-size: 12px;
+  font-family: 'Helvetica';
 }
 
 .vis-labelset .vis-label {
@@ -44,7 +48,7 @@
 }
 
 .vis-item {
-  border-radius: 3px;
+  border-radius: 3px !important;
   background-color: #349fda;
   color: #333;
 }
@@ -68,4 +72,15 @@
 .vis-panel.vis-bottom,
 .vis-panel.vis-top {
   border-left-style: solid;
+}
+
+.vis-item-overflow {
+  overflow: visible !important; /* Tooltip can overflow */
+}
+
+/* Prevent text inside the timeline item from overflowing */
+.vis-item-content {
+  text-overflow: ellipsis; /* Show ellipsis ("...") */
+  white-space: nowrap; /* Keep text on one line */
+  padding: 5px; /* Padding for better visual spacing */
 }
