@@ -354,6 +354,7 @@ footer {
     justify-content: space-evenly;
     align-items: center;
     margin: var(--confirm-close-margin);
+    gap: 10px;
 }
 
 .map-container {

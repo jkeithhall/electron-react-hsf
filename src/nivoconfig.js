@@ -35,10 +35,7 @@ export const lineChartProps = (xAxisLegend, yAxisLegend) => {
       )
     },
     colors: { scheme: 'set2' },
-    pointSize: 10,
-    pointColor: { theme: 'background' },
-    pointBorderWidth: 3,
-    pointBorderColor: { from: 'serieColor' },
+    pointSize: 6,
     enableTouchCrosshair: false,
     useMesh: true,
     theme: {
