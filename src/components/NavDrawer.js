@@ -19,6 +19,7 @@ import RuleIcon from '@mui/icons-material/Rule';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import AnalyticsOutlinedIcon from '@mui/icons-material/AnalyticsOutlined';
 import SaveIcon from '@mui/icons-material/Save';
+import Typography from '@mui/material/Typography';
 
 const drawerWidth = 220;
 const headerHeight = 100;
@@ -93,6 +94,10 @@ export default function NavDrawer({
           sx: {
             height: 'calc(100% - 100px)',
             top: 100,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
           },
         }}>
         <IconButton
@@ -169,6 +174,11 @@ export default function NavDrawer({
                 </ListItem>
               }
         </List>
+        {navOpen &&
+          <Typography variant="body2" color="light.main" sx={{ alignSelf: 'center', mt: 'auto' }}>
+            Copyright &copy; 2023 Poly Sim
+          </Typography>
+        }
       </Drawer>
       <div component="main" >
         <DrawerHeader />

@@ -23,7 +23,7 @@ export const lineChartProps = (xAxisLegend, yAxisLegend) => {
               style={{
                   background: 'rgba(220, 220, 220, 0.7)',
                   fontSize: '11px',
-                  color: 'black',
+                  color: '#333',
                   padding: '7px 10px',
                   border: '1px solid #ccc',
                   borderRadius: '3px',

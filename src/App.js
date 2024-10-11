@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
 import NavDrawer from './components/NavDrawer';
 import Footer from './components/Footer';
@@ -444,7 +444,7 @@ export default function App() {
               />
             </div>)
           }
-      <Footer/>
+        {/* <Footer workspaceRef={workspaceRef} activeStep={activeStep} /> */}
       </div>
     </NavDrawer>
   );

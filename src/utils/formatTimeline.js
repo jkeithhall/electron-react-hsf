@@ -77,7 +77,7 @@ function getItems(tokens, dayjs) {
     content: '',
     start: '',
     end: '',
-    type: 'background',
+    // type: 'range',
     group: 0,
   };
   const currTask = {
@@ -85,6 +85,7 @@ function getItems(tokens, dayjs) {
     content: '',
     start: '',
     end: '',
+    // type: 'range',
     group: 0,
   };
 
@@ -97,32 +98,34 @@ function getItems(tokens, dayjs) {
         currTask.group = Math.floor(index / 10);
         currEvent.content = `${token} Event`;
         currTask.content = `${token} Task`;
+        currEvent.title = `${token} Event`;
+        currTask.title = `${token} Task`;
         break;
       case 3: // Task Start
         const taskStart = parseInt(token);
         if (taskStart < lineStartTime) lineStartTime = taskStart;
 
         // 2024-10-10T05:02:17-07:00 needs to be 2024-10-10T05:02:17
-        currTask.start = dayjs.clone().add(taskStart, 'seconds').format('YYYY-MM-DDTHH:mm:ss');
+        currTask.start = dayjs.clone().add(taskStart, 'seconds').format('YYYY-MM-DD HH:mm:ss');
         break;
       case 5: // Event Start
         const eventStart = parseInt(token);
         if (eventStart < lineStartTime) lineStartTime = eventStart;
 
-        currEvent.start = dayjs.clone().add(eventStart, 'seconds').format('YYYY-MM-DDTHH:mm:ss');
+        currEvent.start = dayjs.clone().add(eventStart, 'seconds').format('YYYY-MM-DD HH:mm:ss');
         break;
       case 7: // Task End
         const taskEnd = parseInt(token);
         if (taskEnd > lineEndTime) lineEndTime = taskEnd;
 
-        currTask.end = dayjs.clone().add(taskEnd, 'seconds').format('YYYY-MM-DDTHH:mm:ss');
+        currTask.end = dayjs.clone().add(taskEnd, 'seconds').format('YYYY-MM-DD HH:mm:ss');
         items.push({ ...currTask });
         break;
       case 9: // Event End
         const eventEnd = parseInt(token);
         if (eventEnd > lineEndTime) lineEndTime = eventEnd;
 
-        currEvent.end = dayjs.clone().add(eventEnd, 'seconds').format('YYYY-MM-DDTHH:mm:ss');
+        currEvent.end = dayjs.clone().add(eventEnd, 'seconds').format('YYYY-MM-DD HH:mm:ss');
         items.push({ ...currEvent });
         break;
       default:

@@ -27,6 +27,14 @@ import { julianToDate } from '../utils/julianConversion';
 const timelineItems = new DataSet([]);
 const timelineGroups = new DataSet([]);
 
+const timelineOptions = {
+  align: 'left',
+  height: '500px',
+  tooltip: {
+    delay: 100,
+  }
+}
+
 export default function Analyze({ outputPath, lastStartJD }) {
   const theme = useTheme();
   const timelineRef = useRef(null);
@@ -42,7 +50,8 @@ export default function Analyze({ outputPath, lastStartJD }) {
   const [plotData, setPlotData] = useState([]);
   const [xAxisLegend, setXAxisLegend] = useState('');
   const [yAxisLegend, setYAxisLegend] = useState('');
-  const [accordionOpen, setAccordionOpen] = useState(null);
+  const [timelineOpen, setTimelineOpen] = useState(false);
+  const [stateDataOpen, setStateDataOpen] = useState(false);
 
   async function fetchTimelineFiles(outputPath) {
     return new Promise((resolve, reject) => {
@@ -90,7 +99,9 @@ export default function Analyze({ outputPath, lastStartJD }) {
   function setTimelineData(items, groups) {
     if (timelineRef.current) {
       const { timeline, props } = timelineRef.current;
-      timelineRef.current.timeline.on('click', ({ item, group }) => {
+      timelineRef.current.timeline.on('click', (event) => {
+        const { item } = event;
+        console.log(timeline.getEventProperties(event));
         if (item) {
           const clickedItem = timelineItems.get(item);
           console.log("Clicked item:", clickedItem);
@@ -111,12 +122,14 @@ export default function Analyze({ outputPath, lastStartJD }) {
       const elapsed = endDatetime.diff(startDatetime.clone());
 
       const options = {
-        min: startDatetime.format('YYYY-MM-DDTHH:mm:ss'),
-        max: endDatetime.clone().add(90, 'seconds').format('YYYY-MM-DDTHH:mm:ss'),
-        zoomMin: elapsed / 10,
-        zoomMax: elapsed * 10,
+        ...timelineOptions,
+        min: startDatetime.format('YYYY-MM-DD HH:mm:ss'),
+        max: endDatetime.clone().add(120, 'seconds').format('YYYY-MM-DD HH:mm:ss'),
+        zoomMin: elapsed / 100,
+        zoomMax: elapsed * 10000,
       }
 
+      timelineRef.current.timeline.setWindow(startDatetime.format('YYYY-MM-DD HH:mm:ss'), endDatetime.clone().add(120, 'seconds').format('YYYY-MM-DD HH:mm:ss'));
       timelineRef.current.timeline.setOptions(options);
     }
   }
@@ -159,16 +172,10 @@ export default function Analyze({ outputPath, lastStartJD }) {
     if (event.target.value !== latestSimulation) {
       setSelectedStateDataFile(undefined);
     }
-    setAccordionOpen('timeline');
   }
 
   function handleStateDataChange(event) {
     setSelectedStateDataFile(event.target.value);
-    setAccordionOpen('state-data');
-  }
-
-  const handleAccordionChange = (panel) => (event, isExpanded) => {
-    setAccordionOpen(isExpanded ? panel : null);
   }
 
   // Fetch last output data on first render
@@ -216,7 +223,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           setScheduleValue(scheduleValue);
           setTimelineRange(startDatetime, endDatetime);
           setTimelineData(items, groups);
-          setAccordionOpen('timeline');
+          setTimelineOpen(true);
         } catch (error) {
           console.error("Error while fetching timeline data: ", error);
         }
@@ -230,6 +237,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
       (async() => {
         try {
            updatePlot(await fetchStateData(outputPath, selectedStateDataFile, useUTC), useUTC);
+           setStateDataOpen(true);
         } catch (error) {
           console.error("Error while fetching state data: ", error);
         }
@@ -281,7 +289,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           justifyContent: 'space-around',
           backgroundColor: '#EEEE',
           padding: '10px',
-          margin: '10px',
+          margin: '10px 10px 20px 10px',
           borderRadius: '5px',
           width: '700px',
         }}
@@ -337,8 +345,9 @@ export default function Analyze({ outputPath, lastStartJD }) {
       </Stack>
       <Accordion
         disabled={selectedTimelineFile === undefined}
-        expanded={accordionOpen === 'timeline'}
-        onChange={handleAccordionChange('timeline')}
+        expanded={timelineOpen}
+        onChange={() => setTimelineOpen(!timelineOpen)}
+        disableGutters={true}
         mt={2}
         sx={{
           width: '100%',
@@ -354,14 +363,13 @@ export default function Analyze({ outputPath, lastStartJD }) {
         <AccordionDetails>
           <Box
             sx={{
-              backgroundColor: '#535671',
-              borderRadius: '5px',
+              backgroundColor: '#eee',
               padding: '15px',
             }}
           >
             {finishedLoadingTimeline && <Timeline
               ref={timelineRef}
-              options={{}}
+              options={timelineOptions}
               initialItems={timelineItems}
               initialGroups={timelineGroups}
             />}
@@ -370,23 +378,22 @@ export default function Analyze({ outputPath, lastStartJD }) {
       </Accordion>
       <Accordion
         disabled={selectedStateDataFile === undefined}
-        expanded={accordionOpen === 'state-data'}
-        onChange={handleAccordionChange('state-data')}
+        expanded={stateDataOpen}
+        onChange={() => setStateDataOpen(!stateDataOpen)}
         sx={{
           width: '100%',
           backgroundColor: theme.palette.secondary.main,
-          color: '#eee'
+          color: '#eee',
+          marginBottom: '20px',
           }}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }}/>}>
           <Typography variant="h5" fontWeight="bold">State data</Typography>
         </AccordionSummary>
-        <AccordionDetails>
+        <AccordionDetails mb={2}>
           {plotData.length > 0 &&
             <Box
               sx={{
-                backgroundColor: '#535671',
-                borderRadius: '5px',
                 height: '500px',
                 width: '100%',
               }}
@@ -399,6 +406,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           }
         </AccordionDetails>
       </Accordion>
+      <Box sx={{ height: '10px' }} />
     </ThemeProvider>
   );
 }
