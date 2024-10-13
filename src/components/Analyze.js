@@ -234,6 +234,11 @@ export default function Analyze({ outputPath, lastStartJD }) {
   useEffect(() => {
     if (selectedTimelineFile) {
       (async() => {
+        if (selectedTimelineFile !== latestSimulation) {
+          setSelectedStateDataFile(undefined);
+          setStateDataOpen(false);
+        }
+
         try {
           const {
             scheduleValue,
