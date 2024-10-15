@@ -165,9 +165,14 @@ const fetchTimelineFiles = async (outputPath) => {
 
 const fetchStateDataFiles = async (outputPath) => {
   try {
-    // outputpath/HorizonLog
-    const fileContents = await readdir(join(outputPath, 'HorizonLog'));
-    return fileContents.filter((file) => file.endsWith('.csv') && file.startsWith('Scratch\\'));
+    // If running on Mac or Linux
+    if (process.platform === 'darwin' || process.platform === 'linux') {
+      const fileContents = await readdir(join(outputPath, 'HorizonLog'));
+      return fileContents.filter((file) => file.endsWith('.csv') && file.startsWith('Scratch\\'));
+    } else { // Windows
+      const fileContents = await readdir(join(outputPath, 'HorizonLog', 'Scratch'));
+      return fileContents.filter((file) => file.endsWith('.csv'));
+    }
   } catch (error) {
     console.error('Error fetching state data files:', error);
     throw error;
@@ -188,7 +193,8 @@ const fetchLatestTimelineData = async (filePath, fileName) => {
 
 const fetchLatestStateData = async (filePath, fileName) => {
   try {
-    const content = await readFile(join(filePath, 'HorizonLog', fileName), { encoding: 'utf-8' });
+    const absolutePath = process.platform === 'win32' ? join(filePath, 'HorizonLog', 'Scratch', fileName) : join(filePath, 'HorizonLog', fileName);
+    const content = await readFile(absolutePath, { encoding: 'utf-8' });
     const startJDContent = await readFile(join(filePath, 'jdValues.csv'), { encoding: 'utf-8' });
     const startJD = startJDContent.split('\n').findLast((line) => line !== '').split(',')[1];
     return { content, startJD };

@@ -185,7 +185,8 @@ export default function Analyze({ outputPath, lastStartJD }) {
 
   // Converts file names of the form "asset1_databufferfillratio.csv" to "asset1 - databufferfillratio"
   function formatStateDataFile(fileName) {
-    const [ asset, state ] = fileName.split('\\')[1].split('.')[0].split('_');
+    const adjustedFileName = fileName.includes('\\') ? fileName.split('\\')[1] : fileName;
+    const [ asset, state ] = adjustedFileName.split('.')[0].split('_');
     return `${asset}: ${state}`;
   }
 
