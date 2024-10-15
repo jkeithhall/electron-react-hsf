@@ -96,6 +96,34 @@ header {
     bottom: 0;
 } */
 
+::-webkit-scrollbar {
+    width: 0px;
+    height: 0px;
+    background: transparent;
+}
+
+/* Minimalist scrollbar thumb */
+::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 100, 100, 0.5);
+    border-radius: 10px;
+    border: none;
+}
+
+::-webkit-scrollbar:hover {
+    width: 6px; /* Shows the scrollbar when hovering */
+    height: 6px;
+}
+
+/* Transparent scrollbar track */
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Transparent scrollbar corner */
+::-webkit-scrollbar-corner {
+    background: transparent;
+}
+
 .sim-lab-logo-header {
     width: calc(var(--header-height) - var(--header-logo-margin));
     height: calc(var(--header-height) - var(--header-logo-margin));
