@@ -30,6 +30,7 @@ export default function SimulateStep({
   setErrorMessage,
   setErrorModalOpen,
   setActiveStep,
+  setNavOpen,
   appState,
   outputPath,
   scenarioErrors,
@@ -207,12 +208,23 @@ export default function SimulateStep({
 
   const setProgressValue = (data) => {
     // Scheduler Status: 0.000% done; 205 schedules generated.
-    if (data.includes('Scheduler Status:')) {
-      const progressMatch = data.match(/(\d+(\.\d+)?)%/);
-      if (progressMatch) {
-        const progressValue = parseFloat(progressMatch[1]);
-        setProgress(progressValue);
-      }
+    const progressMatch = data.match(/(\d+(\.\d+)?)%/);
+    if (progressMatch) {
+      const progressValue = parseFloat(progressMatch[1]);
+      setProgress(progressValue);
+    }
+  }
+
+  const saveJDValue = (data) => {
+    const fileName = data.split('/').pop().split('\n')[0];
+    const { startJD } = appState.simulationInput.simulationParameters;
+    if (window.electronApi) {
+      window.electronApi.saveJDValue(outputPath, fileName, startJD, (error) => {
+        if (error) {
+          setErrorMessage(error);
+          setErrorModalOpen(true);
+        }
+      });
     }
   }
 
@@ -243,10 +255,15 @@ export default function SimulateStep({
           } else if (type === 'close') {
             setStatus('success');
             setActiveStep('Analyze');
+            setNavOpen(false);
           } else {
-            setProgressValue(data);
-            setLogsValue(data);
             console.log(data);
+            setLogsValue(data);
+            if (data.includes('Scheduler Status:')) {
+              setProgressValue(data);
+            } else if (data.includes('Publishing simulation results to')) {
+              saveJDValue(data);
+            }
           }
         });
       } catch (error) {

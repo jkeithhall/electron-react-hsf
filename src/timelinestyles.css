@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
+
+.vis-timeline {
+  border: 1px solid #ccc;
+  color: '#333';
+  font-size: 12px;
+  font-family: 'Helvetica';
+}
+
+.vis-foreground .vis-group {
+  border-bottom: 1px solid #ccc;
+}
+
+.vis-time-axis .vis-text {
+  color: #666;
+  font-size: 12px;
+  font-family: 'Helvetica';
+}
+
+.vis-labelset .vis-label {
+  color: #666;
+  font-size: 12px;
+  font-family: 'Helvetica';
+}
+
+.vis-labelset .vis-label {
+  border-bottom: 0.5px solid #ccc;
+}
+
+.vis-panel.vis-bottom,
+.vis-panel.vis-center,
+.vis-panel.vis-left,
+.vis-panel.vis-right,
+.vis-panel.vis-top {
+  border: 1px #ccc;
+}
+
+.vis-time-axis .vis-grid.vis-minor {
+  border-color: #ccc;
+}
+
+.vis-time-axis .vis-grid.vis-major {
+  border-color: #ccc;
+}
+
+.vis-panel.vis-background.vis-horizontal .vis-grid.vis-minor {
+  border-color: #ccc;
+}
+
+.vis-item {
+  border-radius: 3px !important;
+  background-color: #349fda;
+  color: #333;
+}
+
+.vis-item.vis-selected {
+  border-color: rgb(87, 184, 149);
+  background-color: rgb(87, 184, 149);
+}
+
+.vis-panel.vis-center,
+.vis-panel.vis-left,
+.vis-panel.vis-right {
+  border-top-style: solid;
+  border-bottom-style: solid;
+}
+
+.vis-panel.vis-left {
+  border-right-style: solid;
+}
+
+.vis-panel.vis-bottom,
+.vis-panel.vis-top {
+  border-left-style: solid;
+}
+
+.vis-item-overflow {
+  overflow: visible !important; /* Tooltip can overflow */
+}
+
+/* Prevent text inside the timeline item from overflowing */
+.vis-item-content {
+  text-overflow: ellipsis; /* Show ellipsis ("...") */
+  white-space: nowrap; /* Keep text on one line */
+  padding: 5px; /* Padding for better visual spacing */
+}

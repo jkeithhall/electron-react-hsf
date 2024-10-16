@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import TextField from '@mui/material/TextField';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -21,6 +21,7 @@ const fileParameters = ['pythonSrc', 'outputPath'];
 
 export default function ParameterGroup ({parameters, setParameters, formErrors, setFormErrors, pythonSourceFiles}) {
   const [showCalendar, setShowCalendar] = useState(false);
+  const [dateCalendarValue, setDateCalendarValue] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -77,16 +78,28 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
     setShowCalendar(!showCalendar);
   }
 
-  const handleDateChange = (date) => {
-    const newJD = dateToJulian(date);
+  // Takes a dateJS object and updates the startJD parameter in the state
+  const handleDateChange = async (date) => {
+    setDateCalendarValue(date);
+    const newJD = await dateToJulian(date);
     setParameters({ ...parameters, startJD: newJD });
   }
 
-  const setCurrentDate = () => {
-    const currentDate = dayjs(new Date())
-    const newJD = dateToJulian(currentDate);
+  // Sets the startJD parameter to the current date
+  const setCurrentDate = async () => {
+    const currentDate = dayjs(new Date());
+    const newJD = await dateToJulian(currentDate);
     setParameters({ ...parameters, startJD: newJD });
   }
+
+  useEffect(() => {
+    (async() => {
+      if (parameters.startJD) {
+        const date = await julianToDate(parameters.startJD);
+        setDateCalendarValue(date);
+      }
+    })();
+  }, [parameters.startJD]);
 
   return(
     <Box sx={{ padding: '5px', backgroundColor: '#eeeeee', borderRadius: '5px' }}>
@@ -131,7 +144,7 @@ export default function ParameterGroup ({parameters, setParameters, formErrors, 
             {showCalendar && key === 'startJD' &&
               <div className="calendar-stacking-context">
                 <LocalizationProvider dateAdapter={AdapterDayjs}>
-                  <DateCalendar value={julianToDate(value)} onChange={handleDateChange}/>
+                  <DateCalendar value={dateCalendarValue} onChange={handleDateChange}/>
                 </LocalizationProvider>
                 <div style={{ display: 'flex', alignSelf: 'flex-end', gap: '10px', marginRight: '20px', marginBottom: '20px' }}>
                   <Button onClick={setCurrentDate} color="light" size="small" variant="contained">Today</Button>

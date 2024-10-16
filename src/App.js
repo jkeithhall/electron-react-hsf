@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 
 import NavDrawer from './components/NavDrawer';
 import Footer from './components/Footer';
@@ -8,6 +8,7 @@ import ModelGraph from './components/ModelGraph';
 import DependencyGraph from './components/DependencyGraph';
 import ConstraintsTable from './components/ConstraintsTable';
 import SimulateStep from './components/SimulateStep';
+import Analyze from './components/Analyze';
 import ConfirmationModal from './components/ConfirmationModal';
 import SaveConfirmationModal from './components/SaveConfirmationModal';
 import ErrorModal from './components/ErrorModal';
@@ -392,6 +393,7 @@ export default function App() {
               setErrorMessage={setErrorMessage}
               setErrorModalOpen={setErrorModalOpen}
               setActiveStep={setActiveStep}
+              setNavOpen={setNavOpen}
               appState={appState}
               outputPath={simulationInput.dependencies.outputPath}
               scenarioErrors={scenarioErrors}
@@ -405,7 +407,10 @@ export default function App() {
               constraints={constraints}
               evaluator={evaluator}
             />,
-          'Analyze': <></>
+          'Analyze': <Analyze
+            outputPath={simulationInput.dependencies.outputPath}
+            lastStartJD={simulationInput.simulationParameters.startJD}
+          />,
           }[activeStep]}
           {
             confirmationModalOpen && (
@@ -440,7 +445,7 @@ export default function App() {
               />
             </div>)
           }
-      <Footer/>
+        {/* <Footer workspaceRef={workspaceRef} activeStep={activeStep} /> */}
       </div>
     </NavDrawer>
   );

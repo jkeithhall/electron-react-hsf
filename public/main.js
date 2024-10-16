@@ -9,10 +9,17 @@ const {
   saveFile,
   showSaveDialog,
   showDirectorySelectDialog,
+  fetchTimelineFiles,
+  fetchStateDataFiles,
+  fetchLatestTimelineData,
+  fetchLatestStateData,
   buildInputFiles,
+  saveJDValue,
   updateCurrentFile,
   checkUnsavedChanges,
   showFileSelectDialog } = require('./fileHandlers');
+
+let firstLoad = true;
 
 let mainWindow;
 let splashWindow;
@@ -75,9 +82,14 @@ app.on('activate', function () {
 
 // When the React app has finished rendering, show the main window
 ipcMain.on('render-complete', () => {
-  mainWindow.setFullScreenable(true);
-  mainWindow.setFullScreen(true);
-  splashWindow.close();
+  if (firstLoad) {
+    mainWindow.setFullScreenable(true);
+    mainWindow.setFullScreen(true);
+    mainWindow.show();
+    mainWindow.focus();
+    splashWindow.close();
+    firstLoad = false;
+  }
 });
 
 ipcMain.on('show-save-dialog', (event, fileType, content, updateCache) => {
@@ -155,11 +167,11 @@ ipcMain.on('set-revert-status', (event, status) => {
   Menu.getApplicationMenu().getMenuItemById('revert-changes').enabled = status;
 });
 
-ipcMain.handle('get-current-filepath', async (event) => {
+ipcMain.handle('get-current-filepath', async () => {
   return await getFilePath();
 });
 
-ipcMain.handle('get-current-filecontent', async (event) => {
+ipcMain.handle('get-current-filecontent', async () => {
   return await getContent();
 });
 
@@ -311,4 +323,44 @@ ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
       code: null,
     });
   }
+});
+
+ipcMain.on('save-jd-value', (event, outputPath, fileName, startJD) => {
+  console.log('save-jd-value called in main.js');
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  saveJDValue(outputPath, fileName, startJD)
+    .catch((error) => browserWindow.webContents.send('jd-value-error', error));
+});
+
+ipcMain.on('fetch-timeline-files', (event, outputPath) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  fetchTimelineFiles(outputPath)
+    .then((data) => browserWindow.webContents.send('timeline-files', data))
+    .catch((error) => console.error(error));
+});
+
+ipcMain.on('fetch-state-data-files', (event, outputPath) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  fetchStateDataFiles(outputPath)
+    .then((data) => browserWindow.webContents.send('state-data-files', data))
+    .catch((error) => console.error(error));
+});
+
+ipcMain.on('fetch-latest-timeline-data', (event, filePath, fileName) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  fetchLatestTimelineData(filePath, fileName)
+    .then((data) => browserWindow.webContents.send('latest-timeline-data', data))
+    .catch((error) => console.error(error));
+});
+
+ipcMain.on('fetch-latest-state-data', (event, filePath, fileName) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  fetchLatestStateData(filePath, fileName)
+    .then((data) => browserWindow.webContents.send('latest-state-data', data))
+    .catch((error) => console.error(error));
 });

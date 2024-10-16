@@ -1,6 +1,6 @@
 const { app, dialog } = require('electron');
 const { existsSync, mkdirSync } = require('fs');
-const { readFile, writeFile } = require('fs').promises;
+const { readFile, writeFile, readdir, appendFile } = require('fs').promises;
 const { join, basename } = require('path');
 
 const currentFile = { content: '', filePath: null };
@@ -153,8 +153,58 @@ const buildOutputDir = () => {
   }
 }
 
+const fetchTimelineFiles = async (outputPath) => {
+  try {
+    const fileContents = await readdir(outputPath);
+    return fileContents.filter((file) => file.startsWith('output')).reverse();
+  } catch (error) {
+    console.error('Error fetching timeline files:', error);
+    throw error;
+  }
+}
+
+const fetchStateDataFiles = async (outputPath) => {
+  try {
+    // If running on Mac or Linux
+    if (process.platform === 'darwin' || process.platform === 'linux') {
+      const fileContents = await readdir(join(outputPath, 'HorizonLog'));
+      return fileContents.filter((file) => file.endsWith('.csv') && file.startsWith('Scratch\\'));
+    } else { // Windows
+      const fileContents = await readdir(join(outputPath, 'HorizonLog', 'Scratch'));
+      return fileContents.filter((file) => file.endsWith('.csv'));
+    }
+  } catch (error) {
+    console.error('Error fetching state data files:', error);
+    throw error;
+  }
+}
+
+const fetchLatestTimelineData = async (filePath, fileName) => {
+  try {
+    const content = await readFile(join(filePath, fileName), { encoding: 'utf-8' });
+    const startJDContent = await readFile(join(filePath, 'jdValues.csv'), { encoding: 'utf-8' });
+    const startJD = startJDContent.split('\n').filter((line) => line.includes(fileName))[0].split(',')[1];
+    return { content, startJD };
+  } catch (error) {
+    console.error('Error fetching timeline data:', error);
+    throw error;
+  }
+}
+
+const fetchLatestStateData = async (filePath, fileName) => {
+  try {
+    const absolutePath = process.platform === 'win32' ? join(filePath, 'HorizonLog', 'Scratch', fileName) : join(filePath, 'HorizonLog', fileName);
+    const content = await readFile(absolutePath, { encoding: 'utf-8' });
+    const startJDContent = await readFile(join(filePath, 'jdValues.csv'), { encoding: 'utf-8' });
+    const startJD = startJDContent.split('\n').findLast((line) => line !== '').split(',')[1];
+    return { content, startJD };
+  } catch (error) {
+    console.error('Error fetching state data:', error);
+    throw error;
+  }
+}
+
 const buildInputFiles = async (browserWindow, fileContents) => {
-  console.log('Building input files in fileHandlers.js');
   const baseSrc = join(__dirname, '../Horizon/output');
   const { simulationJSON, tasksJSON, modelJSON } = fileContents;
   const fileNames = {
@@ -174,6 +224,15 @@ const buildInputFiles = async (browserWindow, fileContents) => {
     return;
   }
 };
+
+const saveJDValue = async (outputPath, fileName, startJD) => {
+  const line = `${fileName},${startJD}\n`;
+  console.log(`Saving JD value: ${line} to ${join(outputPath, 'jdValues.csv')}`);
+  appendFile(join(outputPath, 'jdValues.csv'), line, (err) => {
+    console.error(err);
+    throw err;
+  });
+}
 
 const saveFile = async (browserWindow, fileType, filePath, content, updateCache = false) => {
   await writeFile(filePath, content);
@@ -196,7 +255,12 @@ module.exports = {
   showSaveDialog,
   showDirectorySelectDialog,
   buildOutputDir,
+  fetchTimelineFiles,
+  fetchStateDataFiles,
+  fetchLatestTimelineData,
+  fetchLatestStateData,
   buildInputFiles,
+  saveJDValue,
   updateCurrentFile,
   checkUnsavedChanges,
   showFileSelectDialog,
