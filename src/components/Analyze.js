@@ -28,15 +28,13 @@ import moment from 'moment';
 const timelineItems = new DataSet([]);
 const timelineGroups = new DataSet([]);
 
-const timelineOptions = (useUTC) => ({
+const timelineOptions = ({ $d: startDatetime }, useUTC) => ({
   align: 'left',
   height: '500px',
   tooltip: { delay: 100 },
   format: {
-    minorLabels: ({ _d }) => {
-      const minute = useUTC ? _d.getUTCMinutes() : _d.getMinutes();
-      const second = useUTC ? _d.getUTCSeconds() : _d.getSeconds();
-      return `${minute * 60 + second} s`;
+    minorLabels: ({ _d: labelDatetime }) => {
+      return `${(labelDatetime - startDatetime) / 1000} s`;
     },
     majorLabels: ({ _d}) => {
       const year = useUTC ? _d.getUTCFullYear() : _d.getFullYear();
@@ -140,9 +138,9 @@ export default function Analyze({ outputPath, lastStartJD }) {
       const elapsed = endDatetime.diff(startDatetime.clone());
 
       const options = {
-        ...timelineOptions(useUTC),
-        min: startDatetime.format(),
-        max: endDatetime.clone().add(120, 'seconds').format(),
+        ...timelineOptions(startDatetime, useUTC),
+        min: startDatetime.clone().subtract(120, 'seconds').format(),
+        max: endDatetime.clone().add(360, 'seconds').format(),
         zoomMin: elapsed / 100,
         zoomMax: elapsed * 10000,
       }
@@ -214,7 +212,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
       }
       try {
         const stateDataFiles = await fetchStateDataFiles(outputPath);
-        setStateDataFiles(stateDataFiles);
+        setStateDataFiles(stateDataFiles.filter((file) => !file.includes('eci_pointing_vector')));
         setFinishedLoadingStateData(true);
       } catch (error) {
         console.error("Error while fetching state data files: ", error);
