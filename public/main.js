@@ -238,6 +238,8 @@ ipcMain.handle('start-docker', async () => {
   }
 });
 
+let simulation;
+
 ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
   const { simulationFile, tasksFile, modelFile } = inputFiles;
@@ -281,7 +283,7 @@ ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
     };
 
     // Execute the command in spawned child process
-    const simulation = spawn(command, args, options);
+    simulation = spawn(command, args, options);
 
     simulation.stdout.on('data', (data) => {
       console.log(data.toString());
@@ -322,6 +324,22 @@ ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
       data: error.message,
       code: null,
     });
+  }
+});
+
+ipcMain.on('abort-simulation', (event) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  try {
+    if (simulation) {
+      console.log('Aborting simulation');
+      simulation.kill();
+      simulation = null;
+      browserWindow.webContents.send('abort-message', 'Simulation aborted');
+    }
+  } catch (error) {
+    console.error(error);
+    browserWindow.webContents.send('abort-message', error);
   }
 });
 

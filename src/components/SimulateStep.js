@@ -20,8 +20,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const steps = [
   { label: 'Validating parameters'},
-  // { label: 'Checking system requirements' },
-  // { label: 'Setting up simulation environment' },
   { label: 'Building input files' },
   { label: 'Simulation ready' },
 ];
@@ -48,19 +46,13 @@ export default function SimulateStep({
   evaluator,
 }) {
   const theme = useTheme();
-  const [precheckStep, setPrecheckStep] = useState(0);
   const [stepStatus, setStepStatus] = useState(steps.map(() => ({ status: 'pending', message: null })));
   const [inputFiles, setInputFiles] = useState({});
   const [hoveringAbort, setHoveringAbort] = useState(false);
+  const [abortHoldTimer, setAbortHoldTimer] = useState(null);
   const logsRef = useRef(null);
   const [logs, setLogs] = useState([]);
   const [progress, setProgress] = useState(0);
-
-  const handleNext = () => {
-    if (precheckStep < steps.length) {
-      setPrecheckStep((prevPrecheckStep) => prevPrecheckStep + 1);
-    };
-  };
 
   const validateParameters = () => {
     console.log('Checking for errors in parameters');
@@ -93,7 +85,7 @@ export default function SimulateStep({
         Object.keys(modelErrors).forEach((key, index) => {
           const component = componentList.find((c) => c.id === key);
           const parentName = componentList.find((c) => c.id === component.parent)?.name;
-          const displayName = `${component.name}` + (parentName ? ` (${parentName})` : '');
+          const displayName = `${component.name === '' ? '(unnamed)' : component.name}` + (parentName ? ` (${parentName})` : '');
           errorMessage += `${displayName}` + (index < Object.keys(modelErrors).length - 1 ? ', ' : '.\n');
         });
       }
@@ -122,48 +114,13 @@ export default function SimulateStep({
         ...prevStepStatus,
         0: { status: 'error', message: errorMessage },
       }));
-      return 'error';
     } else {
-      setStepStatus((prevStepStatus) => ({
-        ...prevStepStatus,
-        0: { status: 'ready', message: null },
-      }));
-      return 'ready';
-    }
-  }
-
-  const checkDocker = async () => {
-    if (window.electronApi) {
-      const backend = window.electronApi;
-      try {
-        // Check if Docker is installed
-        console.log('Checking Docker installation');
-        let error = await backend.checkDockerInstalled();
-        if (error) throw error;
-        console.log('Docker is installed');
-        // Check if Docker is running
-        error = await backend.checkDockerRunning();
-        if (error) {
-          console.log('Docker is not running; starting Docker');
-          error = await backend.startDocker();
-        }
-        if (error) throw error;
-        console.log('Docker is running');
-        // Check if Docker has the necessary images
-        // Check if Docker has the necessary containers
-        console.log('Docker is ready');
+      setTimeout(() => {
         setStepStatus((prevStepStatus) => ({
           ...prevStepStatus,
-          1: { status: 'ready', message: null },
+          0: { status: 'ready', message: null },
         }));
-        return;
-      } catch (error) {
-        console.log(error);
-        setStepStatus((prevStepStatus) => ({
-          ...prevStepStatus,
-          1: { status: 'error', message: error },
-        }));
-      }
+      }, 300);
     }
   }
 
@@ -187,25 +144,22 @@ export default function SimulateStep({
         if (data instanceof Error) {
           setStepStatus((prevStepStatus) => ({
             ...prevStepStatus,
-            3: { status: 'error', message: data.message },
+            1: { status: 'error', message: data.message },
           }));
-          return 'error';
         } else {
           setInputFiles(data); // Save input filenames for simulation
           setStepStatus((prevStepStatus) => ({
             ...prevStepStatus,
-            3: { status: 'ready', message: null },
+            1: { status: 'ready', message: null },
           }));
         }
       });
-      return 'ready';
     } catch (error) {
       console.log(error);
       setStepStatus((prevStepStatus) => ({
         ...prevStepStatus,
-        3: { status: 'error', message: error },
+        1: { status: 'error', message: error },
       }));
-      return 'error';
     }
   }
 
@@ -218,6 +172,7 @@ export default function SimulateStep({
     }
   }
 
+  // TO DO: Only save if process exits with code 0
   const saveJDValue = (data) => {
     const fileName = data.split('/').pop().split('\n')[0];
     const { startJD } = appState.simulationInput.simulationParameters;
@@ -251,16 +206,16 @@ export default function SimulateStep({
       try {
         // Run simulation
         setSimulationRunning(true);
-        // setStatus('running');
         backend.runSimulation(inputFiles, outputPath, ({type, data, code}) => {
           if (type === 'error') {
             setErrorMessage(data);
             setErrorModalOpen(true);
           } else if (type === 'close') {
-            // setStatus('success');
             setSimulationRunning(false);
-            setActiveStep('Analyze');
-            setNavOpen(false);
+            if (code === 0) {
+              setActiveStep('Analyze');
+              setNavOpen(false);
+            }
           } else {
             console.log(data);
             setLogsValue(data);
@@ -280,48 +235,46 @@ export default function SimulateStep({
 
   const abortSimulation = () => {
     if (window.electronApi) {
-      window.electronApi.abortSimulation((error) => {
-        if (error) {
-          setErrorMessage(error);
+      window.electronApi.abortSimulation((message) => {
+        if (message === 'Simulation aborted') {
+          // setPrecheckStep(0);
+          setStepStatus(steps.map(() => ({ status: 'pending', message: null })));
+          setInputFiles({});
+          setHoveringAbort(false);
+          setLogs([]);
+          setProgress(0);
+          setSimulationRunning(false);
+        } else {
+          setErrorMessage(message);
           setErrorModalOpen(true);
         }
-      }
-      );
-    }
-    setSimulationRunning(false);
-  }
-
-  // Check the current step and move to the next step if ready
-  const checkStep = async (precheckStep) => {
-    let status = 'pending';
-    switch (precheckStep) {
-      case 0:
-        status = validateParameters();
-        break;
-      // case 1:
-      //   status = checkDocker();
-      //   break;
-      // case 2:
-      //   break;
-      case 1:
-        status = await buildInputFiles();
-        break;
-      case 2:
-        status = 'ready';
-        break;
-      default:
-        break;
-    }
-    if (status === 'ready' && precheckStep < steps.length) {
-      // Move to the next step after a delay
-      setTimeout(() => handleNext(), 300);
+      });
     }
   }
 
-  // Check the current step when the step changes
+  const handleAbortPress = () => {
+    if (abortHoldTimer) {
+      clearTimeout(abortHoldTimer);
+      setAbortHoldTimer(null);
+    } else {
+      setAbortHoldTimer(setTimeout(() => {
+        abortSimulation();
+      }, 2000));
+    }
+  }
+
+  const handleAbortRelease = () => {
+    if (abortHoldTimer) {
+      clearTimeout(abortHoldTimer);
+      setAbortHoldTimer(null);
+    }
+  }
+
+  const activeStep = steps.findIndex((step, index) => stepStatus[index].status === 'pending');
+
   useEffect(() => {
-    checkStep(precheckStep);
-  }, [precheckStep]);
+    if (activeStep === 0) validateParameters();
+  }, [activeStep]);
 
   return (
     <ThemeProvider theme={theme}>
@@ -358,28 +311,26 @@ export default function SimulateStep({
               </Box>
             </AccordionDetails>
           </Accordion> :
-          <Stepper activeStep={precheckStep} orientation="vertical">
+          <Stepper activeStep={activeStep} orientation="vertical">
             {steps.map((step, index) => {
               const labelProps = {};
               let  { status, message } = stepStatus[index];
-              if (index === precheckStep) {
-                if (status === 'error') {
-                  const FormattedMessages = message.split('\n').map((line, i) => (
-                    <Typography
-                      key={i}
-                      variant="caption"
-                      color={"error"}
-                    >
-                      {line}
-                    </Typography>
-                  ));
-                  labelProps.optional = (
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                      {FormattedMessages}
-                    </Box>
-                  )
-                  labelProps.error = status === 'error';
-                }
+              if (index === activeStep && status === 'error') {
+                const FormattedMessages = message.split('\n').map((line, i) => (
+                  <Typography
+                    key={i}
+                    variant="caption"
+                    color={"error"}
+                  >
+                    {line}
+                  </Typography>
+                ));
+                labelProps.optional = (
+                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                    {FormattedMessages}
+                  </Box>
+                )
+                labelProps.error = status === 'error';
               }
               return (
                 <Step key={step.label}>
@@ -387,23 +338,24 @@ export default function SimulateStep({
                     {step.label}
                   </StepLabel>
                   <StepContent>
-                    {/* <Box sx={{ mb: 2 }}>
-                      {<div>
-                        <Button
-                          variant="contained"
-                          onClick={step.buttonHandler}
-                          sx={{ mt: 1, mr: 1 }}
-                        >
-                          {step.buttonLabel}
-                        </Button>
-                      </div>}
-                    </Box> */}
+                    {activeStep === 1 &&
+                      <Box sx={{ mb: 2 }}>
+                        {<div>
+                          <Button
+                            variant="contained"
+                            onClick={buildInputFiles}
+                            sx={{ mt: 1, mr: 1 }}
+                          >
+                            Build input files
+                          </Button>
+                        </div>}
+                      </Box>}
                   </StepContent>
                 </Step>
               );
             })}
           </Stepper>}
-        {precheckStep === steps.length && (
+        {activeStep === 2 && (
           <Paper square elevation={0} sx={{ p: 3, m: 2 }}>
             {simulationRunning ?
               <Button
@@ -431,10 +383,11 @@ export default function SimulateStep({
                       </>
                     }
                   </Box>}
-                onDoubleClick={abortSimulation}
+                onMouseDown={handleAbortPress}
+                onMouseUp={handleAbortRelease}
                 sx={{ mt: 1, mr: 1 }}
               >
-              {hoveringAbort ? 'Abort simulation' : 'Simulation running'}
+              {hoveringAbort ? 'Abort (hold)' : 'Simulation running'}
             </Button> :
             <Button
               variant="contained"

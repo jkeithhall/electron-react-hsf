@@ -176,6 +176,14 @@ const api = {
     });
     ipcRenderer.send('run-simulation', inputFiles, outputFiles);
   },
+  abortSimulation: (callback) => {
+    ipcRenderer.removeAllListeners('abort-message');
+
+    ipcRenderer.on('abort-message', (_, error) => {
+      callback(error);
+    });
+    ipcRenderer.send('abort-simulation');
+  },
   saveJDValue: (outputPath, fileName, startJD, callback) => {
     console.log('saveJDValue called in preload.js');
     ipcRenderer.removeAllListeners('jd-value-error');
