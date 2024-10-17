@@ -172,9 +172,7 @@ export default function SimulateStep({
     }
   }
 
-  // TO DO: Only save if process exits with code 0
-  const saveJDValue = (data) => {
-    const fileName = data.split('/').pop().split('\n')[0];
+  const saveJDValue = (fileName) => {
     const { startJD } = appState.simulationInput.simulationParameters;
     if (window.electronApi) {
       window.electronApi.saveJDValue(outputPath, fileName, startJD, (error) => {
@@ -206,6 +204,7 @@ export default function SimulateStep({
       try {
         // Run simulation
         setSimulationRunning(true);
+        let fileName;
         backend.runSimulation(inputFiles, outputPath, ({type, data, code}) => {
           if (type === 'error') {
             setErrorMessage(data);
@@ -213,6 +212,7 @@ export default function SimulateStep({
           } else if (type === 'close') {
             setSimulationRunning(false);
             if (code === 0) {
+              saveJDValue(fileName);
               setActiveStep('Analyze');
               setNavOpen(false);
             }
@@ -222,7 +222,7 @@ export default function SimulateStep({
             if (data.includes('Scheduler Status:')) {
               setProgressValue(data);
             } else if (data.includes('Publishing simulation results to')) {
-              saveJDValue(data);
+              fileName = data.split('/').pop().split('\n')[0];
             }
           }
         });
