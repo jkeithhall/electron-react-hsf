@@ -1,5 +1,5 @@
-const { cos, sin } = Math;
-const degreesToRadians = degrees => degrees * Math.PI / 180;
+const { cos, sin, PI } = Math;
+const degreesToRadians = degrees => degrees * PI / 180;
 const WGS84_A = 6378137.0; // Semi-major axis
 const WGS84_B = 6356752.314245; // Semi-minor axis
 const WGS84_E = Math.sqrt(1 - (WGS84_B ** 2) / (WGS84_A ** 2)); // Eccentricity
@@ -40,7 +40,7 @@ function targetToCzmlPackets(task) {
   const ECEFCoords = latLonToECEF(task.latitude, task.longitude, task.altitude);
 
   return {
-    id: `Target/${task.name}`,
+    id: task.id,
     name: task.name,
     description: `<!--HTML-->\r\n<p>\r\n ${task.name} \r\n</p>`,
     billboard: {
@@ -48,7 +48,7 @@ function targetToCzmlPackets(task) {
         cartesian: [0, 0, 0]
       },
       horizontalOrigin: "CENTER",
-      image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAACvSURBVDhPrZDRDcMgDAU9GqN0lIzijw6SUbJJygUeNQgSqepJTyHG91LVVpwDdfxM3T9TSl1EXZvDwii471fivK73cBFFQNTT/d2KoGpfGOpSIkhUpgUMxq9DFEsWv4IXhlyCnhBFnZcFEEuYqbiUlNwWgMTdrZ3JbQFoEVG53rd8ztG9aPJMnBUQf/VFraBJeWnLS0RfjbKyLJA8FkT5seDYS1Qwyv8t0B/5C2ZmH2/eTGNNBgMmAAAAAElFTkSuQmCC",
+      image: "../../public/target.png",
       pixelOffset: {
         cartesian2: [0, 0]
       },

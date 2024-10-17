@@ -13,7 +13,8 @@ import Button from '@mui/material/Button';
 import CircularProgress from '@mui/material/CircularProgress';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import CheckIcon from '@mui/icons-material/Check';
+import ReportIcon from '@mui/icons-material/Report';
+import PendingIcon from '@mui/icons-material/Pending';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
@@ -27,6 +28,8 @@ const steps = [
 
 export default function SimulateStep({
   navOpen,
+  simulationRunning,
+  setSimulationRunning,
   setErrorMessage,
   setErrorModalOpen,
   setActiveStep,
@@ -48,7 +51,7 @@ export default function SimulateStep({
   const [precheckStep, setPrecheckStep] = useState(0);
   const [stepStatus, setStepStatus] = useState(steps.map(() => ({ status: 'pending', message: null })));
   const [inputFiles, setInputFiles] = useState({});
-  const [status, setStatus] = useState('pending');
+  const [hoveringAbort, setHoveringAbort] = useState(false);
   const logsRef = useRef(null);
   const [logs, setLogs] = useState([]);
   const [progress, setProgress] = useState(0);
@@ -247,13 +250,15 @@ export default function SimulateStep({
       const backend = window.electronApi;
       try {
         // Run simulation
-        setStatus('running');
+        setSimulationRunning(true);
+        // setStatus('running');
         backend.runSimulation(inputFiles, outputPath, ({type, data, code}) => {
           if (type === 'error') {
             setErrorMessage(data);
             setErrorModalOpen(true);
           } else if (type === 'close') {
-            setStatus('success');
+            // setStatus('success');
+            setSimulationRunning(false);
             setActiveStep('Analyze');
             setNavOpen(false);
           } else {
@@ -268,9 +273,23 @@ export default function SimulateStep({
         });
       } catch (error) {
         console.log(error);
+        setSimulationRunning(false);
       }
     }
   };
+
+  const abortSimulation = () => {
+    if (window.electronApi) {
+      window.electronApi.abortSimulation((error) => {
+        if (error) {
+          setErrorMessage(error);
+          setErrorModalOpen(true);
+        }
+      }
+      );
+    }
+    setSimulationRunning(false);
+  }
 
   // Check the current step and move to the next step if ready
   const checkStep = async (precheckStep) => {
@@ -307,7 +326,38 @@ export default function SimulateStep({
   return (
     <ThemeProvider theme={theme}>
       <Paper sx={{ width: 500, backgroundColor: '#eee', padding: '25px', margin: '25px' }}>
-        {((status === "pending" || status === "ready") &&
+        {simulationRunning ?
+          <Accordion sx={{ backgroundColor: theme.palette.primary.dark, color: 'white' }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}>
+              <Typography variant="h5" fontWeight="bold">Progress logs</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box
+                ref={logsRef}
+                p={1}
+                sx={{
+                  maxHeight: 200,
+                  overflowY: 'auto',
+                  backgroundColor: '#eee',
+                  color: 'black',
+                  minHeight: 200,
+                }}
+              >
+                {logs.map((log, index) => (
+                  <Typography
+                    key={index}
+                    variant="body2"
+                    align="left"
+                    paragraph={true}
+                    sx={{ fontFamily: 'Courier Prime, monospace' }}
+                    m={1}
+                  >
+                    {log}
+                </Typography>
+                ))}
+              </Box>
+            </AccordionDetails>
+          </Accordion> :
           <Stepper activeStep={precheckStep} orientation="vertical">
             {steps.map((step, index) => {
               const labelProps = {};
@@ -352,69 +402,52 @@ export default function SimulateStep({
                 </Step>
               );
             })}
-          </Stepper>
-        )}
-        {status === "running" && (
-          <Accordion sx={{ backgroundColor: theme.palette.primary.dark, color: 'white' }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }} />}>
-              <Typography variant="h5" fontWeight="bold">Progress logs</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Box
-                ref={logsRef}
-                p={1}
-                sx={{
-                  maxHeight: 200,
-                  overflowY: 'auto',
-                  backgroundColor: '#eee',
-                  color: 'black',
-                  minHeight: 200,
-                }}
-              >
-                {logs.map((log, index) => (
-                  <Typography
-                    key={index}
-                    variant="body2"
-                    align="left"
-                    paragraph={true}
-                    sx={{ fontFamily: 'Courier Prime, monospace' }}
-                    m={1}
-                  >
-                    {log}
-                </Typography>
-                ))}
-              </Box>
-            </AccordionDetails>
-          </Accordion>
-        )}
+          </Stepper>}
         {precheckStep === steps.length && (
           <Paper square elevation={0} sx={{ p: 3, m: 2 }}>
+            {simulationRunning ?
+              <Button
+                variant="contained"
+                color={hoveringAbort ? "error" : "success"}
+                onMouseEnter={() => setHoveringAbort(true)}
+                onMouseLeave={() => setHoveringAbort(false)}
+                startIcon={
+                  <Box sx={{ m: 1, position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+                    {hoveringAbort ? <ReportIcon /> :
+                      <>
+                        <PendingIcon />
+                        <CircularProgress
+                          size={28}
+                          variant={progress > 0 ? "determinate" : "indeterminate"}
+                          value={progress}
+                          sx={{
+                            color: (theme) => theme.palette.success.light,
+                            position: 'absolute',
+                            top: -1.9,
+                            left: -1.9,
+                            zIndex: 1,
+                          }}
+                        />
+                      </>
+                    }
+                  </Box>}
+                onDoubleClick={abortSimulation}
+                sx={{ mt: 1, mr: 1 }}
+              >
+              {hoveringAbort ? 'Abort simulation' : 'Simulation running'}
+            </Button> :
             <Button
               variant="contained"
-              color={status === "running" ? "success" : "primary"}
+              color={"primary"}
               startIcon={
                 <Box sx={{ m: 1, position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-                  {status === "success" ? <CheckIcon /> : <PlayCircleIcon />}
-                  {(status === "running" || status === "success") && (
-                    <CircularProgress
-                      size={28}
-                      variant={progress > 0 ? "determinate" : "indeterminate"}
-                      value={progress}
-                      sx={{
-                        color: (theme) => theme.palette.success.light,
-                        position: 'absolute',
-                        top: -1.9,
-                        left: -1.9,
-                        zIndex: 1,
-                      }}
-                    />
-                  )}
+                  <PlayCircleIcon />
                 </Box>}
               onClick={runSimulation}
               sx={{ mt: 1, mr: 1 }}
             >
               Run simulation
-            </Button>
+            </Button>}
           </Paper>
         )}
       </Paper>

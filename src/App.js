@@ -49,6 +49,7 @@ export default function App() {
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [confirmationHandler, setConfirmationHandler] = useState(() => {});
   const [saveConfirmationModalOpen, setSaveConfirmationModalOpen] = useState(false);
+  const [simulationRunning, setSimulationRunning] = useState(false);
 
   // TO DO: Create context provider for all errors
   const [errorModalOpen, setErrorModalOpen] = useState(false);
@@ -321,6 +322,7 @@ export default function App() {
       appState={appState}
       filePath={filePath}
       hasUnsavedChanges={hasUnsavedChanges}
+      simulationRunning={simulationRunning}
     >
       <div className={`work-space ${navOpen ? 'work-space-nav-open' : 'work-space-nav-closed'}`} >
         {{'Scenario':
@@ -390,6 +392,8 @@ export default function App() {
           'Simulate':
             <SimulateStep
               navOpen={navOpen}
+              simulationRunning={simulationRunning}
+              setSimulationRunning={setSimulationRunning}
               setErrorMessage={setErrorMessage}
               setErrorModalOpen={setErrorModalOpen}
               setActiveStep={setActiveStep}
