@@ -270,7 +270,10 @@ export default function SimulateStep({
     }
   }
 
-  const activeStep = steps.findIndex((step, index) => stepStatus[index].status === 'pending');
+  const activeStep = steps.findIndex((step, index) => {
+    const { status } = stepStatus[index];
+    return status === 'pending' || status === 'error';
+  });
 
   useEffect(() => {
     if (activeStep === 0) validateParameters();
