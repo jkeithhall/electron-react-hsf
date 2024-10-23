@@ -39,8 +39,8 @@ export default async function formatTimeline(scheduleContent, startJD) {
 function separateNumeralName(token) {
   let numeral = '';
   while (token[0] >= '0' && token[0] <= '9') {
-    numeral += token[0];
-    token = token.slice(1);
+    numeral += token[0].trim();
+    token = token.slice(1).trim();
   }
 
   return { numeral, cleanName: token };
@@ -55,7 +55,7 @@ const splitEventEndFromName = (line) => {
       cleanTokens.push(numeral);
       cleanTokens.push(cleanName);
     } else {
-      cleanTokens.push(token);
+      cleanTokens.push(token.trim());
     }
   });
 
@@ -82,7 +82,6 @@ function getItems(tokens, dayjs) {
     content: '',
     start: '',
     end: '',
-    // type: 'range',
     group: 0,
   };
   const currTask = {

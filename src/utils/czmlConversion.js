@@ -1,4 +1,4 @@
-const { cos, sin, PI } = Math;
+const { cos, sin, sqrt, PI } = Math;
 const degreesToRadians = degrees => degrees * PI / 180;
 const WGS84_A = 6378137.0; // Semi-major axis
 const WGS84_B = 6356752.314245; // Semi-minor axis
@@ -11,7 +11,7 @@ function latLonToECEF(lat, lon, alt) {
   const clon = cos(degreesToRadians(lon));
   const slon = sin(degreesToRadians(lon));
 
-  const N = WGS84_A / Math.sqrt(1 - WGS84_E ** 2 * slat ** 2);
+  const N = WGS84_A / sqrt(1 - WGS84_E ** 2 * slat ** 2);
   const x = (N + alt) * clat * clon;
   const y = (N + alt) * clat * slon;
   const z = (N * (1 - WGS84_E ** 2) + alt) * slat;
