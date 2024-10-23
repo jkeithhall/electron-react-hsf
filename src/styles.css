@@ -437,10 +437,15 @@ header {
     gap: var(--confirm-close-gap);
 }
 
-.analyze-timeline {
-    background-color: var(--secondary--background-color);
+.timeline-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
     width: 100%;
-    height: 300;
+    background-color: #eeeeee;
+    padding: 15px;
 }
 
 .overlay {

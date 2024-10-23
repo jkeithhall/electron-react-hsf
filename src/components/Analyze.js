@@ -13,52 +13,28 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Timeline from 'react18-vis-timeline';
-import { DataSet } from 'vis-data';
-import '../timelinestyles.css';
+import { Timeline } from 'react-svg-timeline'
 
 import { ResponsiveLine } from '@nivo/line';
 import { lineChartProps } from '../nivoconfig';
 
 import formatTimeline from '../utils/formatTimeline';
 import formatPlotData from '../utils/formatPlotData';
-import { julianToDate } from '../utils/julianConversion';
-import moment from 'moment';
-
-const timelineItems = new DataSet([]);
-const timelineGroups = new DataSet([]);
-
-const timelineOptions = ({ $d: startDatetime }, useUTC) => ({
-  align: 'left',
-  height: '500px',
-  tooltip: { delay: 100 },
-  format: {
-    minorLabels: ({ _d: labelDatetime }) => {
-      return `${(labelDatetime - startDatetime) / 1000} s`;
-    },
-    majorLabels: ({ _d}) => {
-      const year = useUTC ? _d.getUTCFullYear() : _d.getFullYear();
-      const month = (useUTC ? _d.getUTCMonth() : _d.getMonth() + 1).toString().padStart(2, '0');
-      const day = (useUTC ? _d.getUTCDate() : _d.getDate()).toString().padStart(2, '0');
-      const hour = (useUTC ? _d.getUTCHours() : _d.getHours()).toString().padStart(2, '0');
-      const minute = (useUTC ? _d.getUTCMinutes() : _d.getMinutes()).toString().padStart(2, '0');
-
-      return `${year}-${month}-${day} ${hour}:${minute}` + (useUTC ? ' (UTC)' : ' (local time)');
-    }
-  },
-});
 
 export default function Analyze({ outputPath, lastStartJD }) {
   const theme = useTheme();
-  const timelineRef = useRef(null);
+  const timelineContainerRef = useRef(null);
+
   const [finishedLoadingTimeline, setFinishedLoadingTimeline] = useState(false);
   const [finishedLoadingStateData, setFinishedLoadingStateData] = useState(false);
   const [timelineFiles, setTimelineFiles] = useState([]);
   const [stateDataFiles, setStateDataFiles] = useState([]);
   const [selectedTimelineFile, setSelectedTimelineFile] = useState(undefined);
   const [scheduleValue, setScheduleValue] = useState('');
-  const [startDatetime, setStartDatetime] = useState('');
-  const [endDatetime, setEndDatetime] = useState('');
+  const [startTime, setStartTime] = useState(0);
+  const [timelineLanes, setTimelineLanes] = useState([]);
+  const [timelineEvents, setTimelineEvents] = useState([]);
+  const [timelineWidth, setTimelineWidth] = useState(0);
   const [latestSimulation, setLatestSimulation] = useState(null);
   const [selectedStateDataFile, setSelectedStateDataFile] = useState(undefined);
   const [useUTC, setUseUTC] = useState(true);
@@ -107,53 +83,6 @@ export default function Analyze({ outputPath, lastStartJD }) {
     });
   }
 
-  // vis-timeline is an old library that doesn't support React 18
-  // react18-vis-timeline is a fork of vis-timeline that supports React 18
-  // but it wants data updates to use the API on the DataSet objects
-  // instead of directly modifying the data array
-  function setTimelineData(items, groups) {
-    if (timelineRef.current) {
-      const { timeline, props } = timelineRef.current;
-      timelineRef.current.timeline.on('click', (event, properties) => {
-        console.log("Clicked event:", event);
-        const { item } = event;
-        // console.log(timeline.getEventProperties(event));
-        if (item) {
-          const clickedItem = timelineItems.get(item);
-          console.log("Clicked item:", clickedItem);
-        }
-      });
-
-      props.initialItems.clear();
-      props.initialGroups.clear();
-      props.initialItems.add(items);
-      props.initialGroups.add(groups);
-
-      timeline.fit();
-    }
-  }
-
-  function setTimelineRange(startDatetime, endDatetime, useUTC) {
-    if (timelineRef.current) {
-      const elapsed = endDatetime.diff(startDatetime.clone());
-
-      const options = {
-        ...timelineOptions(startDatetime, useUTC),
-        min: startDatetime.clone().subtract(120, 'seconds').format(),
-        max: endDatetime.clone().add(360, 'seconds').format(),
-        zoomMin: elapsed / 100,
-        zoomMax: elapsed * 10000,
-      }
-
-      if (useUTC) {
-        options.moment = (date) => moment(date).utc();
-      }
-
-      timelineRef.current.timeline.setWindow(startDatetime.format(), endDatetime.clone().add(120, 'seconds').format());
-      timelineRef.current.timeline.setOptions(options);
-    }
-  }
-
   function fetchStateData(outputPath, selectedStateDataFile, useUTC) {
     return new Promise((resolve, reject) => {
       if (window.electronApi) {
@@ -199,7 +128,17 @@ export default function Analyze({ outputPath, lastStartJD }) {
     setSelectedStateDataFile(event.target.value);
   }
 
-  // Fetch last output data on first render
+  const timelineDateFormat = (useUTC) => (ms) => {
+    const date = new Date(ms);
+    const elapsedSeconds = Math.floor((date - startTime) / 1000);
+    const options = { timeZoneName: 'short' };
+    if (useUTC) options.timeZone = 'UTC';
+
+    const fullDatetime = date.toLocaleString("en-GB", options);
+    return `${elapsedSeconds}s\n(${fullDatetime})`;
+  };
+
+  // On first render fetch timeline and state data files and create timeline width listener
   useEffect(() => {
     (async () => {
       try {
@@ -217,16 +156,21 @@ export default function Analyze({ outputPath, lastStartJD }) {
       } catch (error) {
         console.error("Error while fetching state data files: ", error);
       }
-      // Preset timeline range to 15 seconds before and 90 seconds after the last start Julian date
-      try {
-        const dayJs = await julianToDate(lastStartJD, useUTC);
-        const startDatetime = dayJs.clone().add(-15, 'seconds');
-        const endDatetime = dayJs.clone().add(90, 'seconds');
-        setTimelineRange(startDatetime, endDatetime, useUTC);
-      } catch (error) {
-        console.error("Error while converting Julian date to date: ", error);
-      }
     })();
+    const updateWidth = () => {
+      if (timelineContainerRef.current) {
+        setTimelineWidth(timelineContainerRef.current.offsetWidth);
+      }
+    };
+
+    // Initial update
+    updateWidth();
+
+    // Update width when the window is resized
+    window.addEventListener('resize', updateWidth);
+
+    // Cleanup listener
+    return () => window.removeEventListener('resize', updateWidth);
   }, []);
 
   // Fetch timeline data when selectedTimelineFile changes
@@ -241,16 +185,14 @@ export default function Analyze({ outputPath, lastStartJD }) {
         try {
           const {
             scheduleValue,
-            startDatetime,
-            endDatetime,
-            items,
-            groups } = await fetchTimelineData(outputPath, selectedTimelineFile);
+            startTime,
+            events,
+            lanes } = await fetchTimelineData(outputPath, selectedTimelineFile);
 
           setScheduleValue(scheduleValue);
-          setStartDatetime(startDatetime);
-          setEndDatetime(endDatetime);
-          setTimelineRange(startDatetime, endDatetime, useUTC);
-          setTimelineData(items, groups);
+          setStartTime(startTime);
+          setTimelineEvents(events);
+          setTimelineLanes(lanes);
           setTimelineOpen(true);
         } catch (error) {
           console.error("Error while fetching timeline data: ", error);
@@ -274,9 +216,6 @@ export default function Analyze({ outputPath, lastStartJD }) {
   }, [selectedStateDataFile]);
 
   useEffect(() => {
-    if (finishedLoadingTimeline && selectedTimelineFile) {
-      setTimelineRange(startDatetime, endDatetime, useUTC);
-    }
     if (finishedLoadingStateData && selectedStateDataFile) {
       (async() => {
         try {
@@ -374,19 +313,15 @@ export default function Analyze({ outputPath, lastStartJD }) {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Box
-            sx={{
-              backgroundColor: '#eee',
-              padding: '15px',
-            }}
-          >
+          <div className="timeline-container" ref={timelineContainerRef}>
             {finishedLoadingTimeline && <Timeline
-              ref={timelineRef}
-              options={timelineOptions}
-              initialItems={timelineItems}
-              initialGroups={timelineGroups}
+              width={timelineWidth - 40}
+              height={timelineLanes.length * 150}
+              lanes={timelineLanes}
+              events={timelineEvents}
+              dateFormat={timelineDateFormat(useUTC)}
             />}
-          </Box>
+          </div>
         </AccordionDetails>
       </Accordion>
       <Accordion

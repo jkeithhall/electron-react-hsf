@@ -7,12 +7,12 @@ dayjs.extend(utc);
 
 export default async function formatTimeline(scheduleContent, startJD) {
   let scheduleValue;
-  let startTime = Number.POSITIVE_INFINITY
-  let endTime = Number.NEGATIVE_INFINITY;
-  let items = [];
-  let groups = [];
+  let events = [];
+  let lanes = [];
+
   const dayjs = await julianToDate(startJD, true);
   const utcDate = dayjs.utc();
+  const startTime = utcDate.valueOf();
 
   const lines = scheduleContent.split("\n").filter((line) => line !== "");
 
@@ -22,18 +22,13 @@ export default async function formatTimeline(scheduleContent, startJD) {
     } else {
       const cleanTokens = splitEventEndFromName(line);
 
-      if (index === 1) groups = groups.concat(getGroups(cleanTokens));
+      if (index === 1) lanes = lanes.concat(getLanes(cleanTokens));
 
-      const { items: currItems, lineStartTime, lineEndTime } = getItems(cleanTokens, utcDate);
-      items = items.concat(currItems);
-      if (lineStartTime < startTime) startTime = lineStartTime;
-      if (lineEndTime > endTime) endTime = lineEndTime;
+      events = events.concat(getEvents(cleanTokens, utcDate));
     }
   });
 
-  const startDatetime = utcDate.clone().add(startTime, 'seconds');
-  const endDatetime = utcDate.clone().add(endTime, 'seconds');
-  return { scheduleValue, startDatetime, endDatetime, items, groups };
+  return { scheduleValue, startTime, events, lanes };
 }
 
 function separateNumeralName(token) {
@@ -62,78 +57,68 @@ const splitEventEndFromName = (line) => {
   return cleanTokens.slice(1);
 }
 
-function getGroups(tokens) {
-  const groups = [];
+function getLanes(tokens) {
+  const lanes = [];
   tokens.forEach((token, index) => {
     const name = token.split(":")[0];
-    if (index % 10 === 0) groups.push({ id: index / 10, content: name });
+    if (index % 10 === 0) lanes.push({ laneId: index / 10, label: name });
   });
 
-  return groups;
+  return lanes;
 }
 
-function getItems(tokens, dayjs) {
-  const items = [];
-  let lineStartTime = Number.POSITIVE_INFINITY
-  let lineEndTime = Number.NEGATIVE_INFINITY;
+class Event {
+  constructor(eventId, tooltip, startTimeMillis, endTimeMillis, laneId) {
+    this.eventId = eventId;
+    this.tooltip = tooltip;
+    this.startTimeMillis = startTimeMillis;
+    this.endTimeMillis = endTimeMillis;
+    this.laneId = laneId;
+  }
+}
 
-  const currEvent = {
-    id: '',
-    content: '',
-    start: '',
-    end: '',
-    // type: 'range',
-    group: 0,
-  };
-  const currTask = {
-    id: '',
-    content: '',
-    start: '',
-    end: '',
-    group: 0,
-  };
+function getEvents(tokens, dayjs) {
+  const events = [];
+
+  let currEvent = new Event();
+  let currTask = new Event();
 
   tokens.forEach((token, index) => {
     switch (index % 10) {
       case 1: // Event/Task Name
-        currEvent.id = randomId();
-        currTask.id = randomId();
-        currEvent.group = Math.floor(index / 10);
-        currTask.group = Math.floor(index / 10);
-        currEvent.content = `${token} Event`;
-        currTask.content = `${token} Task`;
+        currEvent.eventId = randomId();
+        currTask.eventId = randomId();
+        currEvent.laneId = Math.floor(index / 10);
+        currTask.laneId = Math.floor(index / 10);
+        currEvent.tooltip = `${token} Event`;
+        currTask.tooltip = `${token} Task`;
         break;
       case 3: // Task Start
         const taskStart = parseInt(token);
-        if (taskStart < lineStartTime) lineStartTime = taskStart;
-
-        // 2024-10-10T05:02:17-07:00 needs to be 2024-10-10T05:02:17
-        currTask.start = dayjs.clone().add(taskStart, 'seconds').format();
+        const taskStartMillis = dayjs.clone().add(taskStart, 'seconds').valueOf();
+        currTask.startTimeMillis = taskStartMillis;
         break;
       case 5: // Event Start
         const eventStart = parseInt(token);
-        if (eventStart < lineStartTime) lineStartTime = eventStart;
-
-        currEvent.start = dayjs.clone().add(eventStart, 'seconds').format();
+        const eventStartMillis = dayjs.clone().add(eventStart, 'seconds').valueOf();
+        currEvent.startTimeMillis = eventStartMillis;
         break;
       case 7: // Task End
         const taskEnd = parseInt(token);
-        if (taskEnd > lineEndTime) lineEndTime = taskEnd;
-
-        currTask.end = dayjs.clone().add(taskEnd, 'seconds').format();
-        items.push({ ...currTask });
+        const taskEndMillis = dayjs.clone().add(taskEnd, 'seconds').valueOf();
+        currTask.endTimeMillis = taskEndMillis;
+        events.push({ ...currTask });
         break;
       case 9: // Event End
         const eventEnd = parseInt(token);
-        if (eventEnd > lineEndTime) lineEndTime = eventEnd;
-
-        currEvent.end = dayjs.clone().add(eventEnd, 'seconds').format();
-        items.push({ ...currEvent });
+        const eventEndMillis = dayjs.clone().add(eventEnd, 'seconds').valueOf();
+        currEvent.endTimeMillis = eventEndMillis;
+        events.push({ ...currEvent });
         break;
       default:
         break;
     }
   });
 
-  return {items, lineStartTime, lineEndTime};
+  return events;
 }
