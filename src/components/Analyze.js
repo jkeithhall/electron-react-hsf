@@ -374,19 +374,14 @@ export default function Analyze({ outputPath, lastStartJD }) {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <Box
-            sx={{
-              backgroundColor: '#eee',
-              padding: '15px',
-            }}
-          >
+          <div className="timeline-container">
             {finishedLoadingTimeline && <Timeline
               ref={timelineRef}
               options={timelineOptions}
               initialItems={timelineItems}
               initialGroups={timelineGroups}
             />}
-          </Box>
+          </div>
         </AccordionDetails>
       </Accordion>
       <Accordion

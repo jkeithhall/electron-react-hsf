@@ -443,6 +443,12 @@ header {
     height: 300;
 }
 
+.timeline-container {
+    background-color: #eee;
+    padding: 15;
+    text-align: left;
+}
+
 .overlay {
     z-index: 2;
     position: fixed;
