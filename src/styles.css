@@ -448,6 +448,12 @@ header {
     padding: 15px;
 }
 
+.timeline-container {
+    background-color: #eee;
+    padding: 15;
+    text-align: left;
+}
+
 .overlay {
     z-index: 2;
     position: fixed;

@@ -313,7 +313,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          <div className="timeline-container" ref={timelineContainerRef}>
+          <div className="timeline-container">
             {finishedLoadingTimeline && <Timeline
               width={timelineWidth - 40}
               height={timelineLanes.length * 150}
