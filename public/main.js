@@ -15,6 +15,8 @@ const {
   fetchLatestStateData,
   buildInputFiles,
   saveJDValue,
+  buildCzml,
+  fetchCzml,
   updateCurrentFile,
   checkUnsavedChanges,
   showFileSelectDialog } = require('./fileHandlers');
@@ -344,11 +346,25 @@ ipcMain.on('abort-simulation', (event) => {
 });
 
 ipcMain.on('save-jd-value', (event, outputPath, fileName, startJD) => {
-  console.log('save-jd-value called in main.js');
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
   saveJDValue(outputPath, fileName, startJD)
     .catch((error) => browserWindow.webContents.send('jd-value-error', error));
+});
+
+ipcMain.on('build-czml', (event, outputPath, fileName, content) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  buildCzml(outputPath, fileName, content)
+    .catch((error) => browserWindow.webContents.send('build-czml-error', error));
+});
+
+ipcMain.on('fetch-czml', (event, outputPath, fileName) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  fetchCzml(outputPath, fileName)
+    .then((data) => browserWindow.webContents.send('cesium-data', null, data))
+    .catch((error) => browserWindow.webContents.send('cesium-data', error, null));
 });
 
 ipcMain.on('fetch-timeline-files', (event, outputPath) => {

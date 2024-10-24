@@ -437,16 +437,17 @@ header {
     gap: var(--confirm-close-gap);
 }
 
-.analyze-timeline {
-    background-color: var(--secondary--background-color);
-    width: 100%;
-    height: 300;
-}
-
 .timeline-container {
     background-color: #eee;
     padding: 15;
     text-align: left;
+}
+
+#cesiumContainer {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 .overlay {

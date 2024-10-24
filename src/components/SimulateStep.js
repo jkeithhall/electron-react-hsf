@@ -18,6 +18,8 @@ import PendingIcon from '@mui/icons-material/Pending';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
+import buildCzmlPackets from '../utils/czmlConversion';
+
 const steps = [
   { label: 'Validating parameters'},
   { label: 'Building input files' },
@@ -184,6 +186,23 @@ export default function SimulateStep({
     }
   }
 
+  const buildCzml = async (outputPath, fileName) => {
+    const czmlFileName = fileName.replace('.txt', '.czml');
+    const { startJD, startSeconds, endSeconds } = appState.simulationInput.simulationParameters;
+
+    const czmlPackets = await buildCzmlPackets(startJD, startSeconds, endSeconds, taskList);
+    const content = JSON.stringify(czmlPackets, null, 2);
+
+    if (window.electronApi) {
+      window.electronApi.buildCzml(outputPath, czmlFileName, content, (error) => {
+        if (error) {
+          setErrorMessage(error);
+          setErrorModalOpen(true);
+        }
+      });
+    }
+  }
+
   const setLogsValue = (data) => {
     if (logs.length === 0 || logs[logs.length - 1] !== data) { // Avoid duplicates
       if (data !== '' && data !== "idk") {  // Avoid empty logs and specific unwanted logs
@@ -213,6 +232,7 @@ export default function SimulateStep({
             setSimulationRunning(false);
             if (code === 0) {
               saveJDValue(fileName);
+              buildCzml(outputPath, fileName);
               setActiveStep('Analyze');
               setNavOpen(false);
             }

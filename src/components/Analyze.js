@@ -6,8 +6,8 @@ import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Checkbox from '@mui/material/Checkbox';
-import LocationOnIcon from '@mui/icons-material/LocationOn';
-import LocationOffIcon from '@mui/icons-material/LocationOff';
+import MyLocationIcon from '@mui/icons-material/MyLocation';
+import LocationDisabledIcon from '@mui/icons-material/LocationDisabled';
 import MenuItem from '@mui/material/MenuItem';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -16,13 +16,13 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Timeline from 'react18-vis-timeline';
 import { DataSet } from 'vis-data';
 import '../timelinestyles.css';
+import { Viewer, CzmlDataSource } from "resium";
 
 import { ResponsiveLine } from '@nivo/line';
-import { lineChartProps } from '../nivoconfig';
+import { lineChartProps } from '../nivoStyles';
 
 import formatTimeline from '../utils/formatTimeline';
 import formatPlotData from '../utils/formatPlotData';
-import { julianToDate } from '../utils/julianConversion';
 import moment from 'moment';
 
 const timelineItems = new DataSet([]);
@@ -65,7 +65,9 @@ export default function Analyze({ outputPath, lastStartJD }) {
   const [plotData, setPlotData] = useState([]);
   const [xAxisLegend, setXAxisLegend] = useState('');
   const [yAxisLegend, setYAxisLegend] = useState('');
+  const [czmlData, setCzmlData] = useState([]);
   const [timelineOpen, setTimelineOpen] = useState(false);
+  const [cesiumOpen, setCesiumOpen] = useState(false);
   const [stateDataOpen, setStateDataOpen] = useState(false);
 
   async function fetchTimelineFiles(outputPath) {
@@ -111,7 +113,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
   // react18-vis-timeline is a fork of vis-timeline that supports React 18
   // but it wants data updates to use the API on the DataSet objects
   // instead of directly modifying the data array
-  function setTimelineData(items, groups) {
+  function updateTimelineData(items, groups) {
     if (timelineRef.current) {
       const { timeline, props } = timelineRef.current;
       timelineRef.current.timeline.on('click', (event, properties) => {
@@ -133,25 +135,40 @@ export default function Analyze({ outputPath, lastStartJD }) {
     }
   }
 
-  function setTimelineRange(startDatetime, endDatetime, useUTC) {
+  function updateTimelineRange(startDatetime, endDatetime, useUTC) {
     if (timelineRef.current) {
       const elapsed = endDatetime.diff(startDatetime.clone());
 
       const options = {
         ...timelineOptions(startDatetime, useUTC),
-        min: startDatetime.clone().subtract(120, 'seconds').format(),
-        max: endDatetime.clone().add(360, 'seconds').format(),
+        min: startDatetime.clone().subtract(60, 'seconds').format(),
+        max: endDatetime.clone().add(60, 'seconds').format(),
         zoomMin: elapsed / 100,
         zoomMax: elapsed * 10000,
       }
-
       if (useUTC) {
         options.moment = (date) => moment(date).utc();
       }
 
-      timelineRef.current.timeline.setWindow(startDatetime.format(), endDatetime.clone().add(120, 'seconds').format());
       timelineRef.current.timeline.setOptions(options);
     }
+  }
+
+  async function fetchCesiumData(outputPath, timelineFileName) {
+    const cesiumFileName = timelineFileName.replace('.txt', '.czml');
+    return new Promise((resolve, reject) => {
+      if (window.electronApi) {
+        window.electronApi.fetchCzmlData(outputPath, cesiumFileName, (err, data) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve(data);
+          }
+        });
+      } else {
+        reject("No electron API found");
+      }
+    });
   }
 
   function fetchStateData(outputPath, selectedStateDataFile, useUTC) {
@@ -199,7 +216,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
     setSelectedStateDataFile(event.target.value);
   }
 
-  // Fetch last output data on first render
+  // Fetch last output data files on first render
   useEffect(() => {
     (async () => {
       try {
@@ -216,15 +233,6 @@ export default function Analyze({ outputPath, lastStartJD }) {
         setFinishedLoadingStateData(true);
       } catch (error) {
         console.error("Error while fetching state data files: ", error);
-      }
-      // Preset timeline range to 15 seconds before and 90 seconds after the last start Julian date
-      try {
-        const dayJs = await julianToDate(lastStartJD, useUTC);
-        const startDatetime = dayJs.clone().add(-15, 'seconds');
-        const endDatetime = dayJs.clone().add(90, 'seconds');
-        setTimelineRange(startDatetime, endDatetime, useUTC);
-      } catch (error) {
-        console.error("Error while converting Julian date to date: ", error);
       }
     })();
   }, []);
@@ -249,11 +257,18 @@ export default function Analyze({ outputPath, lastStartJD }) {
           setScheduleValue(scheduleValue);
           setStartDatetime(startDatetime);
           setEndDatetime(endDatetime);
-          setTimelineRange(startDatetime, endDatetime, useUTC);
-          setTimelineData(items, groups);
+          updateTimelineRange(startDatetime, endDatetime, useUTC);
+          updateTimelineData(items, groups);
           setTimelineOpen(true);
         } catch (error) {
           console.error("Error while fetching timeline data: ", error);
+        }
+        try {
+          const czmlData = await fetchCesiumData(outputPath, selectedTimelineFile);
+          setCzmlData(czmlData);
+          setCesiumOpen(true);
+        } catch (error) {
+          console.error("Error while fetching CZML data: ", error);
         }
       })();
     }
@@ -273,9 +288,10 @@ export default function Analyze({ outputPath, lastStartJD }) {
     }
   }, [selectedStateDataFile]);
 
+  // Update timeline range and state data plot when useUTC changes
   useEffect(() => {
     if (finishedLoadingTimeline && selectedTimelineFile) {
-      setTimelineRange(startDatetime, endDatetime, useUTC);
+      updateTimelineRange(startDatetime, endDatetime, useUTC);
     }
     if (finishedLoadingStateData && selectedStateDataFile) {
       (async() => {
@@ -351,8 +367,8 @@ export default function Analyze({ outputPath, lastStartJD }) {
           <Checkbox
             checked={!useUTC}
             onChange={(event) => setUseUTC(!event.target.checked)}
-            icon={<LocationOffIcon />}
-            checkedIcon={<LocationOnIcon />}
+            icon={<LocationDisabledIcon />}
+            checkedIcon={<MyLocationIcon />}
           />
         </Tooltip>
       </Stack>
@@ -382,6 +398,30 @@ export default function Analyze({ outputPath, lastStartJD }) {
               initialGroups={timelineGroups}
             />}
           </div>
+        </AccordionDetails>
+      </Accordion>
+      <Accordion
+        disabled={selectedTimelineFile === undefined}
+        expanded={cesiumOpen}
+        onChange={() => setCesiumOpen(!cesiumOpen)}
+        mt={2}
+        sx={{
+          width: '100%',
+          backgroundColor: theme.palette.secondary.main,
+          color: '#eee'
+         }}
+      >
+        <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }}/>}>
+          <Typography variant="h5" fontWeight="bold">
+            Geospatial Visualization
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          {selectedTimelineFile &&
+            <Viewer>
+              <CzmlDataSource data={czmlData} />
+            </Viewer>
+          }
         </AccordionDetails>
       </Accordion>
       <Accordion

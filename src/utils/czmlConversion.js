@@ -1,4 +1,10 @@
+import { julianToDate } from './julianConversion';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
+
 const { cos, sin, sqrt, PI } = Math;
+
 const degreesToRadians = degrees => degrees * PI / 180;
 const WGS84_A = 6378137.0; // Semi-major axis
 const WGS84_B = 6356752.314245; // Semi-minor axis
@@ -21,19 +27,21 @@ function latLonToECEF(lat, lon, alt) {
 
 function targetHTML(task, ECEFCoords) {
   return `<!--HTML-->
-    <p><b>Name:</b> ${task.name}</p>
-    <p><b>Type:</b> ${task.type}</p>
-    <p><b>Max Times:</b> ${task.maxTimes}</p>
-    <p><b>Target Name:</b> ${task.targetName}</p>
-    <p><b>Target Type:</b> ${task.targetType}</p>
-    <p><b>Target Value:</b> ${task.targetValue}</p>
-    <p><b>Latitude:</b> ${task.latitude}</p>
-    <p><b>Longitude:</b> ${task.longitude}</p>
-    <p><b>Altitude:</b> ${task.altitude}</p>
-    <p><b>ECEF Coordinates:</b> ${ECEFCoords}</p>
-    <p><b>Dynamic State Type:</b> ${task.dynamicStateType}</p>
-    <p><b>Integrator Type:</b> ${task.integratorType}</p>
-    <p><b>EOMS Type:</b> ${task.eomsType}</p>`;
+    <div style="color: white;">
+      <p><b>Name:</b> ${task.name}</p>
+      <p><b>Type:</b> ${task.type}</p>
+      <p><b>Max Times:</b> ${task.maxTimes}</p>
+      <p><b>Target Name:</b> ${task.targetName}</p>
+      <p><b>Target Type:</b> ${task.targetType}</p>
+      <p><b>Target Value:</b> ${task.targetValue}</p>
+      <p><b>Latitude:</b> ${task.latitude}</p>
+      <p><b>Longitude:</b> ${task.longitude}</p>
+      <p><b>Altitude:</b> ${task.altitude}</p>
+      <p><b>ECEF Coordinates:</b> ${ECEFCoords.join(', ')}</p>
+      <p><b>Dynamic State Type:</b> ${task.dynamicStateType}</p>
+      <p><b>Integrator Type:</b> ${task.integratorType}</p>
+      <p><b>EOMS Type:</b> ${task.eomsType}</p>
+    </div>`;
 }
 
 function targetToCzmlPackets(task) {
@@ -42,13 +50,13 @@ function targetToCzmlPackets(task) {
   return {
     id: task.id,
     name: task.name,
-    description: `<!--HTML-->\r\n<p>\r\n ${task.name} \r\n</p>`,
+    description: targetHTML(task, ECEFCoords),
     billboard: {
       eyeOffset: {
         cartesian: [0, 0, 0]
       },
       horizontalOrigin: "CENTER",
-      image: "../../public/target.png",
+      image: "/Users/keithhall/Documents/Projects/electron-react-hsf/src/target.png",
       pixelOffset: {
         cartesian2: [0, 0]
       },
@@ -58,19 +66,15 @@ function targetToCzmlPackets(task) {
     },
     label: {
       fillColor: {
-        rgba: [0, 255, 255, 255]
+        rgba: [255, 255, 255, 255]
       },
-      font: "11pt Lucida Console",
+      font: "10pt Lucida Console",
       horizontalOrigin: "LEFT",
-      outlineColor: {
-        rgba: [0, 0, 0, 255]
-      },
-      outlineWidth: 2,
       pixelOffset: {
         cartesian2: [12, 0]
       },
       show: true,
-      style: "FILL_AND_OUTLINE",
+      style: "FILL",
       text: task.name,
       verticalOrigin: "CENTER"
     },
@@ -80,10 +84,35 @@ function targetToCzmlPackets(task) {
   }
 }
 
-export default function tasksToCzmlPackets(taskList) {
-  const czml = [];
+function tasksToCzmlPackets(taskList) {
+  const packets = [];
 
-  taskList.forEach((task) => czml.push(targetToCzmlPackets(task)));
+  taskList.forEach((task) => packets.push(targetToCzmlPackets(task)));
 
+  return packets;
+}
+
+
+
+export default async function buildCzmlPackets(startJD, startTime, endTime, taskList) {
+  const dayjs = await julianToDate(startJD, true);
+  const utcDate = dayjs.utc();
+  const startDatetime = utcDate.clone().add(startTime, 'seconds').toISOString();
+  const endDatetime = utcDate.clone().add(endTime, 'seconds').toISOString();
+
+  const czml = [{
+    id: "document",
+    name: "simple",
+    version: "1.0",
+    clock: {
+      interval:`${startDatetime}/${endDatetime}`,
+      currentTime: `${startDatetime}`,
+      multiplier: 60,
+      range: "LOOP_STOP",
+      step: "SYSTEM_CLOCK_MULTIPLIER"
+    }
+  }];
+
+  czml.push(...tasksToCzmlPackets(taskList));
   return czml;
 }
