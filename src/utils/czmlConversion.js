@@ -25,32 +25,32 @@ function latLonToECEF(lat, lon, alt) {
   return [x, y, z];
 }
 
-function targetHTML(task, ECEFCoords) {
+function targetHTML(target) {
+  const tasksHTML = target.tasks.map(task => {
+    return `<li>${task.name} (${task.type}; Max Times: ${task.maxTimes})</li>`;
+  })
   return `<!--HTML-->
-    <div style="color: white;">
-      <p><b>Name:</b> ${task.name}</p>
-      <p><b>Type:</b> ${task.type}</p>
-      <p><b>Max Times:</b> ${task.maxTimes}</p>
-      <p><b>Target Name:</b> ${task.targetName}</p>
-      <p><b>Target Type:</b> ${task.targetType}</p>
-      <p><b>Target Value:</b> ${task.targetValue}</p>
-      <p><b>Latitude:</b> ${task.latitude}</p>
-      <p><b>Longitude:</b> ${task.longitude}</p>
-      <p><b>Altitude:</b> ${task.altitude}</p>
-      <p><b>ECEF Coordinates:</b> ${ECEFCoords.join(', ')}</p>
-      <p><b>Dynamic State Type:</b> ${task.dynamicStateType}</p>
-      <p><b>Integrator Type:</b> ${task.integratorType}</p>
-      <p><b>EOMS Type:</b> ${task.eomsType}</p>
+    <div style="color: white; font-family: sans-serif;">
+      <p><b>Target Name:</b> ${target.name}</p>
+      <p><b>Target Type:</b> ${target.type}</p>
+      <p><b>Target Value:</b> ${target.targetValue}</p>
+      <p><b>Latitude:</b> ${target.latitude}</p>
+      <p><b>Longitude:</b> ${target.longitude}</p>
+      <p><b>Altitude:</b> ${target.altitude}</p>
+      <p><b>ECEF Coordinates:</b> ${target.ECEFCoords.join(', ')}</p>
+      <p><b>Dynamic State Type:</b> ${target.dynamicStateType}</p>
+      <p><b>Integrator Type:</b> ${target.integratorType}</p>
+      <p><b>EOMS Type:</b> ${target.eomsType}</p>
+      <p><b>Tasks:</b></p>
+      <ul>${tasksHTML.join('')}</ul>
     </div>`;
 }
 
-function targetToCzmlPackets(task) {
-  const ECEFCoords = latLonToECEF(task.latitude, task.longitude, task.altitude);
-
+function targetToCzmlPacket(target) {
   return {
-    id: task.id,
-    name: task.name,
-    description: targetHTML(task, ECEFCoords),
+    id: target.id,
+    name: target.name,
+    description: targetHTML(target),
     billboard: {
       eyeOffset: {
         cartesian: [0, 0, 0]
@@ -68,26 +68,59 @@ function targetToCzmlPackets(task) {
       fillColor: {
         rgba: [255, 255, 255, 255]
       },
-      font: "10pt Lucida Console",
+      font: "10pt sans-serif",
       horizontalOrigin: "LEFT",
       pixelOffset: {
         cartesian2: [12, 0]
       },
       show: true,
       style: "FILL",
-      text: task.name,
+      text: target.name,
       verticalOrigin: "CENTER"
     },
     position: {
-      cartesian: ECEFCoords
+      cartesian: target.ECEFCoords
     }
   }
 }
 
 function tasksToCzmlPackets(taskList) {
   const packets = [];
+  const targets = {};
 
-  taskList.forEach((task) => packets.push(targetToCzmlPackets(task)));
+  taskList.forEach((task) => {
+    const { targetName } = task;
+    if (!targets[targetName]) {
+      targets[targetName] = {
+        id: targetName,
+        name: targetName,
+        type: task.targetType,
+        targetValue: task.targetValue,
+        latitude: task.latitude,
+        longitude: task.longitude,
+        altitude: task.altitude,
+        ECEFCoords: latLonToECEF(task.latitude, task.longitude, task.altitude),
+        dynamicStateType: task.dynamicStateType,
+        integratorType: task.integratorType,
+        eomsType: task.eomsType,
+        tasks: [
+          {
+            name: task.name,
+            type: task.type,
+            maxTimes: task.maxTimes
+          }
+        ]
+      }
+    } else {
+      targets[targetName].tasks.push({
+        name: task.name,
+        type: task.type,
+        maxTimes: task.maxTimes
+      });
+    }
+  });
+
+  Object.values(targets).forEach(target => packets.push(targetToCzmlPacket(target)));
 
   return packets;
 }

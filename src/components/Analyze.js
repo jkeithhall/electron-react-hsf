@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { useTheme, ThemeProvider } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
+import Backdrop from '@mui/material/Backdrop';
+import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
@@ -56,6 +58,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
   const [timelineFiles, setTimelineFiles] = useState([]);
   const [stateDataFiles, setStateDataFiles] = useState([]);
   const [selectedTimelineFile, setSelectedTimelineFile] = useState(undefined);
+  const [spinnerOpen, setSpinnerOpen] = useState(false);
   const [scheduleValue, setScheduleValue] = useState('');
   const [startDatetime, setStartDatetime] = useState('');
   const [endDatetime, setEndDatetime] = useState('');
@@ -240,6 +243,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
   // Fetch timeline data when selectedTimelineFile changes
   useEffect(() => {
     if (selectedTimelineFile) {
+      setSpinnerOpen(true);
       (async() => {
         if (selectedTimelineFile !== latestSimulation) {
           setSelectedStateDataFile(undefined);
@@ -260,6 +264,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
           updateTimelineRange(startDatetime, endDatetime, useUTC);
           updateTimelineData(items, groups);
           setTimelineOpen(true);
+          setSpinnerOpen(false);
         } catch (error) {
           console.error("Error while fetching timeline data: ", error);
         }
@@ -309,6 +314,12 @@ export default function Analyze({ outputPath, lastStartJD }) {
 
   return (
     <ThemeProvider theme={theme}>
+      <Backdrop
+        sx={(theme) => ({ color: '#fff', zIndex: theme.zIndex.drawer + 1 })}
+        open={spinnerOpen}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Stack
         direction='row'
         spacing={1}
