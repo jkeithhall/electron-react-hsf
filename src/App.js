@@ -411,10 +411,10 @@ export default function App() {
               constraints={constraints}
               evaluator={evaluator}
             />,
-          'Analyze': <Analyze
-            outputPath={simulationInput.dependencies.outputPath}
-            lastStartJD={simulationInput.simulationParameters.startJD}
-          />,
+          'Analyze':
+            <Analyze
+              outputPath={simulationInput.dependencies.outputPath}
+            />,
           }[activeStep]}
           {
             confirmationModalOpen && (

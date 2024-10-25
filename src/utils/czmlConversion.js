@@ -56,19 +56,21 @@ function targetToCzmlPacket(target) {
         cartesian: [0, 0, 0]
       },
       horizontalOrigin: "CENTER",
-      image: "/Users/keithhall/Documents/Projects/electron-react-hsf/src/target.png",
-      pixelOffset: {
+      image: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAAXNSR0IArs4c6QAAA5lJREFUeF7tW22W2yAMNCdr92Ttnqzbk9FoH+QpCqDRh+3uxvnVbsCg0WgkGVK2F/+UF7d/Ow2AWuvPbdt+NQe8l1I+znDGmQD82baNQKDPRynl7dUAqNzgUsopzjhlUTK81noBcDGAIfDtQ6CpPplMwveDCWCHgbLAXyaKh2SFXTWApbqu9lahf6cJN338bZ2Ijt8FgJu+0YZ7jkf3oo2jWiEdiFQAEjyugUDfpwKRBkCtlRc2I0N6TFOc079pPP9QIdRDRWNPGghhAJrXpTHcMDL2qdTV6oAWRvScFRhv0RI6BIAS60svaQBwBCPraDHlBmCxqaHH5UYsALTKkcKDN1D8ke6QcAGwoD28EaEZcDO0AN4VDl4AHur45grYeOZRVzs8A8FTTZoBmCxuMl6LS+T7yT5gJvU1TAD8L8b3zU/2YwoFKwCS+od7fiCmsv4wsQAGIANthNrWMRNBhh1jASDF+23DsiO8d4Keen/kHFQQIQAiC7B47Tlc6wyhOkKrK26tNaQFXgBgirWU5+kOrWu4tAAFwE3/YGsMgzDSAiQMVAC8D2bFzqpRQjQPonJbT7JAnYsAIOlr8YrWIiMAwGlt0JKfB0CQ+hIY1ZCJ1qjOQhhgplVA+GaMUA2ZhJzKnjsAgddZsxceGfTvgDwZkrVfDkBkw6MNjjpGJOaHY6SiA6/gVmvd93sB4KjUJLLfIwRmfPGkli8pggsAXHUA8LbYogdoFjDvFUmD1Lzwak5NLSysIsI6zQCZztobAAmexet9LFQEtbCTmUedqwLgfTBjgacT7NMh6s/6jpRmaNJkwGEQEETYeG8ZTPNQBjxRGUGX891QuWW9EIEAhACYhAG0gAx6dubHL0n0V2LELPPFiMgbKwsAo1hWRcajetY58pjNcoQOA5ChBVbDkPER78MaIMpl+YbHFQqIcdqYjIMaEwMmLKA/Hw5ChvFmBjAmvO7h6KzoaODATPjSx+NKcUNX29R05rwgQcfpo4MVGHipK2YNEMXNqsw96opMKBWHAFDC4V7Pf4qNuOOnMQCoHF0VYyoDDGx4AEO5JkcVIn1WZ4imXmSVTsMMcICgpffV9yle5wukAsDSZKQFHgGQbnhfZBcABBD0X+3m58zruxl+CAAiPPo9P/rz6rr8Zzfo6Qo9sbUrA1Yb0rKAxxjPnAsAD2oZcy4GXL8ae/h9QVphY2XnmRrw2j+dtXpqr/GnMWAvg6zP/QcCKYFfYULRwwAAAABJRU5ErkJggg==",      pixelOffset: {
         cartesian2: [0, 0]
       },
-      scale: 1.5,
+      scale: 0.25,
       show: true,
-      verticalOrigin: "CENTER"
+      verticalOrigin: "CENTER",
+      translucencyByDistance: {
+        nearFarScalar: [0, 1, 15000000, 0.5]
+      },
     },
     label: {
       fillColor: {
         rgba: [255, 255, 255, 255]
       },
-      font: "10pt sans-serif",
+      font: "12pt sans-serif",
       horizontalOrigin: "LEFT",
       pixelOffset: {
         cartesian2: [12, 0]
@@ -76,10 +78,13 @@ function targetToCzmlPacket(target) {
       show: true,
       style: "FILL",
       text: target.name,
-      verticalOrigin: "CENTER"
+      verticalOrigin: "CENTER",
+      distanceDisplayCondition: {
+        distanceDisplayCondition: [0, 5000000]
+      }
     },
     position: {
-      cartesian: target.ECEFCoords
+      cartographicDegrees: [target.longitude, target.latitude, target.altitude]
     }
   }
 }
@@ -138,9 +143,9 @@ export default async function buildCzmlPackets(startJD, startTime, endTime, task
     name: "simple",
     version: "1.0",
     clock: {
-      interval:`${startDatetime}/${endDatetime}`,
+      interval: `${startDatetime}/${endDatetime}`,
       currentTime: `${startDatetime}`,
-      multiplier: 60,
+      multiplier: 15,
       range: "LOOP_STOP",
       step: "SYSTEM_CLOCK_MULTIPLIER"
     }

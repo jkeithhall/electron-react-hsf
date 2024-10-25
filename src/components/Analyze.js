@@ -50,7 +50,7 @@ const timelineOptions = ({ $d: startDatetime }, useUTC) => ({
   },
 });
 
-export default function Analyze({ outputPath, lastStartJD }) {
+export default function Analyze({ outputPath }) {
   const theme = useTheme();
   const timelineRef = useRef(null);
   const [finishedLoadingTimeline, setFinishedLoadingTimeline] = useState(false);
@@ -429,7 +429,7 @@ export default function Analyze({ outputPath, lastStartJD }) {
         </AccordionSummary>
         <AccordionDetails>
           {selectedTimelineFile &&
-            <Viewer>
+            <Viewer fullscreenButton={false}>
               <CzmlDataSource data={czmlData} />
             </Viewer>
           }
