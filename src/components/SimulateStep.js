@@ -190,7 +190,7 @@ export default function SimulateStep({
     const czmlFileName = fileName.replace('.txt', '.czml');
     const { startJD, startSeconds, endSeconds } = appState.simulationInput.simulationParameters;
 
-    const czmlPackets = await buildCzmlPackets(startJD, startSeconds, endSeconds, taskList);
+    const czmlPackets = await buildCzmlPackets(startJD, startSeconds, endSeconds, componentList, taskList);
     const content = JSON.stringify(czmlPackets, null, 2);
 
     if (window.electronApi) {
