@@ -300,12 +300,14 @@ function getAccessShowIntervals(taskIntervals, startSeconds, endSeconds, startDa
 function accessHTML(accessName, showIntervals) {
   return `<!--HTML-->
     <div style="color: white; font-family: sans-serif;">
-      <p><b>Access Name:</b> ${accessName}</p>
-      <p><b>Show Intervals:</b></p>
+      <p><b>${accessName.split("/")[0]}&ndash;${accessName.split("/")[1]} Access Intervals</b></p>
       <ul>
         ${showIntervals
           .filter(interval => interval.boolean)
-          .map(interval => `<li>${interval.interval}</li>`)
+          .map(({interval}) => {
+            const [start, end] = interval.split('/');
+            return `<li>Start: ${start} End: ${end}</li>`;
+          })
           .join('')
         }
       </ul>
@@ -323,7 +325,7 @@ async function addAccessesToCzml(czml, outputPath, fileName, startDate, startSec
       id: accessName,
       name: accessName,
       availability: `${startDatetime}/${endDatetime}`,
-      description: accessName,
+      description: accessHTML(accessName, showIntervals),
       polyline: {
         show: showIntervals,
         width: 1,
