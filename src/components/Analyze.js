@@ -120,12 +120,14 @@ export default function Analyze({ outputPath }) {
     if (timelineRef.current) {
       const { timeline, props } = timelineRef.current;
       timelineRef.current.timeline.on('click', (event, properties) => {
-        console.log("Clicked event:", event);
         const { item } = event;
-        // console.log(timeline.getEventProperties(event));
         if (item) {
-          const clickedItem = timelineItems.get(item);
-          console.log("Clicked item:", clickedItem);
+          const { start } = timelineItems.get(item);
+          setCzmlData(prevData => {
+            const newData = [...prevData];
+            newData[0].clock.currentTime = start;
+            return newData;
+          })
         }
       });
 
