@@ -18,7 +18,7 @@ import PendingIcon from '@mui/icons-material/Pending';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
-import buildCzmlPackets from '../utils/czmlConversion';
+import buildCzmlPackets from '../utils/buildCzml';
 
 const steps = [
   { label: 'Validating parameters'},
@@ -190,7 +190,7 @@ export default function SimulateStep({
     const czmlFileName = fileName.replace('.txt', '.czml');
     const { startJD, startSeconds, endSeconds } = appState.simulationInput.simulationParameters;
 
-    const czmlPackets = await buildCzmlPackets(startJD, startSeconds, endSeconds, componentList, taskList);
+    const czmlPackets = await buildCzmlPackets(startJD, startSeconds, endSeconds, componentList, outputPath, fileName, taskList);
     const content = JSON.stringify(czmlPackets, null, 2);
 
     if (window.electronApi) {

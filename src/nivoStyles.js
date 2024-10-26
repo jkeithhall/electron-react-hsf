@@ -2,7 +2,7 @@ export const lineChartProps = (xAxisLegend, yAxisLegend) => {
   return {
     margin: { top: 30, right: 20, bottom: 50, left: 70 },
     curve: "linear",
-    axisBottom:{
+    axisBottom: {
       tickSize: 5,
       tickPadding: 5,
       legend: xAxisLegend,

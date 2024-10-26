@@ -1,3 +1,4 @@
+import { getAccessIntervals } from './parseOutputSchedule';
 import { julianToDate } from './julianConversion';
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
@@ -70,7 +71,7 @@ function addAssetPacketsToCzml(czml, assets, startDatetime, endDatetime, duratio
     }
 
     czml.push({
-      id: asset.id,
+      id: asset.name,
       name: asset.name,
       availability: `${startDatetime}/${endDatetime}`,
       description: assetHTML(asset),
@@ -230,14 +231,120 @@ function addTaskPacketsToCzml(czml, taskList) {
   Object.values(targets).forEach(target => czml.push(targetToCzmlPacket(target)));
 }
 
+async function fetchAccessIntervals(outputPath, fileName) {
+  return new Promise((resolve, reject) => {
+      if (window.electronApi) {
+        window.electronApi.fetchLatestTimelineData(outputPath, fileName, ({ content }) => {
+          const firstSchedule = content.split("Schedule Number: ")[1].slice(1);
+          const accessIntervals = getAccessIntervals(firstSchedule);
+          console.log(accessIntervals);
+          resolve(accessIntervals);
+        });
+      } else {
+        reject("No electron API found");
+      }
+    });
+}
 
+function getAccessShowIntervals(taskIntervals, startSeconds, endSeconds, startDate) {
+  const oneSecondIntervals = [];
 
-export default async function buildCzmlPackets(startJD, startTime, endTime, componentList, taskList) {
+  // First pass: create 1-second intervals with boolean values
+  for (let seconds = startSeconds; seconds < endSeconds; seconds++) {
+    const isInTaskInterval = taskIntervals.some(interval =>
+      seconds >= interval.start && seconds < interval.end
+    );
+
+    oneSecondIntervals.push({
+      start: seconds,
+      end: seconds + 1,
+      boolean: isInTaskInterval
+    });
+  }
+
+  const showIntervals = [];
+  let currentInterval = oneSecondIntervals[0];
+
+  // Second pass: combine consecutive intervals with the same boolean
+  for (let i = 1; i < oneSecondIntervals.length; i++) {
+    const interval = oneSecondIntervals[i];
+
+    // If the boolean value is the same, extend the current interval
+    if (interval.boolean === currentInterval.boolean) {
+      currentInterval.end = interval.end;
+    } else {
+      // Finalize the current interval, converting it to ISO
+      const startISO = startDate.clone().add(currentInterval.start, 'seconds').format();
+      const endISO = startDate.clone().add(currentInterval.end, 'seconds').format();
+      showIntervals.push({
+        interval: `${startISO}/${endISO}`,
+        boolean: currentInterval.boolean
+      });
+
+      // Start a new interval
+      currentInterval = interval;
+    }
+  }
+
+  // Push the last interval
+  const startISO = startDate.clone().add(currentInterval.start, 'seconds').format();
+  const endISO = startDate.clone().add(currentInterval.end, 'seconds').format();
+  showIntervals.push({
+    interval: `${startISO}/${endISO}`,
+    boolean: currentInterval.boolean
+  });
+
+  return showIntervals;
+}
+
+function accessHTML(accessName, showIntervals) {
+  return `<!--HTML-->
+    <div style="color: white; font-family: sans-serif;">
+      <p><b>Access Name:</b> ${accessName}</p>
+      <p><b>Show Intervals:</b></p>
+      <ul>
+        ${showIntervals
+          .filter(interval => interval.boolean)
+          .map(interval => `<li>${interval.interval}</li>`)
+          .join('')
+        }
+      </ul>
+    </div>`;
+}
+
+async function addAccessesToCzml(czml, outputPath, fileName, startDate, startSeconds, endSeconds) {
+  const accessIntervals = await fetchAccessIntervals(outputPath, fileName);
+  const startDatetime = startDate.clone().add(startSeconds, 'seconds').toISOString();
+  const endDatetime = startDate.clone().add(endSeconds, 'seconds').toISOString();
+
+  Object.entries(accessIntervals).forEach(([accessName, {taskIntervals, eventIntervals}]) => {
+    const showIntervals = getAccessShowIntervals(taskIntervals, startSeconds, endSeconds, startDate);
+    czml.push({
+      id: accessName,
+      name: accessName,
+      availability: `${startDatetime}/${endDatetime}`,
+      description: accessName,
+      polyline: {
+        show: showIntervals,
+        width: 1,
+        arcType: "NONE",
+        positions: {
+          references: [
+            `${accessName.split("/")[0]}#position`, // From
+            `${accessName.split("/")[1]}#position`   // To
+          ]
+        }
+      }
+    });
+  });
+}
+
+export default async function buildCzmlPackets(startJD, startSeconds, endSeconds, componentList, outputPath, fileName, taskList) {
   const dayjs = await julianToDate(startJD, true);
   const utcDate = dayjs.utc();
-  const startDatetime = utcDate.clone().add(startTime, 'seconds').toISOString();
-  const endDatetime = utcDate.clone().add(endTime, 'seconds').toISOString();
-  const duration = endTime - startTime;
+  const startDatetime = utcDate.clone().add(startSeconds, 'seconds').toISOString();
+  const endDatetime = utcDate.clone().add(endSeconds, 'seconds').toISOString();
+  const duration = endSeconds - startSeconds;
   const assets = componentList.filter(component => !component.parent);
 
   const czml = [{
@@ -247,7 +354,7 @@ export default async function buildCzmlPackets(startJD, startTime, endTime, comp
     clock: {
       interval: `${startDatetime}/${endDatetime}`,
       currentTime: `${startDatetime}`,
-      multiplier: 30, // 30x speed
+      multiplier: 15, // 15x speed
       range: "LOOP_STOP",
       step: "SYSTEM_CLOCK_MULTIPLIER"
     }
@@ -255,5 +362,6 @@ export default async function buildCzmlPackets(startJD, startTime, endTime, comp
 
   addAssetPacketsToCzml(czml, assets, startDatetime, endDatetime, duration);
   addTaskPacketsToCzml(czml, taskList);
+  await addAccessesToCzml(czml, outputPath, fileName, utcDate, startSeconds, endSeconds);
   return czml;
 }

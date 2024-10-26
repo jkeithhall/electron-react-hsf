@@ -5,7 +5,58 @@ import utc from 'dayjs/plugin/utc';
 
 dayjs.extend(utc);
 
-export default async function formatTimeline(scheduleContent, startJD) {
+function getAccessIntervals(scheduleContent) {
+  let accessIntervals = {};
+  const lines = scheduleContent.split("\n").filter((line) => line !== "");
+
+  lines.forEach((line, index) => {
+    if (index === 0) return; // Skip the first line
+
+    const cleanTokens = splitEventEndFromName(line);
+
+    let assetName, targetName, accessName;
+    cleanTokens.forEach((token, tokenIndex) => {
+      switch (tokenIndex % 10) {
+        case 0: // Asset Name
+          assetName = token.split(":")[0];
+          assetName = assetName[0].toUpperCase() + assetName.slice(1);
+          break;
+        case 1: // Target Name
+          targetName = token;
+          accessName = `${assetName}/${targetName}`;
+          if (!accessIntervals[accessName]) {
+            accessIntervals[accessName] = {
+              taskIntervals: [],
+              eventIntervals: [],
+            }
+          }
+          break;
+        case 3: // Task Start
+          const taskStart = parseInt(token);
+          accessIntervals[accessName].taskIntervals.push({ start: taskStart });
+          break;
+        case 5: // Event Start
+          const eventStart = parseInt(token);
+          accessIntervals[accessName].eventIntervals.push({ start: eventStart });
+          break;
+        case 7: // Task End
+          const taskEnd = parseInt(token);
+          accessIntervals[accessName].taskIntervals[accessIntervals[accessName].taskIntervals.length - 1].end = taskEnd;
+          break;
+        case 9: // Event End
+          const eventEnd = parseInt(token);
+          accessIntervals[accessName].eventIntervals[accessIntervals[accessName].eventIntervals.length - 1].end = eventEnd;
+          break;
+        default:
+          break;
+      }
+    });
+  });
+
+  return accessIntervals;
+}
+
+async function getTimelineItemsGroups(scheduleContent, startJD) {
   let scheduleValue;
   let startTime = Number.POSITIVE_INFINITY
   let endTime = Number.NEGATIVE_INFINITY;
@@ -136,3 +187,5 @@ function getItems(tokens, dayjs) {
 
   return {items, lineStartTime, lineEndTime};
 }
+
+export { getTimelineItemsGroups, getAccessIntervals };

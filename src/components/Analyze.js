@@ -23,7 +23,7 @@ import { Viewer, CzmlDataSource } from "resium";
 import { ResponsiveLine } from '@nivo/line';
 import { lineChartProps } from '../nivoStyles';
 
-import formatTimeline from '../utils/formatTimeline';
+import { getTimelineItemsGroups } from '../utils/parseOutputSchedule';
 import formatPlotData from '../utils/formatPlotData';
 import moment from 'moment';
 
@@ -104,7 +104,7 @@ export default function Analyze({ outputPath }) {
       if (window.electronApi) {
         window.electronApi.fetchLatestTimelineData(outputPath, selectedTimelineFile, ({ content, startJD }) => {
           const firstSchedule = content.split("Schedule Number: ")[1].slice(1);
-          formatTimeline(firstSchedule, startJD).then(resolve).catch(reject);
+          getTimelineItemsGroups(firstSchedule, startJD).then(resolve).catch(reject);
         });
       } else {
         reject("No electron API found");
