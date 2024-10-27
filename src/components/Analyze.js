@@ -68,8 +68,6 @@ const timelineOptions = ({ $d: startDatetime }) => ({
   },
 });
 
-let currentTime;
-
 export default function Analyze({ outputPath }) {
   const theme = useTheme();
   const timelineRef = useRef(null);
@@ -82,6 +80,7 @@ export default function Analyze({ outputPath }) {
   const [scheduleValue, setScheduleValue] = useState('');
   const [latestSimulation, setLatestSimulation] = useState(null);
   const [selectedStateDataFile, setSelectedStateDataFile] = useState(undefined);
+  const [currentTime, setCurrentTime] = useState('');
   const [plotData, setPlotData] = useState([]);
   const [xAxisLegend, setXAxisLegend] = useState('');
   const [yAxisLegend, setYAxisLegend] = useState('');
@@ -163,10 +162,10 @@ export default function Analyze({ outputPath }) {
       if (!currentTime) {
         timeline.addCustomTime(isoString, 'current-time');
         timeline.customTimes[timeline.customTimes.length - 1].hammer.off("panstart panmove panend"); // Disable panning
-        currentTime = isoString;
+        setCurrentTime(isoString);
       } else if (currentTime !== isoString) {
         timeline.setCustomTime(isoString, 'current-time');
-        currentTime = isoString;
+        setCurrentTime(isoString);
       }
     }
   }

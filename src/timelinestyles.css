@@ -84,3 +84,11 @@
   white-space: nowrap; /* Keep text on one line */
   padding: 5px; /* Padding for better visual spacing */
 }
+
+.vis-custom-time {
+  background-color: red;
+}
+
+.vis-custom-time:hover {
+  cursor: default;
+}
