@@ -170,7 +170,7 @@ export default function ComponentEditor ({
             {name ? name : ' '}
           </Typography>
           <Box sx={{ position: 'absolute', right: 0 }}>
-            <Tooltip title="Copy component">
+            <Tooltip title={`Copy ${className ? 'Component' : 'Asset'} to Clipboard`}>
               <IconButton
                 onClick={handleCopyClick}
                 color="secondary"
@@ -309,7 +309,7 @@ export default function ComponentEditor ({
           size="large"
           startIcon={<DeleteIcon/>}
           >
-            Delete Component
+            {`Delete ${data.className ? 'Component' : 'Asset'}`}
         </Button>
       </div>
       {confirmationModalOpen &&

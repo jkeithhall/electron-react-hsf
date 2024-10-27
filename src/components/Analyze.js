@@ -6,10 +6,6 @@ import Backdrop from '@mui/material/Backdrop';
 import CircularProgress from '@mui/material/CircularProgress';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
-import Tooltip from '@mui/material/Tooltip';
-import Checkbox from '@mui/material/Checkbox';
-import MyLocationIcon from '@mui/icons-material/MyLocation';
-import LocationDisabledIcon from '@mui/icons-material/LocationDisabled';
 import MenuItem from '@mui/material/MenuItem';
 import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
@@ -18,7 +14,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Timeline from 'react18-vis-timeline';
 import { DataSet } from 'vis-data';
 import '../timelinestyles.css';
-import { Viewer, CzmlDataSource } from "resium";
+import { JulianDate } from 'cesium';
+import { Viewer, CzmlDataSource, Clock } from "resium";
 
 import { ResponsiveLine } from '@nivo/line';
 import { lineChartProps } from '../nivoStyles';
@@ -30,25 +27,48 @@ import moment from 'moment';
 const timelineItems = new DataSet([]);
 const timelineGroups = new DataSet([]);
 
-const timelineOptions = ({ $d: startDatetime }, useUTC) => ({
+// onTick event fires every frame (60fps) even when the clock is paused
+// so we throttle it to only update every 100ms
+function throttle(callback, delay) {
+  let lastCall = null;
+
+  return function(...args) {
+    if (lastCall === null) {
+      lastCall = new Date();
+      callback.apply(this, args);
+    } else {
+      const elapsed = new Date() - lastCall;
+
+      if (elapsed >= delay) {
+        lastCall = new Date();
+        callback.apply(this, args);
+      }
+    }
+  }
+}
+
+const timelineOptions = ({ $d: startDatetime }) => ({
   align: 'left',
   height: '500px',
+  editable: false,
   tooltip: { delay: 100 },
   format: {
     minorLabels: ({ _d: labelDatetime }) => {
       return `${(labelDatetime - startDatetime) / 1000} s`;
     },
     majorLabels: ({ _d}) => {
-      const year = useUTC ? _d.getUTCFullYear() : _d.getFullYear();
-      const month = (useUTC ? _d.getUTCMonth() : _d.getMonth() + 1).toString().padStart(2, '0');
-      const day = (useUTC ? _d.getUTCDate() : _d.getDate()).toString().padStart(2, '0');
-      const hour = (useUTC ? _d.getUTCHours() : _d.getHours()).toString().padStart(2, '0');
-      const minute = (useUTC ? _d.getUTCMinutes() : _d.getMinutes()).toString().padStart(2, '0');
+      const year = _d.getUTCFullYear();
+      const month = (_d.getUTCMonth() + 1).toString().padStart(2, '0');
+      const day = _d.getUTCDate().toString().padStart(2, '0');
+      const hour = _d.getUTCHours().toString().padStart(2, '0');
+      const minute = _d.getUTCMinutes().toString().padStart(2, '0');
 
-      return `${year}-${month}-${day} ${hour}:${minute}` + (useUTC ? ' (UTC)' : ' (local time)');
+      return `${year}-${month}-${day} ${hour}:${minute} (UTC)`;
     }
   },
 });
+
+let currentTime;
 
 export default function Analyze({ outputPath }) {
   const theme = useTheme();
@@ -60,11 +80,8 @@ export default function Analyze({ outputPath }) {
   const [selectedTimelineFile, setSelectedTimelineFile] = useState(undefined);
   const [spinnerOpen, setSpinnerOpen] = useState(false);
   const [scheduleValue, setScheduleValue] = useState('');
-  const [startDatetime, setStartDatetime] = useState('');
-  const [endDatetime, setEndDatetime] = useState('');
   const [latestSimulation, setLatestSimulation] = useState(null);
   const [selectedStateDataFile, setSelectedStateDataFile] = useState(undefined);
-  const [useUTC, setUseUTC] = useState(true);
   const [plotData, setPlotData] = useState([]);
   const [xAxisLegend, setXAxisLegend] = useState('');
   const [yAxisLegend, setYAxisLegend] = useState('');
@@ -140,22 +157,36 @@ export default function Analyze({ outputPath }) {
     }
   }
 
-  function updateTimelineRange(startDatetime, endDatetime, useUTC) {
+  function setTimebar(isoString) {
     if (timelineRef.current) {
+      const { timeline } = timelineRef.current;
+      if (!currentTime) {
+        timeline.addCustomTime(isoString, 'current-time');
+        timeline.customTimes[timeline.customTimes.length - 1].hammer.off("panstart panmove panend"); // Disable panning
+        currentTime = isoString;
+      } else if (currentTime !== isoString) {
+        timeline.setCustomTime(isoString, 'current-time');
+        currentTime = isoString;
+      }
+    }
+  }
+
+  function updateTimelineRange(startDatetime, endDatetime) {
+    if (timelineRef.current) {
+      const { timeline } = timelineRef.current;
       const elapsed = endDatetime.diff(startDatetime.clone());
 
       const options = {
-        ...timelineOptions(startDatetime, useUTC),
+        ...timelineOptions(startDatetime),
         min: startDatetime.clone().subtract(60, 'seconds').format(),
         max: endDatetime.clone().add(60, 'seconds').format(),
         zoomMin: elapsed / 100,
         zoomMax: elapsed * 10000,
-      }
-      if (useUTC) {
-        options.moment = (date) => moment(date).utc();
+        moment: (date) => moment(date).utc(),
       }
 
-      timelineRef.current.timeline.setOptions(options);
+      timeline.setOptions(options);
+      setTimebar(startDatetime.format());
     }
   }
 
@@ -176,11 +207,16 @@ export default function Analyze({ outputPath }) {
     });
   }
 
-  function fetchStateData(outputPath, selectedStateDataFile, useUTC) {
+  function handleClockTick({ currentTime }) {
+    const { dayNumber, secondsOfDay } = currentTime;
+    setTimebar(JulianDate.toIso8601(new JulianDate(dayNumber, secondsOfDay), 0));
+  }
+
+  function fetchStateData(outputPath, selectedStateDataFile) {
     return new Promise((resolve, reject) => {
       if (window.electronApi) {
         window.electronApi.fetchLatestStateData(outputPath, selectedStateDataFile, ({ content, startJD }) => {
-          formatPlotData(content, startJD, useUTC).then(resolve).catch(reject);
+          formatPlotData(content, startJD).then(resolve).catch(reject);
         });
       } else {
         reject("No electron API found");
@@ -188,11 +224,11 @@ export default function Analyze({ outputPath }) {
     });
   }
 
-  function updatePlot(data, useUTC) {
+  function updatePlot(data) {
     const { plotData, xAxisLegend, yAxisLegend, timeRange } = data;
 
     setPlotData(plotData);
-    setXAxisLegend(`Time after ${xAxisLegend + (useUTC ? ' (UTC)' : ' (local time)')} (s)`);
+    setXAxisLegend(`Time after ${xAxisLegend} (UTC) (s)`);
     setYAxisLegend(yAxisLegend);
     setFinishedLoadingStateData(true);
   }
@@ -203,7 +239,7 @@ export default function Analyze({ outputPath }) {
     return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
   }
 
-  // Converts file names of the form "asset1_databufferfillratio.csv" to "asset1 - databufferfillratio"
+  // Converts file names of the form "asset1_databufferfillratio.csv" to "asset1: databufferfillratio"
   function formatStateDataFile(fileName) {
     const adjustedFileName = fileName.includes('\\') ? fileName.split('\\')[1] : fileName;
     const [ asset, state ] = adjustedFileName.split('.')[0].split('_');
@@ -242,7 +278,7 @@ export default function Analyze({ outputPath }) {
     })();
   }, []);
 
-  // Fetch timeline data when selectedTimelineFile changes
+  // Fetch and set timeline and cesium data when selectedTimelineFile changes
   useEffect(() => {
     if (selectedTimelineFile) {
       setSpinnerOpen(true);
@@ -261,12 +297,9 @@ export default function Analyze({ outputPath }) {
             groups } = await fetchTimelineData(outputPath, selectedTimelineFile);
 
           setScheduleValue(scheduleValue);
-          setStartDatetime(startDatetime);
-          setEndDatetime(endDatetime);
-          updateTimelineRange(startDatetime, endDatetime, useUTC);
+          updateTimelineRange(startDatetime, endDatetime);
           updateTimelineData(items, groups);
           setTimelineOpen(true);
-          setSpinnerOpen(false);
         } catch (error) {
           console.error("Error while fetching timeline data: ", error);
         }
@@ -277,16 +310,17 @@ export default function Analyze({ outputPath }) {
         } catch (error) {
           console.error("Error while fetching CZML data: ", error);
         }
+        setSpinnerOpen(false);
       })();
     }
   }, [selectedTimelineFile]);
 
-  // Fetch state data when selectedStateDataFile changes
+  // Fetch and set state data when selectedStateDataFile changes
   useEffect(() => {
     if (selectedStateDataFile) {
       (async() => {
         try {
-           updatePlot(await fetchStateData(outputPath, selectedStateDataFile, useUTC), useUTC);
+           updatePlot(await fetchStateData(outputPath, selectedStateDataFile));
            setStateDataOpen(true);
         } catch (error) {
           console.error("Error while fetching state data: ", error);
@@ -294,22 +328,6 @@ export default function Analyze({ outputPath }) {
       })();
     }
   }, [selectedStateDataFile]);
-
-  // Update timeline range and state data plot when useUTC changes
-  useEffect(() => {
-    if (finishedLoadingTimeline && selectedTimelineFile) {
-      updateTimelineRange(startDatetime, endDatetime, useUTC);
-    }
-    if (finishedLoadingStateData && selectedStateDataFile) {
-      (async() => {
-        try {
-          updatePlot(await fetchStateData(outputPath, selectedStateDataFile, useUTC), useUTC);
-        } catch (error) {
-          console.error("Error while fetching state data: ", error);
-        }
-      })();
-    }
-  }, [useUTC]);
 
   const stateDataSelectorDisabled = stateDataFiles.length === 0 ||
     selectedTimelineFile !== latestSimulation;
@@ -333,7 +351,6 @@ export default function Analyze({ outputPath }) {
           padding: '10px',
           margin: '10px 10px 20px 10px',
           borderRadius: '5px',
-          width: '700px',
         }}
       >
         <TextField
@@ -376,14 +393,6 @@ export default function Analyze({ outputPath }) {
             </MenuItem>
           ))}
         </TextField>
-        <Tooltip title={`Displaying ${useUTC ? 'UTC' : 'local time'}`} placement="top">
-          <Checkbox
-            checked={!useUTC}
-            onChange={(event) => setUseUTC(!event.target.checked)}
-            icon={<LocationDisabledIcon />}
-            checkedIcon={<MyLocationIcon />}
-          />
-        </Tooltip>
       </Stack>
       <Accordion
         disabled={selectedTimelineFile === undefined}
@@ -418,6 +427,7 @@ export default function Analyze({ outputPath }) {
         expanded={cesiumOpen}
         onChange={() => setCesiumOpen(!cesiumOpen)}
         mt={2}
+        mb={2}
         sx={{
           width: '100%',
           backgroundColor: theme.palette.secondary.main,
@@ -430,9 +440,10 @@ export default function Analyze({ outputPath }) {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
-          {selectedTimelineFile &&
+          {czmlData.length > 0 &&
             <Viewer fullscreenButton={false}>
               <CzmlDataSource data={czmlData} />
+              <Clock onTick={throttle(handleClockTick, 100)} />
             </Viewer>
           }
         </AccordionDetails>
@@ -441,11 +452,12 @@ export default function Analyze({ outputPath }) {
         disabled={selectedStateDataFile === undefined}
         expanded={stateDataOpen}
         onChange={() => setStateDataOpen(!stateDataOpen)}
+        disableGutters={true}
         sx={{
           width: '100%',
           backgroundColor: theme.palette.secondary.main,
           color: '#eee',
-          marginBottom: '20px',
+          marginBottom: '40px',
           }}
       >
         <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: 'white' }}/>}>
