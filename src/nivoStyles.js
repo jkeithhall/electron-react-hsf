@@ -1,4 +1,4 @@
-export const lineChartProps = (xAxisLegend, yAxisLegend, currentSeconds) => {
+export const lineChartProps = (plotType, xAxisLegend, yAxisLegend, currentSeconds) => {
   return {
     margin: { top: 30, right: 20, bottom: 50, left: 70 },
     curve: "linear",
@@ -17,7 +17,15 @@ export const lineChartProps = (xAxisLegend, yAxisLegend, currentSeconds) => {
     xScale: { type: 'linear' },
     yScale: { type: 'linear' },
     yFormat: " >-.4~f",
-    tooltip: ({ point }) => {
+    tooltip: (input) => {
+        let x, y;
+        if (plotType === 'scatterPlot') {
+            x = input.node.formattedX;
+            y = input.node.formattedY;
+        } else {
+            x = input.point.data.xFormatted;
+            y = input.point.data.yFormatted;
+        }
       return (
           <div
               style={{
@@ -29,8 +37,8 @@ export const lineChartProps = (xAxisLegend, yAxisLegend, currentSeconds) => {
                   borderRadius: '3px',
               }}
           >
-              <div>x: {point.data.x}</div>
-              <div>y: {point.data.yFormatted}</div>
+              <div>{`x: ${x}`}</div>
+              <div>{`y: ${y}`}</div>
           </div>
       )
     },

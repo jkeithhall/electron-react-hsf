@@ -17,6 +17,7 @@ import '../timelinestyles.css';
 import { JulianDate } from 'cesium';
 import { Viewer, CzmlDataSource, Clock } from "resium";
 import dayjs from 'dayjs';
+import { ResponsiveScatterPlot } from '@nivo/scatterplot'
 import { ResponsiveLine } from '@nivo/line';
 import { lineChartProps } from '../nivoStyles';
 
@@ -82,6 +83,7 @@ export default function Analyze({ outputPath }) {
   const [latestSimulation, setLatestSimulation] = useState(null);
   const [selectedStateDataFile, setSelectedStateDataFile] = useState(undefined);
   const [currentTime, setCurrentTime] = useState('');
+  const [plotType, setPlotType] = useState('line');
   const [plotData, setPlotData] = useState([]);
   const [xAxisLegend, setXAxisLegend] = useState('');
   const [yAxisLegend, setYAxisLegend] = useState('');
@@ -257,6 +259,11 @@ export default function Analyze({ outputPath }) {
     setSelectedStateDataFile(event.target.value);
   }
 
+  function handlePlotTypeChange(event) {
+    setPlotType(event.target.value);
+    setTimeout(() => { setStateDataOpen(true); }, 0);
+  }
+
   // Fetch last output data files on first render
   useEffect(() => {
     (async () => {
@@ -311,6 +318,7 @@ export default function Analyze({ outputPath }) {
         } catch (error) {
           console.error("Error while fetching CZML data: ", error);
         }
+        setStateDataOpen(true);
         setSpinnerOpen(false);
       })();
     }
@@ -334,7 +342,6 @@ export default function Analyze({ outputPath }) {
     selectedTimelineFile !== latestSimulation;
 
   const currentSeconds = currentTime && startDatetime ? dayjs(currentTime).diff(dayjs(startDatetime), 'seconds') : null;
-  console.log(currentSeconds);
 
   return (
     <ThemeProvider theme={theme}>
@@ -374,26 +381,6 @@ export default function Analyze({ outputPath }) {
           {timelineFiles.map((fileName, index) => (
             <MenuItem key={fileName} value={fileName}>
               {(index === 0 ? "Latest Simulation: ": "") + formatSimulationFileName(fileName)}
-            </MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          id="state-data"
-          label="State Data (Latest Simulation)"
-          size="small"
-          select
-          value={selectedStateDataFile || ""}
-          onChange={handleStateDataChange}
-          variant="outlined"
-          color="primary"
-          sx={{ width: '300px' }}
-          disabled={stateDataSelectorDisabled}
-          error={finishedLoadingStateData && stateDataFiles.length === 0}
-          helperText={finishedLoadingStateData && stateDataFiles.length === 0 ? "No state data files found" : ""}
-        >
-          {stateDataFiles.map((stateDataFile) => (
-            <MenuItem key={stateDataFile} value={stateDataFile}>
-              {formatStateDataFile(stateDataFile)}
             </MenuItem>
           ))}
         </TextField>
@@ -453,7 +440,7 @@ export default function Analyze({ outputPath }) {
         </AccordionDetails>
       </Accordion>
       <Accordion
-        disabled={selectedStateDataFile === undefined}
+        disabled={stateDataSelectorDisabled}
         expanded={stateDataOpen}
         onChange={() => setStateDataOpen(!stateDataOpen)}
         disableGutters={true}
@@ -468,18 +455,70 @@ export default function Analyze({ outputPath }) {
           <Typography variant="h5" fontWeight="bold">State data</Typography>
         </AccordionSummary>
         <AccordionDetails mb={2}>
-          {plotData.length > 0 &&
-            <Box
-              sx={{
-                height: '400px',
+          {!stateDataSelectorDisabled &&
+            <>
+              <div style={{
                 width: '100%',
-              }}
-            >
-              <ResponsiveLine
-                data={plotData}
-                {...lineChartProps(xAxisLegend, yAxisLegend, currentSeconds)}
-              />
-            </Box>
+                display: 'flex',
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start',
+                backgroundColor: '#eee',
+                padding: '10px',
+              }}>
+                <TextField
+                  id="state-data"
+                  label="State Data (Latest Simulation)"
+                  size="small"
+                  select
+                  value={selectedStateDataFile || ""}
+                  onChange={handleStateDataChange}
+                  variant="outlined"
+                  color="primary"
+                  sx={{ width: '300px' }}
+                  disabled={stateDataSelectorDisabled}
+                  error={finishedLoadingStateData && stateDataFiles.length === 0}
+                  helperText={finishedLoadingStateData && stateDataFiles.length === 0 ? "No state data files found" : ""}
+                >
+                  {stateDataFiles.map((stateDataFile) => (
+                    <MenuItem key={stateDataFile} value={stateDataFile}>
+                      {formatStateDataFile(stateDataFile)}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                <TextField
+                  id="plot-type"
+                  label="Plot Type"
+                  size="small"
+                  select
+                  value={plotType}
+                  onChange={handlePlotTypeChange}
+                  variant="outlined"
+                  disabled={stateDataSelectorDisabled}
+                  color="primary"
+                  sx={{ width: '200px', textAlign: 'left', marginLeft: '10px' }}
+                >
+                  <MenuItem value="line">Line</MenuItem>
+                  <MenuItem value="scatterPlot">Scatter Plot</MenuItem>
+                </TextField>
+              </div>
+              {plotData.length > 0 && <Box
+                sx={{
+                  height: '400px',
+                  width: '100%',
+                }}
+              >
+                {plotType === 'line' ?
+                  <ResponsiveLine
+                    data={plotData}
+                    {...lineChartProps(plotType, xAxisLegend, yAxisLegend, currentSeconds)}
+                  /> :
+                  <ResponsiveScatterPlot
+                    data={plotData}
+                    {...lineChartProps(plotType, xAxisLegend, yAxisLegend, currentSeconds)}
+                  />
+                }
+              </Box>}
+            </>
           }
         </AccordionDetails>
       </Accordion>
