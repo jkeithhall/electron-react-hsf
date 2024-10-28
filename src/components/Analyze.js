@@ -16,7 +16,7 @@ import { DataSet } from 'vis-data';
 import '../timelinestyles.css';
 import { JulianDate } from 'cesium';
 import { Viewer, CzmlDataSource, Clock } from "resium";
-
+import dayjs from 'dayjs';
 import { ResponsiveLine } from '@nivo/line';
 import { lineChartProps } from '../nivoStyles';
 
@@ -78,6 +78,7 @@ export default function Analyze({ outputPath }) {
   const [selectedTimelineFile, setSelectedTimelineFile] = useState(undefined);
   const [spinnerOpen, setSpinnerOpen] = useState(false);
   const [scheduleValue, setScheduleValue] = useState('');
+  const [startDatetime, setStartDatetime] = useState('');
   const [latestSimulation, setLatestSimulation] = useState(null);
   const [selectedStateDataFile, setSelectedStateDataFile] = useState(undefined);
   const [currentTime, setCurrentTime] = useState('');
@@ -208,7 +209,7 @@ export default function Analyze({ outputPath }) {
 
   function handleClockTick({ currentTime }) {
     const { dayNumber, secondsOfDay } = currentTime;
-    setTimebar(JulianDate.toIso8601(new JulianDate(dayNumber, secondsOfDay), 0));
+    setTimebar(JulianDate.toIso8601(new JulianDate(dayNumber, secondsOfDay - 33), 0));
   }
 
   function fetchStateData(outputPath, selectedStateDataFile) {
@@ -296,6 +297,7 @@ export default function Analyze({ outputPath }) {
             groups } = await fetchTimelineData(outputPath, selectedTimelineFile);
 
           setScheduleValue(scheduleValue);
+          setStartDatetime(startDatetime);
           updateTimelineRange(startDatetime, endDatetime);
           updateTimelineData(items, groups);
           setTimelineOpen(true);
@@ -330,6 +332,9 @@ export default function Analyze({ outputPath }) {
 
   const stateDataSelectorDisabled = stateDataFiles.length === 0 ||
     selectedTimelineFile !== latestSimulation;
+
+  const currentSeconds = currentTime && startDatetime ? dayjs(currentTime).diff(dayjs(startDatetime), 'seconds') : null;
+  console.log(currentSeconds);
 
   return (
     <ThemeProvider theme={theme}>
@@ -472,7 +477,7 @@ export default function Analyze({ outputPath }) {
             >
               <ResponsiveLine
                 data={plotData}
-                {...lineChartProps(xAxisLegend, yAxisLegend)}
+                {...lineChartProps(xAxisLegend, yAxisLegend, currentSeconds)}
               />
             </Box>
           }

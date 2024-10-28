@@ -1,4 +1,4 @@
-export const lineChartProps = (xAxisLegend, yAxisLegend) => {
+export const lineChartProps = (xAxisLegend, yAxisLegend, currentSeconds) => {
   return {
     margin: { top: 30, right: 20, bottom: 50, left: 70 },
     curve: "linear",
@@ -38,6 +38,16 @@ export const lineChartProps = (xAxisLegend, yAxisLegend) => {
     pointSize: 6,
     enableTouchCrosshair: false,
     useMesh: true,
+    markers: [
+        {
+          axis: 'x',
+          lineStyle: {
+            stroke: '#d32f2f',
+            strokeWidth: 2
+          },
+          value: currentSeconds
+        }
+      ],
     theme: {
       background: "#eee",
       text: {
