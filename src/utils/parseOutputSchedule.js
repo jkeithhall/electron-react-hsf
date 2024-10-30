@@ -61,29 +61,29 @@ async function getTimelineItemsGroups(scheduleContent, startJD) {
   let startTime = Number.POSITIVE_INFINITY
   let endTime = Number.NEGATIVE_INFINITY;
   let items = [];
-  let groups = [];
-  const dayjs = await julianToDate(startJD, true);
-  const utcDate = dayjs.utc();
+  let groups;
+  const date = await julianToDate(startJD, true);
+  const startDate = date.utc();
 
   const lines = scheduleContent.split("\n").filter((line) => line !== "");
 
   lines.forEach((line, index) => {
+    // console.log({index, items, groups});
     if (index === 0) {
       scheduleValue = line.split("Schedule Value: ")[1];
     } else {
       const cleanTokens = splitEventEndFromName(line);
 
-      if (index === 1) groups = groups.concat(getGroups(cleanTokens));
+      if (index === 1) { groups = getGroups(cleanTokens); }
 
-      const { items: currItems, lineStartTime, lineEndTime } = getItems(cleanTokens, utcDate);
-      items = items.concat(currItems);
+      const { lineStartTime, lineEndTime } = getItems(cleanTokens, items, groups, startDate);
       if (lineStartTime < startTime) startTime = lineStartTime;
       if (lineEndTime > endTime) endTime = lineEndTime;
     }
   });
 
-  const startDatetime = utcDate.clone().add(startTime, 'seconds');
-  const endDatetime = utcDate.clone().add(endTime, 'seconds');
+  const startDatetime = startDate.clone().add(startTime, 'seconds');
+  const endDatetime = startDate.clone().add(endTime, 'seconds');
   return { scheduleValue, startDatetime, endDatetime, items, groups };
 }
 
@@ -116,15 +116,21 @@ const splitEventEndFromName = (line) => {
 function getGroups(tokens) {
   const groups = [];
   tokens.forEach((token, index) => {
-    const name = token.split(":")[0];
-    if (index % 10 === 0) groups.push({ id: index / 10, content: name });
+    if (index % 10 === 0) {
+      const name = token.split(":")[0];
+      groups.push({
+        id: index / 10,
+        content: name,
+        subgroupOrder: (a, b) => a.subgroupOrder - b.subgroupOrder,
+        subgroupStack: {}
+      });
+    }
   });
 
   return groups;
 }
 
-function getItems(tokens, dayjs) {
-  const items = [];
+function getItems(tokens, items, groups, startDate) {
   let lineStartTime = Number.POSITIVE_INFINITY
   let lineEndTime = Number.NEGATIVE_INFINITY;
 
@@ -148,36 +154,48 @@ function getItems(tokens, dayjs) {
       case 1: // Event/Task Name
         currEvent.id = randomId();
         currTask.id = randomId();
-        currEvent.group = Math.floor(index / 10);
-        currTask.group = Math.floor(index / 10);
+        const groupID = Math.floor(index / 10);
+        currEvent.group = groupID;
+        currTask.group = groupID;
         currEvent.content = `${token} Event`;
         currTask.content = `${token} Task`;
+        currTask.className = 'simulation-task';
+        currEvent.className = 'simulation-event';
+        currEvent.subgroup = token;
+        currTask.subgroup = token;
+        currEvent.subgroupOrder = 0;
+        currTask.subgroupOrder = 1;
+
+        groups.forEach((g) => {
+          if (g.id === groupID) {
+            g.subgroupStack[token] = true;
+          }
+        });
         break;
       case 3: // Task Start
         const taskStart = parseInt(token);
         if (taskStart < lineStartTime) lineStartTime = taskStart;
 
-        // 2024-10-10T05:02:17-07:00 needs to be 2024-10-10T05:02:17
-        currTask.start = dayjs.clone().add(taskStart, 'seconds').format();
+        currTask.start = startDate.clone().add(taskStart, 'seconds').format();
         break;
       case 5: // Event Start
         const eventStart = parseInt(token);
         if (eventStart < lineStartTime) lineStartTime = eventStart;
 
-        currEvent.start = dayjs.clone().add(eventStart, 'seconds').format();
+        currEvent.start = startDate.clone().add(eventStart, 'seconds').format();
         break;
       case 7: // Task End
         const taskEnd = parseInt(token);
         if (taskEnd > lineEndTime) lineEndTime = taskEnd;
 
-        currTask.end = dayjs.clone().add(taskEnd, 'seconds').format();
+        currTask.end = startDate.clone().add(taskEnd, 'seconds').format();
         items.push({ ...currTask });
         break;
       case 9: // Event End
         const eventEnd = parseInt(token);
         if (eventEnd > lineEndTime) lineEndTime = eventEnd;
 
-        currEvent.end = dayjs.clone().add(eventEnd, 'seconds').format();
+        currEvent.end = startDate.clone().add(eventEnd, 'seconds').format();
         items.push({ ...currEvent });
         break;
       default:
@@ -185,7 +203,7 @@ function getItems(tokens, dayjs) {
     }
   });
 
-  return {items, lineStartTime, lineEndTime};
+  return {lineStartTime, lineEndTime};
 }
 
 export { getTimelineItemsGroups, getAccessIntervals };

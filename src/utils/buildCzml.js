@@ -341,7 +341,8 @@ async function addAccessesToCzml(czml, outputPath, fileName, startDate, startSec
   });
 }
 
-export default async function buildCzmlPackets(startJD, startSeconds, endSeconds, componentList, outputPath, fileName, taskList) {
+export default async function buildCzmlPackets(name, version, startJD, startSeconds, endSeconds, componentList, outputPath, fileName, taskList) {
+  const timeStamp = fileName.split('.')[0].slice(7);
   const dayjs = await julianToDate(startJD, true);
   const utcDate = dayjs.utc();
   const startDatetime = utcDate.clone().add(startSeconds, 'seconds').toISOString();
@@ -351,8 +352,8 @@ export default async function buildCzmlPackets(startJD, startSeconds, endSeconds
 
   const czml = [{
     id: "document",
-    name: "simple",
-    version: "1.0",
+    name: `${name} ${version} - ${timeStamp}`,
+    version: "1.0", // CZML version (must be 1.0)
     clock: {
       interval: `${startDatetime}/${endDatetime}`,
       currentTime: `${startDatetime}`,

@@ -29,6 +29,5 @@ export default async function formatPlotData(content, startJD) {
     });
   });
 
-  const timeRange = latestTime - earliestTime;
-  return { plotData, xAxisLegend, yAxisLegend, timeRange };
+  return { plotData, xAxisLegend, yAxisLegend };
 }

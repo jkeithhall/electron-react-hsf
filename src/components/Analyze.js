@@ -138,7 +138,7 @@ export default function Analyze({ outputPath }) {
   function updateTimelineData(items, groups) {
     if (timelineRef.current) {
       const { timeline, props } = timelineRef.current;
-      timelineRef.current.timeline.on('click', (event, properties) => {
+      timeline.on('click', (event, properties) => {
         const { item } = event;
         if (item) {
           const { start } = timelineItems.get(item);
@@ -154,8 +154,6 @@ export default function Analyze({ outputPath }) {
       props.initialGroups.clear();
       props.initialItems.add(items);
       props.initialGroups.add(groups);
-
-      timeline.fit();
     }
   }
 
@@ -186,8 +184,13 @@ export default function Analyze({ outputPath }) {
         zoomMax: elapsed * 10000,
         moment: (date) => moment(date).utc(),
       }
-
       timeline.setOptions(options);
+
+      const endWindow = elapsed > 1000 * 60 * 5 ?
+        startDatetime.clone().add(5, 'minutes').format() :
+        endDatetime.clone().format();
+      timeline.setWindow(startDatetime.format(), endWindow);
+
       setTimebar(startDatetime.format());
     }
   }
@@ -227,7 +230,7 @@ export default function Analyze({ outputPath }) {
   }
 
   function updatePlot(data) {
-    const { plotData, xAxisLegend, yAxisLegend, timeRange } = data;
+    const { plotData, xAxisLegend, yAxisLegend } = data;
 
     setPlotData(plotData);
     setXAxisLegend(`Time after ${xAxisLegend} (UTC) (s)`);
@@ -294,7 +297,6 @@ export default function Analyze({ outputPath }) {
           setSelectedStateDataFile(undefined);
           setStateDataOpen(false);
         }
-
         try {
           const {
             scheduleValue,
@@ -305,21 +307,23 @@ export default function Analyze({ outputPath }) {
 
           setScheduleValue(scheduleValue);
           setStartDatetime(startDatetime);
-          updateTimelineRange(startDatetime, endDatetime);
           updateTimelineData(items, groups);
+          updateTimelineRange(startDatetime, endDatetime);
           setTimelineOpen(true);
+          try {
+            const czmlData = await fetchCesiumData(outputPath, selectedTimelineFile);
+            setCzmlData(czmlData);
+            setCesiumOpen(true);
+          } catch (error) {
+            console.error("Error while fetching CZML data: ", error);
+          } finally {
+            setStateDataOpen(true);
+          }
         } catch (error) {
           console.error("Error while fetching timeline data: ", error);
+        } finally {
+          setSpinnerOpen(false);
         }
-        try {
-          const czmlData = await fetchCesiumData(outputPath, selectedTimelineFile);
-          setCzmlData(czmlData);
-          setCesiumOpen(true);
-        } catch (error) {
-          console.error("Error while fetching CZML data: ", error);
-        }
-        setStateDataOpen(true);
-        setSpinnerOpen(false);
       })();
     }
   }, [selectedTimelineFile]);
@@ -432,16 +436,17 @@ export default function Analyze({ outputPath }) {
         </AccordionSummary>
         <AccordionDetails>
           {czmlData.length > 0 &&
-            <Viewer fullscreenButton={false}>
-              <CzmlDataSource data={czmlData} />
-              <Clock onTick={throttle(handleClockTick, 100)} />
-            </Viewer>
+              <Viewer fullscreenButton={false}>
+                {/* CzmlDataSource must have a unique key for each data source to rerender appropriately. */}
+                <CzmlDataSource data={czmlData} key={czmlData[0].name} />
+                <Clock onTick={throttle(handleClockTick, 100)} />
+              </Viewer>
           }
         </AccordionDetails>
       </Accordion>
       <Accordion
         disabled={stateDataSelectorDisabled}
-        expanded={stateDataOpen}
+        expanded={!stateDataSelectorDisabled && stateDataOpen}
         onChange={() => setStateDataOpen(!stateDataOpen)}
         disableGutters={true}
         sx={{

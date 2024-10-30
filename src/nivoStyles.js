@@ -49,6 +49,10 @@ export const lineChartProps = (plotType, xAxisLegend, yAxisLegend, currentSecond
     markers: [
         {
           axis: 'x',
+          legend: '',
+          legendOffsetX: 0, // Required field
+          legendOffsetY: 0, // Required field
+          legendOrientation: 'horizontal', // Required field
           lineStyle: {
             stroke: '#d32f2f',
             strokeWidth: 2
