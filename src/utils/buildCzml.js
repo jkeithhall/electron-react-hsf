@@ -237,7 +237,6 @@ async function fetchAccessIntervals(outputPath, fileName) {
         window.electronApi.fetchLatestTimelineData(outputPath, fileName, ({ content }) => {
           const firstSchedule = content.split("Schedule Number: ")[1].slice(1);
           const accessIntervals = getAccessIntervals(firstSchedule);
-          console.log(accessIntervals);
           resolve(accessIntervals);
         });
       } else {
