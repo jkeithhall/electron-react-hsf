@@ -21,7 +21,7 @@ import { ResponsiveScatterPlot } from '@nivo/scatterplot'
 import { ResponsiveLine } from '@nivo/line';
 import { lineChartProps } from '../nivoStyles';
 
-import { getTimelineItemsGroups } from '../utils/parseOutputSchedule';
+import { parseTimelineData } from '../utils/parseOutputSchedule';
 import formatPlotData from '../utils/formatPlotData';
 import moment from 'moment';
 
@@ -48,14 +48,20 @@ function throttle(callback, delay) {
   }
 }
 
-const timelineOptions = ({ $d: startDatetime }) => ({
+const timelineOptions = (startDatetime, endDatetime, elapsed) => ({
   align: 'left',
   height: '500px',
   editable: false,
   tooltip: { delay: 100 },
+  groupHeightMode: 'fixed',
+  min: startDatetime.clone().subtract(30, 'seconds').format(),
+  max: endDatetime.clone().add(30, 'seconds').format(),
+  zoomMin: elapsed / 100,
+  zoomMax: elapsed * 10000,
+  moment: (date) => moment(date).utc(),
   format: {
     minorLabels: ({ _d: labelDatetime }) => {
-      return `${(labelDatetime - startDatetime) / 1000} s`;
+      return `${(labelDatetime - startDatetime.$d) / 1000} s`;
     },
     majorLabels: ({ _d}) => {
       const year = _d.getUTCFullYear();
@@ -123,7 +129,7 @@ export default function Analyze({ outputPath }) {
       if (window.electronApi) {
         window.electronApi.fetchLatestTimelineData(outputPath, selectedTimelineFile, ({ content, startJD }) => {
           const firstSchedule = content.split("Schedule Number: ")[1].slice(1);
-          getTimelineItemsGroups(firstSchedule, startJD).then(resolve).catch(reject);
+          parseTimelineData(firstSchedule, startJD).then(resolve).catch(reject);
         });
       } else {
         reject("No electron API found");
@@ -176,17 +182,10 @@ export default function Analyze({ outputPath }) {
       const { timeline } = timelineRef.current;
       const elapsed = endDatetime.diff(startDatetime.clone());
 
-      const options = {
-        ...timelineOptions(startDatetime),
-        min: startDatetime.clone().subtract(60, 'seconds').format(),
-        max: endDatetime.clone().add(60, 'seconds').format(),
-        zoomMin: elapsed / 100,
-        zoomMax: elapsed * 10000,
-        moment: (date) => moment(date).utc(),
-      }
+      const options = timelineOptions(startDatetime, endDatetime, elapsed);
       timeline.setOptions(options);
 
-      const endWindow = elapsed > 1000 * 60 * 5 ?
+      const endWindow = elapsed > 1000 * 60 * 5 ? // If more than 5 minutes, show 5 minutes
         startDatetime.clone().add(5, 'minutes').format() :
         endDatetime.clone().format();
       timeline.setWindow(startDatetime.format(), endWindow);

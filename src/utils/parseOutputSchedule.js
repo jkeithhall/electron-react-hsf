@@ -56,12 +56,12 @@ function getAccessIntervals(scheduleContent) {
   return accessIntervals;
 }
 
-async function getTimelineItemsGroups(scheduleContent, startJD) {
+async function parseTimelineData(scheduleContent, startJD) {
   let scheduleValue;
   let startTime = Number.POSITIVE_INFINITY
   let endTime = Number.NEGATIVE_INFINITY;
   let items = [];
-  let groups;
+  let groupObj = {}; // Use object for O(1) lookup
   const date = await julianToDate(startJD, true);
   const startDate = date.utc();
 
@@ -74,9 +74,9 @@ async function getTimelineItemsGroups(scheduleContent, startJD) {
     } else {
       const cleanTokens = splitEventEndFromName(line);
 
-      if (index === 1) { groups = getGroups(cleanTokens); }
+      if (index === 1) { parseAssetGroups(cleanTokens, groupObj); }
 
-      const { lineStartTime, lineEndTime } = getItems(cleanTokens, items, groups, startDate);
+      const { lineStartTime, lineEndTime } = parseItemsGroups(cleanTokens, items, groupObj, startDate);
       if (lineStartTime < startTime) startTime = lineStartTime;
       if (lineEndTime > endTime) endTime = lineEndTime;
     }
@@ -84,6 +84,21 @@ async function getTimelineItemsGroups(scheduleContent, startJD) {
 
   const startDatetime = startDate.clone().add(startTime, 'seconds');
   const endDatetime = startDate.clone().add(endTime, 'seconds');
+
+  // Map group object to array
+  const groups = Object.values(groupObj).map(group => {
+    if (group.nestedGroups) {
+      return {
+        id: group.id,
+        content: group.content,
+        nestedGroups: Object.values(group.nestedGroups), // Map to array
+        showNested: group.showNested,
+      }
+    } else {
+      return group;
+    }
+  });
+
   return { scheduleValue, startDatetime, endDatetime, items, groups };
 }
 
@@ -113,64 +128,45 @@ const splitEventEndFromName = (line) => {
   return cleanTokens.slice(1);
 }
 
-function getGroups(tokens) {
-  const groups = [];
+function parseAssetGroups(tokens, groupObj) {
   tokens.forEach((token, index) => {
     if (index % 10 === 0) {
       const name = token.split(":")[0];
-      groups.push({
-        id: index / 10,
+      groupObj[name] = {
+        id: name,
         content: name,
-        subgroupOrder: (a, b) => a.subgroupOrder - b.subgroupOrder,
-        subgroupStack: {}
-      });
+        nestedGroups: {}, // Use object to avoid duplicates
+        showNested: 0,
+      }
     }
   });
-
-  return groups;
 }
 
-function getItems(tokens, items, groups, startDate) {
+function parseItemsGroups(tokens, items, groups, startDate) {
   let lineStartTime = Number.POSITIVE_INFINITY
   let lineEndTime = Number.NEGATIVE_INFINITY;
 
-  const currEvent = {
-    id: '',
-    content: '',
-    start: '',
-    end: '',
-    group: 0,
-  };
-  const currTask = {
-    id: '',
-    content: '',
-    start: '',
-    end: '',
-    group: 0,
-  };
+  const currEvent = {};
+  const currTask = {};
+  let assetName;
 
   tokens.forEach((token, index) => {
     switch (index % 10) {
+      case 0:
+        assetName = token.split(":")[0];
+        break;
       case 1: // Event/Task Name
         currEvent.id = randomId();
         currTask.id = randomId();
-        const groupID = Math.floor(index / 10);
-        currEvent.group = groupID;
-        currTask.group = groupID;
+        currEvent.group = token;
+        currTask.group = token;
         currEvent.content = `${token} Event`;
         currTask.content = `${token} Task`;
         currTask.className = 'simulation-task';
         currEvent.className = 'simulation-event';
-        currEvent.subgroup = token;
-        currTask.subgroup = token;
-        currEvent.subgroupOrder = 0;
-        currTask.subgroupOrder = 1;
 
-        groups.forEach((g) => {
-          if (g.id === groupID) {
-            g.subgroupStack[token] = true;
-          }
-        });
+        groups[assetName].nestedGroups[token] = token;
+        groups[token] = { id: token, content: token };
         break;
       case 3: // Task Start
         const taskStart = parseInt(token);
@@ -206,4 +202,4 @@ function getItems(tokens, items, groups, startDate) {
   return {lineStartTime, lineEndTime};
 }
 
-export { getTimelineItemsGroups, getAccessIntervals };
+export { parseTimelineData, getAccessIntervals };
