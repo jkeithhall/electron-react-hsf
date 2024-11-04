@@ -27,14 +27,15 @@ const StyledGrid = styled('div')(({ theme }) => ({
 }));
 
 const validateCellProps = (field, setConstraintErrors, componentList) => (params) => {
-  const { otherFieldsProps, id } = params;
-    const otherParams = Object.keys(otherFieldsProps).reduce((acc, key) => {
-      acc[key] = otherFieldsProps[key].value;
-      return acc;
-    }, {});
-  const constraint = { ...otherParams, id, [field]: params.props.value };
-  console.log(`Validating constraint ${id} at field ${field} with value ${params.props.value}`);
-  validateConstraintAt(constraint, field, setConstraintErrors, componentList);
+  if (params.hasChanged) {
+    const { otherFieldsProps, id } = params;
+      const otherParams = Object.keys(otherFieldsProps).reduce((acc, key) => {
+        acc[key] = otherFieldsProps[key].value;
+        return acc;
+      }, {});
+    const constraint = { ...otherParams, id, [field]: params.props.value };
+    validateConstraintAt(constraint, field, setConstraintErrors, componentList);
+  }
   return { ...params.props };
 }
 

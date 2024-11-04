@@ -3,7 +3,7 @@ import { noInjection, throwErrorIfMissingFields } from './validateScenario';
 import { dynStateTypeOptions } from '../components/PaletteComponents/DynamicStateType';
 
 // Task schema
-const taskSchema = object({
+const taskSchema = (taskList) => object({
   name: string("Task Name must be a string")
     // Min test should be before required test so that the required test is not triggered if the string is empty
     // (required test will throw import error rather than allowing formErrors to be set)
@@ -23,7 +23,10 @@ const taskSchema = object({
     .min(1, 'Target Name must be at least 1 character')
     .required('Target Name is required')
     .min(1, 'Target Name must be at least 1 character')
-    .test('no-injection', 'Target Name contains invalid characters', noInjection),
+    .test('no-injection', 'Target Name contains invalid characters', noInjection)
+    .test('unique', 'Target Name must be unique', (value) => {
+      return taskList.filter(task => task.targetName === value).length === 1;
+    }),
   targetType: string("Target Type must be a string")
     .min(1, 'Target Type must be at least 1 character')
     .required('Target Type is required')
@@ -59,7 +62,7 @@ const taskSchema = object({
     .test('no-injection', 'EOMS Type contains invalid characters', noInjection),
 });
 
-function validateTaskAt(task, name, setFormErrors, throwable = false) {
+function validateTaskAt(task, name, taskList, setFormErrors, throwable = false) {
   if (name === 'id') return; // Skip id
   let importError = null;
 
@@ -69,7 +72,7 @@ function validateTaskAt(task, name, setFormErrors, throwable = false) {
       const currErrors = newFormErrors[task.id] || {};
 
       try {
-        taskSchema.validateSyncAt(name, task);
+        taskSchema(taskList).validateSyncAt(name, task);
         // Remove error message from the name key of the object
         delete currErrors[name];
 
@@ -96,7 +99,7 @@ function validateTaskAt(task, name, setFormErrors, throwable = false) {
   if (importError) throw importError;
 }
 
-function validateTask(task, setFormErrors, throwable = false) {
+function validateTask(task, taskList, setFormErrors, throwable = false) {
   let importError = null;
 
   setFormErrors((formErrors) => {
@@ -108,7 +111,7 @@ function validateTask(task, setFormErrors, throwable = false) {
         if (name === 'id') return; // Skip id
 
         try {
-          taskSchema.validateSyncAt(name, task);
+          taskSchema(taskList).validateSyncAt(name, task);
           // Remove error message from the name key of the object
           delete currErrors[name];
 
@@ -150,7 +153,7 @@ function validateAllTasks(tasks, setFormErrors, throwable = false) {
           if (name === 'id') return; // Skip id
 
           try {
-            taskSchema.validateSyncAt(name, task);
+            taskSchema(tasks).validateSyncAt(name, task);
             // Remove error message from the name key of the object
             delete currErrors[name];
 

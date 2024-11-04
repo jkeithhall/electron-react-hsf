@@ -50,13 +50,16 @@ function parameterValueError(value, type, key, createError) {
   return error ? createError({ message: error }) : true;
 }
 
-const assetSchema = object({
+const assetSchema = (componentList) => object({
   name: string("Asset Name must be a string")
     // Min test should be before required test so that the required test is not triggered if the string is empty
     // (required test will throw import error rather than allowing formErrors to be set)
     .min(1, 'Asset Name must be at least 1 character')
     .required('Asset Name is required')
-    .test('no-injection', 'Asset Name contains invalid characters', noInjection),
+    .test('no-injection', 'Asset Name contains invalid characters', noInjection)
+    .test('unique-name', 'Asset Name must be unique', function(value) {
+      return componentList.filter((component) => component.name === value).length === 1;
+    }),
   dynamicStateType: string("Dynamic State Type must be a string")
     .uppercase()
     .min(1, 'Dynamic State Type must be at least 1 character')
@@ -71,7 +74,13 @@ const assetSchema = object({
   stateData: array("State Data must be an array")
     .of(number("State Data components must be numbers").typeError('State Data components must be numbers'))
     .required('State Data is required')
-    .test('state-data', ({value}) => vectorError(value, "State Data"), (value) => vectorError(value, "State Data") === null),
+    .test('state-data', ({value}) => vectorError(value, "State Data"), (value) => vectorError(value, "State Data") === null)
+    .test('state-data-position-unique', 'State Data Position must be unique', function([x, y, z]) {
+      return componentList.filter(({ stateData }) => {
+        if (!stateData) return false;
+        return stateData[0] == x && stateData[1] == y && stateData[2] == z;
+      }).length === 1;
+    }),
   integratorOptions: object({
       h: number("h must be a number").required('h is required').typeError('h must be a number'),
       rtol: number("rtol must be a number").required('rtol is required').typeError('rtol must be a number'),
@@ -201,7 +210,7 @@ function validateComponentAt(component, name, setFormErrors, componentList, pyth
         case 'integratorOptions':
           Object.entries(component.integratorOptions).forEach(([key, value]) => {
             try {
-              assetSchema.validateSyncAt(`integratorOptions.${key}`, component);
+              assetSchema(componentList).validateSyncAt(`integratorOptions.${key}`, component);
               // Remove error message from the name key of the object
               delete currErrors[`integratorOptions.${key}`];
 
@@ -217,7 +226,7 @@ function validateComponentAt(component, name, setFormErrors, componentList, pyth
         case 'integratorParameters':
           component.integratorParameters.forEach((parameter, index) => {
             try {
-              assetSchema.validateSyncAt(`integratorParameters[${index}]`, component);
+              assetSchema(componentList).validateSyncAt(`integratorParameters[${index}]`, component);
               // Remove error message from the name key of the object
               delete currErrors[`integratorParameters[${index}]`];
 
@@ -265,7 +274,7 @@ function validateComponentAt(component, name, setFormErrors, componentList, pyth
         default:
           try {
             if (component.parent === undefined) { // Asset
-              assetSchema.validateSyncAt(name, component);
+              assetSchema(componentList).validateSyncAt(name, component);
             } else { // Subsystem
               subsystemSchema(componentList, pythonSrc).validateSyncAt(name, component);
             }
@@ -312,7 +321,7 @@ function validateComponent(component, setFormErrors, componentList, pythonSrc, t
           case 'integratorOptions':
             Object.entries(value).forEach(([key, value]) => {
               try {
-                assetSchema.validateSyncAt(`integratorOptions.${key}`, component);
+                assetSchema(componentList).validateSyncAt(`integratorOptions.${key}`, component);
                 // Remove error message from the name key of the object
                 delete currErrors[`integratorOptions.${key}`];
 
@@ -328,7 +337,7 @@ function validateComponent(component, setFormErrors, componentList, pythonSrc, t
           case 'integratorParameters':
             value.forEach((parameter, index) => {
               try {
-                assetSchema.validateSyncAt(`integratorParameters[${index}]`, component);
+                assetSchema(componentList).validateSyncAt(`integratorParameters[${index}]`, component);
                 // Remove error message from the name key of the object
                 delete currErrors[`integratorParameters[${index}]`];
 
@@ -376,7 +385,7 @@ function validateComponent(component, setFormErrors, componentList, pythonSrc, t
           default:
             try {
               if (component.parent === undefined) { // Asset
-                assetSchema.validateSyncAt(name, component);
+                assetSchema(componentList).validateSyncAt(name, component);
               } else { // Subsystem
                 subsystemSchema(componentList, pythonSrc).validateSyncAt(name, component);
               }
@@ -424,7 +433,7 @@ function validateAllComponents(componentList, setFormErrors, pythonSrc, throwabl
             case 'integratorOptions':
               Object.entries(value).forEach(([key, value]) => {
                 try {
-                  assetSchema.validateSyncAt(`integratorOptions.${key}`, component);
+                  assetSchema(componentList).validateSyncAt(`integratorOptions.${key}`, component);
                   // Remove error message from the name key of the object
                   delete currErrors[`integratorOptions.${key}`];
 
@@ -440,7 +449,7 @@ function validateAllComponents(componentList, setFormErrors, pythonSrc, throwabl
             case 'integratorParameters':
               value.forEach((parameter, index) => {
                 try {
-                  assetSchema.validateSyncAt(`integratorParameters[${index}]`, component);
+                  assetSchema(componentList).validateSyncAt(`integratorParameters[${index}]`, component);
                   // Remove error message from the name key of the object
                   delete currErrors[`integratorParameters[${index}]`];
 
@@ -488,7 +497,7 @@ function validateAllComponents(componentList, setFormErrors, pythonSrc, throwabl
             default:
               try {
                 if (component.parent === undefined) { // Asset
-                  assetSchema.validateSyncAt(name, component);
+                  assetSchema(componentList).validateSyncAt(name, component);
                 } else { // Subsystem
                   subsystemSchema(componentList, pythonSrc).validateSyncAt(name, component);
                 }
