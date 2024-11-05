@@ -23,7 +23,6 @@ export default function StateData({ stateData, setComponentList, id, errors, han
   }
 
   let stateDataError = errors.stateData;
-  console.log(stateDataError);
   const stateDataErrorIndices = [];
   if (stateDataError) {
     stateComponents.forEach((component, index) => {

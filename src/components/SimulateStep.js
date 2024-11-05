@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTheme, ThemeProvider } from '@mui/material/styles';
-import buildDownloadJSON from '../utils/buildDownloadJSON';
 import Box from '@mui/material/Box';
 import Stepper from '@mui/material/Stepper';
 import Step from '@mui/material/Step';
@@ -18,6 +17,8 @@ import PendingIcon from '@mui/icons-material/Pending';
 import PlayCircleIcon from '@mui/icons-material/PlayCircle';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
+import validateSimInputs from '../utils/validateSimInputs';
+import buildDownloadJSON from '../utils/buildDownloadJSON';
 import buildCzmlPackets from '../utils/buildCzml';
 
 const steps = [
@@ -35,6 +36,7 @@ export default function SimulateStep({
   setActiveStep,
   setNavOpen,
   appState,
+  setValidationErrors,
   outputPath,
   scenarioErrors,
   tasksErrors,
@@ -56,7 +58,7 @@ export default function SimulateStep({
   const [logs, setLogs] = useState([]);
   const [progress, setProgress] = useState(0);
 
-  const validateParameters = () => {
+  const checkErrors = () => {
     console.log('Checking for errors in parameters');
     const hasScenarioErrors = Object.keys(scenarioErrors).length > 0;
     const hasTasksErrors = Object.keys(tasksErrors).length > 0;
@@ -306,7 +308,10 @@ export default function SimulateStep({
   });
 
   useEffect(() => {
-    if (activeStep === 0) validateParameters();
+    if (activeStep === 0) {
+      validateSimInputs(appState, setValidationErrors);
+      setTimeout(() => { checkErrors(); }, 0);
+    }
   }, [activeStep]);
 
   return (

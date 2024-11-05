@@ -398,6 +398,7 @@ export default function App() {
               setActiveStep={setActiveStep}
               setNavOpen={setNavOpen}
               appState={appState}
+              setValidationErrors={setValidationErrors}
               outputPath={simulationInput.dependencies.outputPath}
               scenarioErrors={scenarioErrors}
               tasksErrors={taskErrors}
