@@ -14,8 +14,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Timeline from 'react18-vis-timeline';
 import { DataSet } from 'vis-data';
 import '../timelinestyles.css';
+import CesiumViewer from './CesiumViewer';
 import { JulianDate } from 'cesium';
-import { Viewer, CzmlDataSource, Clock } from "resium";
+
 import dayjs from 'dayjs';
 import { ResponsiveScatterPlot } from '@nivo/scatterplot'
 import { ResponsiveLine } from '@nivo/line';
@@ -27,26 +28,6 @@ import moment from 'moment';
 
 const timelineItems = new DataSet([]);
 const timelineGroups = new DataSet([]);
-
-// onTick event fires every frame (60fps) even when the clock is paused
-// so we throttle it to only update every 100ms
-function throttle(callback, delay) {
-  let lastCall = null;
-
-  return function(...args) {
-    if (lastCall === null) {
-      lastCall = new Date();
-      callback.apply(this, args);
-    } else {
-      const elapsed = new Date() - lastCall;
-
-      if (elapsed >= delay) {
-        lastCall = new Date();
-        callback.apply(this, args);
-      }
-    }
-  }
-}
 
 const timelineOptions = (startDatetime, endDatetime, elapsed) => ({
   align: 'left',
@@ -435,11 +416,7 @@ export default function Analyze({ outputPath }) {
         </AccordionSummary>
         <AccordionDetails>
           {czmlData.length > 0 &&
-              <Viewer fullscreenButton={false}>
-                {/* CzmlDataSource must have a unique key for each data source to rerender appropriately. */}
-                <CzmlDataSource data={czmlData} key={czmlData[0].name} />
-                <Clock onTick={throttle(handleClockTick, 100)} />
-              </Viewer>
+              <CesiumViewer czmlData={czmlData} handleClockTick={handleClockTick}/>
           }
         </AccordionDetails>
       </Accordion>
