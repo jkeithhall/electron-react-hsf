@@ -19,7 +19,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 import validateSimInputs from '../utils/validateSimInputs';
 import buildDownloadJSON from '../utils/buildDownloadJSON';
-import buildCzmlPackets from '../utils/buildCzml';
+import { buildCzmlPackets } from '../utils/buildCzml';
 
 const steps = [
   { label: 'Validating parameters'},

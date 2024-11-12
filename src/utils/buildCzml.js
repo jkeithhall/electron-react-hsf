@@ -9,7 +9,7 @@ const { cos, sin, sqrt, PI } = Math;
 const degreesToRadians = degrees => degrees * PI / 180;
 const WGS84_A = 6378137.0; // Semi-major axis
 const WGS84_B = 6356752.314245; // Semi-minor axis
-const WGS84_E = Math.sqrt(1 - (WGS84_B ** 2) / (WGS84_A ** 2)); // Eccentricity
+const WGS84_E = sqrt(1 - (WGS84_B ** 2) / (WGS84_A ** 2)); // Eccentricity
 
 // Convert latitude, longitude, and altitude to ECEF coordinates in meters
 function latLonToECEF(lat, lon, alt) {
@@ -340,7 +340,7 @@ async function addAccessesToCzml(czml, outputPath, fileName, startDate, startSec
   });
 }
 
-export default async function buildCzmlPackets(name, version, startJD, startSeconds, endSeconds, componentList, outputPath, fileName, taskList) {
+async function buildCzmlPackets(name, version, startJD, startSeconds, endSeconds, componentList, outputPath, fileName, taskList) {
   const timeStamp = fileName.split('.')[0].slice(7);
   const dayjs = await julianToDate(startJD, true);
   const utcDate = dayjs.utc();
@@ -367,3 +367,5 @@ export default async function buildCzmlPackets(name, version, startJD, startSeco
   await addAccessesToCzml(czml, outputPath, fileName, utcDate, startSeconds, endSeconds);
   return czml;
 }
+
+export { buildCzmlPackets, addTaskPacketsToCzml };

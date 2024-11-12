@@ -350,7 +350,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
               toolbar: TaskTableToolbar,
             }}
             slotProps={{
-              toolbar: { setTaskList, setRowModesModel },
+              toolbar: { taskList, setTaskList, setRowModesModel },
             }}
             density="compact"
             sx={{
