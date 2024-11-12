@@ -270,6 +270,21 @@ header {
     - 2 * var(--work-space-padding));
 }
 
+.cesium-modal {
+    background-color: rgba(255, 255, 255, 0.7);
+    width: 900px;
+    height: 460px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -40%);
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+}
+
 .constraints-table {
     min-height: 200px;
     min-width: 700px;

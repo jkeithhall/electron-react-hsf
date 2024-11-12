@@ -15,7 +15,7 @@ import ConfirmationModal from './ConfirmationModal';
 import LocationModal from './LocationModal';
 
 import { dynStateTypeOptions } from './PaletteComponents/DynamicStateType';
-import { validateTaskAt } from '../utils/validateTasks';
+import { validateTaskAt, validateAllTasks } from '../utils/validateTasks';
 
 // Default pin location in map selector view for added tasks without location
 const DEFAULT_LATITUDE = 51.4778;
@@ -34,10 +34,13 @@ const StyledGrid = styled('div')(({ theme }) => ({
 }));
 
 const validateCellProps = (field, taskList, setTaskErrors) => (params) => {
-  if (params.hasChanged) {
+  if (params.hasChanged) {  // Only validates if the cell has changed (not whole row)
     const updatedTask = { ...params.row, [field]: params.props.value };
     const updatedTaskList = taskList.map((task) => (task.id === params.id ? updatedTask : task));
-    validateTaskAt(updatedTask, field, updatedTaskList, setTaskErrors);
+    if (field === 'targetName') {
+      validateAllTasks(updatedTaskList, setTaskErrors);
+    } else {validateTaskAt(updatedTask, field, updatedTaskList, setTaskErrors);
+    }
   }
   return { ...params.props };
 }

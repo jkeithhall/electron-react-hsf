@@ -82,7 +82,6 @@ export default function TaskTableToolbar({taskList, setTaskList, setRowModesMode
       version: "1.0",
     }];
     addTaskPacketsToCzml(newCzml, taskList);
-    console.log({newCzml});
     setCzmlData(newCzml);
   }, [taskList]);
 
@@ -103,22 +102,7 @@ export default function TaskTableToolbar({taskList, setTaskList, setRowModesMode
       aria-labelledby="modal-modal-title"
       aria-describedby="modal-modal-description"
     >
-      <Box sx={{
-        // Translucent background
-        backgroundColor: 'rgba(255, 255, 255, 0.7)',
-        width: '900px',
-        height: '460px',
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -40%)',
-        padding: '10px',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: '5px',
-      }}
-      >
+      <Box className="cesium-modal">
         <Box sx={{width: '100%'}}>
           {czmlData.length > 0 &&
             <Viewer

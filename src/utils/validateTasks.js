@@ -24,8 +24,17 @@ const taskSchema = (taskList) => object({
     .required('Target Name is required')
     .min(1, 'Target Name must be at least 1 character')
     .test('no-injection', 'Target Name contains invalid characters', noInjection)
-    .test('unique', 'Target Name must be unique', (value) => {
-      return taskList.filter(task => task.targetName === value).length === 1;
+    .test('unique-parameters', 'A different target already exists with this name (targets with different parameters must have different names)', (value, { parent: currTask }) => {
+      return taskList.filter(task => task.targetName === value &&
+          !(task.type === currTask.type &&
+            task.targetType === currTask.targetType &&
+            task.targetValue === currTask.targetValue &&
+            task.latitude === currTask.latitude &&
+            task.longitude === currTask.longitude &&
+            task.altitude === currTask.altitude &&
+            task.dynamicStateType === currTask.dynamicStateType &&
+            task.integratorType === currTask.integratorType &&
+            task.eomsType === currTask.eomsType)).length === 0;
     }),
   targetType: string("Target Type must be a string")
     .min(1, 'Target Type must be at least 1 character')
