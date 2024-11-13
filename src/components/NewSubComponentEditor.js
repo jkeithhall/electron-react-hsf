@@ -107,7 +107,8 @@ export default function NewSubComponentEditor({
   }
 
   const handleBlur = () => {
-    validateComponent(data, setNewNodeErrors, componentList, pythonSrc);
+    const newComponentList = [...componentList, data];
+    validateComponent(data, setNewNodeErrors, newComponentList, pythonSrc);
   }
 
   const handleDragStart = (e) => {

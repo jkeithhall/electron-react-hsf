@@ -46,13 +46,6 @@ export default function NewAssetEditor({
   setDependencyList,
   clipboardData,
 }) {
-  const hue = BASE_COLORS[componentList.filter((component) => component.parent === undefined).length % BASE_COLORS.length];
-  const initialBackgroundColor = rgbaToHexA(randomColor({
-    hue,
-    luminosity: 'light',
-    format: 'rgba',
- }));
-
   const [ id ] = useState(randomId());
   const [ name, setName ] = useState('');
   const [ dynamicStateType, setDynamicStateType ] = useState('PREDETERMINED_ECI');
@@ -61,7 +54,14 @@ export default function NewAssetEditor({
   const [ integratorOptions, setIntegratorOptions ] = useState({});
   const [ integratorParameters, setIntegratorParameters ] = useState([]);
   const [ newNodeErrors, setNewNodeErrors ] = useState({});
-  const [ backgroundColor, setBackgroundColor ] = useState(initialBackgroundColor);
+  const [ backgroundColor, setBackgroundColor ] = useState(() => {
+    const hue = BASE_COLORS[componentList.filter((component) => component.parent === undefined).length % BASE_COLORS.length];
+    return rgbaToHexA(randomColor({
+      hue,
+      luminosity: 'light',
+      format: 'rgba',
+   }));
+  });
 
   const data = {
     id,
@@ -93,11 +93,24 @@ export default function NewAssetEditor({
       setStateData([...stateData]);
       setIntegratorOptions({ ...integratorOptions });
       setIntegratorParameters([ ...integratorParameters ]);
+
+      const newComponent = {
+        id,
+        name,
+        dynamicStateType,
+        eomsType,
+        stateData,
+        integratorOptions,
+        integratorParameters,
+      }
+      const newComponentList = [ ...componentList, newComponent ];
+      validateComponent(newComponent, setNewNodeErrors, newComponentList);
     }
   }
 
   const handleBlur = () => {
-    validateComponent(data, setNewNodeErrors);
+    const newComponentList = [ ...componentList, data ];
+    validateComponent(data, setNewNodeErrors, newComponentList);
   }
 
   const handleColorChange = (event) => {
@@ -117,6 +130,7 @@ export default function NewAssetEditor({
   integratorParameters.forEach((parameter) => { componentKeys.push(parameter.key) });
 
   const currentNodeErrors = newNodeErrors[id] ? newNodeErrors[id] : {};
+  const noErrors = Object.keys(currentNodeErrors).length === 0;
 
   return (
     <>
@@ -192,7 +206,7 @@ export default function NewAssetEditor({
         />
       </Box>
       <div className="drag-drop-container" style={{ marginBottom: 120 }}>
-        {name && Object.keys(currentNodeErrors).length === 0 && <>
+        {name && noErrors && <>
           <Typography variant="body2" color="light" mt={2} >{'Drag and drop this asset into the model.'}</Typography>
           <div className="new-node-origin">
             <Card
