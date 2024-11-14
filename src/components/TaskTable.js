@@ -15,7 +15,7 @@ import ConfirmationModal from './ConfirmationModal';
 import LocationModal from './LocationModal';
 
 import { dynStateTypeOptions } from './PaletteComponents/DynamicStateType';
-import { validateTaskAt } from '../utils/validateTasks';
+import { validateTaskAt, validateAllTasks } from '../utils/validateTasks';
 
 // Default pin location in map selector view for added tasks without location
 const DEFAULT_LATITUDE = 51.4778;
@@ -33,9 +33,15 @@ const StyledGrid = styled('div')(({ theme }) => ({
   },
 }));
 
-const validateCellProps = (field, setTaskErrors) => (params) => {
-  const task = { ...params.row, [field]: params.props.value };
-  validateTaskAt(task, field, setTaskErrors);
+const validateCellProps = (field, taskList, setTaskErrors) => (params) => {
+  if (params.hasChanged) {  // Only validates if the cell has changed (not whole row)
+    const updatedTask = { ...params.row, [field]: params.props.value };
+    const updatedTaskList = taskList.map((task) => (task.id === params.id ? updatedTask : task));
+    if (field === 'targetName') {
+      validateAllTasks(updatedTaskList, setTaskErrors);
+    } else {validateTaskAt(updatedTask, field, updatedTaskList, setTaskErrors);
+    }
+  }
   return { ...params.props };
 }
 
@@ -181,7 +187,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       headerName: 'Task Name',
       width: 150,
       editable: true,
-      preProcessEditCellProps: validateCellProps('name', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('name', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
      },
     {
@@ -194,7 +200,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       ],
       width: 100,
       editable: true,
-      preProcessEditCellProps: validateCellProps('type', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('type', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
     },
     {
@@ -203,7 +209,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       headerName: 'Max Times',
       width: 100,
       editable: true,
-      preProcessEditCellProps: validateCellProps('maxTimes', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('maxTimes', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
     },
     {
@@ -211,7 +217,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       headerName: 'Target Name',
       width: 150,
       editable: true,
-      preProcessEditCellProps: validateCellProps('targetName', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('targetName', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
      },
     {
@@ -221,7 +227,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       valueOptions: [ 'FacilityTarget', 'LocationTarget'],
       width: 130,
       editable: true,
-      preProcessEditCellProps: validateCellProps('targetType', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('targetType', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
      },
     {
@@ -230,7 +236,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       headerName: 'Value',
       width: 80,
       editable: true,
-      preProcessEditCellProps: validateCellProps('targetValue', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('targetValue', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
     },
     {
@@ -256,7 +262,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       headerName: 'Latitude',
       width: 100,
       editable: true,
-      preProcessEditCellProps: validateCellProps('latitude', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('latitude', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
     },
     {
@@ -264,7 +270,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       headerName: 'Longitude',
       width: 100,
       editable: true,
-      preProcessEditCellProps: validateCellProps('longitude', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('longitude', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
     },
     {
@@ -272,7 +278,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       headerName: 'Altitude',
       width: 90,
       editable: true,
-      preProcessEditCellProps: validateCellProps('altitude', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('altitude', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
     },
     {
@@ -282,7 +288,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       valueOptions: dynStateTypeOptions,
       width: 120,
       editable: true,
-      preProcessEditCellProps: validateCellProps('dynamicStateType', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('dynamicStateType', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
     },
     {
@@ -290,7 +296,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       headerName: 'Integrator',
       width: 90,
       editable: true,
-      preProcessEditCellProps: validateCellProps('integratorType', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('integratorType', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
     },
     {
@@ -298,7 +304,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
       headerName: 'EOMS',
       width: 90,
       editable: true,
-      preProcessEditCellProps: validateCellProps('eomsType', setTaskErrors),
+      preProcessEditCellProps: validateCellProps('eomsType', taskList, setTaskErrors),
       renderCell: (params) => <TaskCell params={params} taskErrors={taskErrors} />,
      },
   ];
@@ -347,7 +353,7 @@ export default function TaskTable({ navOpen, taskList, setTaskList, taskErrors, 
               toolbar: TaskTableToolbar,
             }}
             slotProps={{
-              toolbar: { setTaskList, setRowModesModel },
+              toolbar: { taskList, setTaskList, setRowModesModel },
             }}
             density="compact"
             sx={{

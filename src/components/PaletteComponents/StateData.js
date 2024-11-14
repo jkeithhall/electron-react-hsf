@@ -26,11 +26,18 @@ export default function StateData({ stateData, setComponentList, id, errors, han
   const stateDataErrorIndices = [];
   if (stateDataError) {
     stateComponents.forEach((component, index) => {
-      if (stateDataError.indexOf(index) !== -1) {
+      if (stateDataError.includes(index)) {
         stateDataErrorIndices.push(index);
       }
       stateDataError = stateDataError.replace(new RegExp(`\\b${index}\\b`, 'g'), component);
     });
+  }
+
+  const componentError = (index) => {
+    return stateDataError && stateDataErrorIndices.includes(index);
+  }
+  const uniquenessError = (index) => {
+    return index < 3 ? stateDataError.includes('unique') : false;
   }
 
   return (
@@ -54,7 +61,7 @@ export default function StateData({ stateData, setComponentList, id, errors, han
                 type="text"
                 fullWidth
                 onChange={handleChange}
-                error={stateDataError && stateDataErrorIndices.includes(index)}
+                error={stateDataError && (componentError(index) || uniquenessError(index))}
                 onBlur={handleBlur}
                 // Units are km
                 InputProps={{

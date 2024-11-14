@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 
 import NavDrawer from './components/NavDrawer';
-import Footer from './components/Footer';
 import ScenarioParameters from './components/ScenarioParameters';
 import TaskTable from './components/TaskTable';
 import ModelGraph from './components/ModelGraph';
@@ -49,6 +48,7 @@ export default function App() {
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [confirmationHandler, setConfirmationHandler] = useState(() => {});
   const [saveConfirmationModalOpen, setSaveConfirmationModalOpen] = useState(false);
+  const [simulationRunning, setSimulationRunning] = useState(false);
 
   // TO DO: Create context provider for all errors
   const [errorModalOpen, setErrorModalOpen] = useState(false);
@@ -321,6 +321,7 @@ export default function App() {
       appState={appState}
       filePath={filePath}
       hasUnsavedChanges={hasUnsavedChanges}
+      simulationRunning={simulationRunning}
     >
       <div className={`work-space ${navOpen ? 'work-space-nav-open' : 'work-space-nav-closed'}`} >
         {{'Scenario':
@@ -390,11 +391,14 @@ export default function App() {
           'Simulate':
             <SimulateStep
               navOpen={navOpen}
+              simulationRunning={simulationRunning}
+              setSimulationRunning={setSimulationRunning}
               setErrorMessage={setErrorMessage}
               setErrorModalOpen={setErrorModalOpen}
               setActiveStep={setActiveStep}
               setNavOpen={setNavOpen}
               appState={appState}
+              setValidationErrors={setValidationErrors}
               outputPath={simulationInput.dependencies.outputPath}
               scenarioErrors={scenarioErrors}
               tasksErrors={taskErrors}
@@ -407,10 +411,10 @@ export default function App() {
               constraints={constraints}
               evaluator={evaluator}
             />,
-          'Analyze': <Analyze
-            outputPath={simulationInput.dependencies.outputPath}
-            lastStartJD={simulationInput.simulationParameters.startJD}
-          />,
+          'Analyze':
+            <Analyze
+              outputPath={simulationInput.dependencies.outputPath}
+            />,
           }[activeStep]}
           {
             confirmationModalOpen && (

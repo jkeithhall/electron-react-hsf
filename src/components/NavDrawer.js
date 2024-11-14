@@ -75,6 +75,7 @@ const Drawer = styled(MuiDrawer, { shouldForwardProp: (prop) => prop !== 'open' 
 
 export default function NavDrawer({
   navOpen,
+  simulationRunning,
   toggleNav,
   activeStep,
   setActiveStep,
@@ -117,6 +118,7 @@ export default function NavDrawer({
             return (
               <ListItem key={step} disablePadding sx={{ display: 'block' }}>
                 <ListItemButton
+                  disabled={simulationRunning}
                   sx={{
                     minHeight: 50,
                     px: 2.5,

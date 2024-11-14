@@ -156,7 +156,7 @@ const buildOutputDir = () => {
 const fetchTimelineFiles = async (outputPath) => {
   try {
     const fileContents = await readdir(outputPath);
-    return fileContents.filter((file) => file.startsWith('output')).reverse();
+    return fileContents.filter((file) => file.startsWith('output') && file.endsWith('.txt')).reverse();
   } catch (error) {
     console.error('Error fetching timeline files:', error);
     throw error;
@@ -227,7 +227,6 @@ const buildInputFiles = async (browserWindow, fileContents) => {
 
 const saveJDValue = async (outputPath, fileName, startJD) => {
   const line = `${fileName},${startJD}\n`;
-  console.log(`Saving JD value: ${line} to ${join(outputPath, 'jdValues.csv')}`);
   appendFile(join(outputPath, 'jdValues.csv'), line, (err) => {
     console.error(err);
     throw err;
@@ -241,6 +240,15 @@ const saveFile = async (browserWindow, fileType, filePath, content, updateCache 
   if (fileType === 'SIM' && updateCache) {
     updateCurrentFile(browserWindow, filePath, content);
   }
+};
+
+const buildCzml = async (outputPath, fileName, content) => {
+  await writeFile(join(outputPath, fileName), content);
+};
+
+const fetchCzml = async (outputPath, fileName) => {
+  const content = await readFile(join(outputPath, fileName), { encoding: 'utf-8' });
+  return JSON.parse(content);
 };
 
 module.exports = {
@@ -261,6 +269,8 @@ module.exports = {
   fetchLatestStateData,
   buildInputFiles,
   saveJDValue,
+  buildCzml,
+  fetchCzml,
   updateCurrentFile,
   checkUnsavedChanges,
   showFileSelectDialog,

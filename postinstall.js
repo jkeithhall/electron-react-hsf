@@ -5,7 +5,8 @@ const fs = require('fs').promises;
 // Define the commands to run
 const commands = [
   'git submodule update --init --recursive',
-  'git checkout 5d3a10a'
+  'git checkout main',
+  'git pull origin main'
 ];
 
 // Function to execute a command

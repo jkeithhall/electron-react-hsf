@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import {
   GridRowModes,
   GridToolbarContainer,
@@ -9,9 +10,16 @@ import TaskExportButton from './TaskExportButton';
 import { randomId } from '@mui/x-data-grid-generator';
 import Button from '@mui/material/Button';
 import AddIcon from '@mui/icons-material/Add';
+import PublicIcon from '@mui/icons-material/Public';
+import Box from '@mui/material/Box';
+import Modal from '@mui/material/Modal';
+import { Viewer, CzmlDataSource } from "resium";
+import { addTaskPacketsToCzml } from '../utils/buildCzml';
 
+export default function TaskTableToolbar({taskList, setTaskList, setRowModesModel }) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [czmlData, setCzmlData] = useState([]);
 
-export default function TaskTableToolbar({setTaskList, setRowModesModel }) {
   const handleAddRowClick = () => {
     // Reset all rows to View mode
     setRowModesModel((oldModel) => {
@@ -59,6 +67,24 @@ export default function TaskTableToolbar({setTaskList, setRowModesModel }) {
     }));
   }
 
+  function handleModalOpen() {
+    setModalOpen(true);
+  }
+
+  function handleModalClose() {
+    setModalOpen(false);
+  }
+
+  useEffect(() => {
+    const newCzml = [{
+      id: "document",
+      name: `Target List - ${new Date().toISOString()}`,
+      version: "1.0",
+    }];
+    addTaskPacketsToCzml(newCzml, taskList);
+    setCzmlData(newCzml);
+  }, [taskList]);
+
   return (<GridToolbarContainer>
     <Button color="primary" size='small' startIcon={<AddIcon />} onClick={handleAddRowClick}>
       Add task
@@ -67,6 +93,28 @@ export default function TaskTableToolbar({setTaskList, setRowModesModel }) {
     <GridToolbarFilterButton color="primary"/>
     <GridToolbarDensitySelector color="primary"/>
     <TaskExportButton color="primary"/>
+    <Button color="primary" size='small' startIcon={<PublicIcon />} onClick={handleModalOpen}>
+      Globe
+    </Button>
+    <Modal
+      open={modalOpen}
+      onClose={handleModalClose}
+      aria-labelledby="modal-modal-title"
+      aria-describedby="modal-modal-description"
+    >
+      <Box className="cesium-modal">
+        <Box sx={{width: '100%'}}>
+          {czmlData.length > 0 &&
+            <Viewer
+              animation={false}
+              timeline={false}
+              fullscreenButton={false}
+            >
+              <CzmlDataSource data={czmlData} key={czmlData[0]?.name} />
+            </Viewer>}
+        </Box>
+      </Box>
+  </Modal>
   </GridToolbarContainer >
   );
 }

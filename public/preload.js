@@ -176,13 +176,36 @@ const api = {
     });
     ipcRenderer.send('run-simulation', inputFiles, outputFiles);
   },
+  abortSimulation: (callback) => {
+    ipcRenderer.removeAllListeners('abort-message');
+
+    ipcRenderer.on('abort-message', (_, error) => {
+      callback(error);
+    });
+    ipcRenderer.send('abort-simulation');
+  },
   saveJDValue: (outputPath, fileName, startJD, callback) => {
-    console.log('saveJDValue called in preload.js');
     ipcRenderer.removeAllListeners('jd-value-error');
 
     ipcRenderer.send('save-jd-value', outputPath, fileName, startJD);
     ipcRenderer.on('jd-value-error', (_, error) => {
       callback(error);
+    });
+  },
+  buildCzml: (outputPath, fileName, content, callback) => {
+    ipcRenderer.removeAllListeners('build-czml-error');
+
+    ipcRenderer.send('build-czml', outputPath, fileName, content);
+    ipcRenderer.on('build-czml-error', (_, error) => {
+      callback(error);
+    });
+  },
+  fetchCzmlData: (outputPath, fileName, callback) => {
+    ipcRenderer.removeAllListeners('cesium-data');
+
+    ipcRenderer.send('fetch-czml', outputPath, fileName);
+    ipcRenderer.on('cesium-data', (_, err, data) => {
+      callback(err, data);
     });
   },
   fetchTimelineFiles: async (outputPath, handleOutput) => {

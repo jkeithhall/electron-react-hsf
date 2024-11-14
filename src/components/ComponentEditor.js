@@ -156,6 +156,7 @@ export default function ComponentEditor ({
   }
 
   const currentNodeErrors = modelErrors[id] ? modelErrors[id] : {};
+  const noErrors = Object.keys(currentNodeErrors).length === 0 && Object.keys(constraintErrors).length === 0;
 
   return (
     <>
@@ -169,8 +170,8 @@ export default function ComponentEditor ({
           >
             {name ? name : ' '}
           </Typography>
-          <Box sx={{ position: 'absolute', right: 0 }}>
-            <Tooltip title="Copy component">
+          {noErrors && <Box sx={{ position: 'absolute', right: 0 }}>
+            <Tooltip title={`Copy ${className ? 'Component' : 'Asset'} to Clipboard`}>
               <IconButton
                 onClick={handleCopyClick}
                 color="secondary"
@@ -179,7 +180,7 @@ export default function ComponentEditor ({
                 <ContentCopyIcon />
               </IconButton>
             </Tooltip>
-          </Box>
+          </Box>}
         </Stack>
         {parent === undefined && <>
           <NameField
@@ -309,7 +310,7 @@ export default function ComponentEditor ({
           size="large"
           startIcon={<DeleteIcon/>}
           >
-            Delete Component
+            {`Delete ${data.className ? 'Component' : 'Asset'}`}
         </Button>
       </div>
       {confirmationModalOpen &&

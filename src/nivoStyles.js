@@ -1,8 +1,8 @@
-export const lineChartProps = (xAxisLegend, yAxisLegend) => {
+export const lineChartProps = (plotType, xAxisLegend, yAxisLegend, currentSeconds) => {
   return {
     margin: { top: 30, right: 20, bottom: 50, left: 70 },
     curve: "linear",
-    axisBottom:{
+    axisBottom: {
       tickSize: 5,
       tickPadding: 5,
       legend: xAxisLegend,
@@ -17,7 +17,15 @@ export const lineChartProps = (xAxisLegend, yAxisLegend) => {
     xScale: { type: 'linear' },
     yScale: { type: 'linear' },
     yFormat: " >-.4~f",
-    tooltip: ({ point }) => {
+    tooltip: (input) => {
+        let x, y;
+        if (plotType === 'scatterPlot') {
+            x = input.node.formattedX;
+            y = input.node.formattedY;
+        } else {
+            x = input.point.data.xFormatted;
+            y = input.point.data.yFormatted;
+        }
       return (
           <div
               style={{
@@ -29,8 +37,8 @@ export const lineChartProps = (xAxisLegend, yAxisLegend) => {
                   borderRadius: '3px',
               }}
           >
-              <div>x: {point.data.x}</div>
-              <div>y: {point.data.yFormatted}</div>
+              <div>{`x: ${x}`}</div>
+              <div>{`y: ${y}`}</div>
           </div>
       )
     },
@@ -38,6 +46,20 @@ export const lineChartProps = (xAxisLegend, yAxisLegend) => {
     pointSize: 6,
     enableTouchCrosshair: false,
     useMesh: true,
+    markers: [
+        {
+          axis: 'x',
+          legend: '',
+          legendOffsetX: 0, // Required field
+          legendOffsetY: 0, // Required field
+          legendOrientation: 'horizontal', // Required field
+          lineStyle: {
+            stroke: '#d32f2f',
+            strokeWidth: 2
+          },
+          value: currentSeconds
+        }
+      ],
     theme: {
       background: "#eee",
       text: {

@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { validateComponent } from '../utils/validateComponents';
+import { validateAllConstraints } from '../utils/validateConstraints';
 
 import NameField from './PaletteComponents/NameField';
 import ClassName from './PaletteComponents/ClassName';
@@ -29,19 +30,20 @@ export default function NewSubComponentEditor({
   pythonSrc,
   clipboardData,
 }) {
-  const [ id ] = useState(randomId());
-  const [ name, setName ] = useState('');
-  const [ className, setClassName ] = useState('power');
-  const [ parent, setParent ] = useState(() => {
+  const [id] = useState(randomId());
+  const [name, setName] = useState('');
+  const [className, setClassName] = useState('power');
+  const [parent, setParent] = useState(() => {
     const asset = componentList.find((component) => component.parent === undefined);
     return asset ? asset.id : null;
   });
-  const [ type, setType ] = useState('scripted');
-  const [ src, setSrc ] = useState(pythonSrc);
-  const [ states, setStates ] = useState([]);
-  const [ parameters, setParameters ] = useState([]);
-  const [ newNodeErrors, setNewNodeErrors ] = useState({});
-  const [ newConstraints, setNewConstraints ] = useState([]);
+  const [type, setType] = useState('scripted');
+  const [src, setSrc] = useState(pythonSrc);
+  const [states, setStates] = useState([]);
+  const [parameters, setParameters] = useState([]);
+  const [newNodeErrors, setNewNodeErrors] = useState({});
+  const [newConstraints, setNewConstraints] = useState([]);
+  const [newConstraintErrors, setNewConstraintErrors] = useState({});
   const constraintRefs = useRef({});
 
   const data = {
@@ -56,7 +58,8 @@ export default function NewSubComponentEditor({
   };
 
   const updateNewComponent = (updaterFunc) => {
-    // updaterFunc is a function that takes the current state (componentList) and returns an updated state (componentList of one new component)
+    // updaterFunc is a function that takes the current state (componentList)
+    // and returns an updated state (componentList of one new component)
     const [ updatedData ] = updaterFunc([data]);
     setName(updatedData.name);
     setClassName(updatedData.className);
@@ -78,6 +81,20 @@ export default function NewSubComponentEditor({
       setStates([...states]);
       setParameters([...parameters]);
 
+      const newComponent = {
+        id,
+        name,
+        className,
+        parent,
+        type,
+        src,
+        states,
+        parameters,
+      };
+      const newComponentList = [...componentList, newComponent];
+      // Validate the pasted component
+      validateComponent(newComponent, setNewNodeErrors, newComponentList, pythonSrc);
+
       // Copy constraints that are associated with the pasted component
       const copiedConstraints = constraints.filter((constraint) => constraint.subsystem === clipboardData.id).map((constraint) => {
         // Generate a new id for the copied constraint and use id of the new component as the subsystem id
@@ -85,13 +102,13 @@ export default function NewSubComponentEditor({
       })
       // Add the copied constraints to the list of new constraints
       setNewConstraints(copiedConstraints);
-      // Validate the parameters of the pasted component
-      validateComponent(clipboardData, setNewNodeErrors, componentList, src);
+      validateAllConstraints(copiedConstraints, setNewConstraintErrors, newComponentList);
     }
   }
 
   const handleBlur = () => {
-    validateComponent(data, setNewNodeErrors, componentList, pythonSrc);
+    const newComponentList = [...componentList, data];
+    validateComponent(data, setNewNodeErrors, newComponentList, pythonSrc);
   }
 
   const handleDragStart = (e) => {
@@ -110,6 +127,8 @@ export default function NewSubComponentEditor({
   parameters.forEach((parameter) => { componentKeys.push(parameter.name) });
 
   const currentNodeErrors = newNodeErrors[id] ? newNodeErrors[id] : {};
+  const noErrors = Object.keys(currentNodeErrors).length === 0 &&
+  Object.keys(newConstraintErrors).length === 0;
 
   return (
     <>
@@ -201,12 +220,16 @@ export default function NewSubComponentEditor({
             componentId={id}
             constraints={newConstraints}
             setConstraints={setNewConstraints}
-            setComponentList={setComponentList}
+            componentList={[...componentList, data]}
+            setComponentList={updateNewComponent}
+            errors={newConstraintErrors}
+            setErrors={setNewConstraintErrors}
             ref={constraintRefs.current}
         />}
       </Box>
       <div className="drag-drop-container" style={{ marginBottom: 120 }}>
-        {name && Object.keys(currentNodeErrors).length === 0 && <>
+        {name && noErrors &&
+        <>
           <Typography variant="body2" color="light" mt={2} >{'Drag and drop this component into the model.'}</Typography>
           <div className="new-node-origin">
             <Card

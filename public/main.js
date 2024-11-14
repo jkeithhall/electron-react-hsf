@@ -15,6 +15,8 @@ const {
   fetchLatestStateData,
   buildInputFiles,
   saveJDValue,
+  buildCzml,
+  fetchCzml,
   updateCurrentFile,
   checkUnsavedChanges,
   showFileSelectDialog } = require('./fileHandlers');
@@ -238,6 +240,8 @@ ipcMain.handle('start-docker', async () => {
   }
 });
 
+let simulation;
+
 ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
   const { simulationFile, tasksFile, modelFile } = inputFiles;
@@ -281,7 +285,7 @@ ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
     };
 
     // Execute the command in spawned child process
-    const simulation = spawn(command, args, options);
+    simulation = spawn(command, args, options);
 
     simulation.stdout.on('data', (data) => {
       console.log(data.toString());
@@ -325,12 +329,42 @@ ipcMain.on('run-simulation', (event, inputFiles, outputDir) => {
   }
 });
 
+ipcMain.on('abort-simulation', (event) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  try {
+    if (simulation) {
+      console.log('Aborting simulation');
+      simulation.kill();
+      simulation = null;
+      browserWindow.webContents.send('abort-message', 'Simulation aborted');
+    }
+  } catch (error) {
+    console.error(error);
+    browserWindow.webContents.send('abort-message', error);
+  }
+});
+
 ipcMain.on('save-jd-value', (event, outputPath, fileName, startJD) => {
-  console.log('save-jd-value called in main.js');
   const browserWindow = BrowserWindow.fromWebContents(event.sender);
 
   saveJDValue(outputPath, fileName, startJD)
     .catch((error) => browserWindow.webContents.send('jd-value-error', error));
+});
+
+ipcMain.on('build-czml', (event, outputPath, fileName, content) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  buildCzml(outputPath, fileName, content)
+    .catch((error) => browserWindow.webContents.send('build-czml-error', error));
+});
+
+ipcMain.on('fetch-czml', (event, outputPath, fileName) => {
+  const browserWindow = BrowserWindow.fromWebContents(event.sender);
+
+  fetchCzml(outputPath, fileName)
+    .then((data) => browserWindow.webContents.send('cesium-data', null, data))
+    .catch((error) => browserWindow.webContents.send('cesium-data', error, null));
 });
 
 ipcMain.on('fetch-timeline-files', (event, outputPath) => {

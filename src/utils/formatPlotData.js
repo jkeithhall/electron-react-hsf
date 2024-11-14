@@ -1,6 +1,6 @@
 import { julianToDate } from './julianConversion';
 
-export default async function formatPlotData(content, startJD, useUTC = true) {
+export default async function formatPlotData(content, startJD) {
   const lines = content.split('\n');
   const plotData = [{
     id: lines[0].split(',')[1],
@@ -10,7 +10,7 @@ export default async function formatPlotData(content, startJD, useUTC = true) {
   let earliestTime = Number.POSITIVE_INFINITY;
   let latestTime = Number.NEGATIVE_INFINITY;
 
-  const dayJS = await julianToDate(startJD, useUTC);
+  const dayJS = await julianToDate(startJD, true /* use UTC */);
   const xAxisLegend = dayJS.format('YYYY-MM-DD HH:mm:ss');
   const yAxisLegend = lines[0].split(',')[1];
 
@@ -29,6 +29,5 @@ export default async function formatPlotData(content, startJD, useUTC = true) {
     });
   });
 
-  const timeRange = latestTime - earliestTime;
-  return { plotData, xAxisLegend, yAxisLegend, timeRange };
+  return { plotData, xAxisLegend, yAxisLegend };
 }

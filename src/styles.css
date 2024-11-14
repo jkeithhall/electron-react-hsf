@@ -270,6 +270,21 @@ header {
     - 2 * var(--work-space-padding));
 }
 
+.cesium-modal {
+    background-color: rgba(255, 255, 255, 0.7);
+    width: 900px;
+    height: 460px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -40%);
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+}
+
 .constraints-table {
     min-height: 200px;
     min-width: 700px;
@@ -437,10 +452,17 @@ header {
     gap: var(--confirm-close-gap);
 }
 
-.analyze-timeline {
-    background-color: var(--secondary--background-color);
-    width: 100%;
-    height: 300;
+.timeline-container {
+    background-color: #eee;
+    padding: 15;
+    text-align: left;
+}
+
+#cesiumContainer {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
 }
 
 .overlay {
