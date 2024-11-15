@@ -1,14 +1,15 @@
-import { validateScenario } from './validateScenario';
-import { validateAllTasks } from './validateTasks';
-import { validateAllComponents } from './validateComponents';
-import { validateAllDependencies } from './validateDependencies';
-import { validateAllConstraints } from './validateConstraints';
-import { validateEvaluator } from './validateEvaluator';
+import { validateScenario } from "./validateScenario";
+import { validateAllTasks } from "./validateTasks";
+import { validateAllComponents } from "./validateComponents";
+import { validateAllDependencies } from "./validateDependencies";
+import { validateAllConstraints } from "./validateConstraints";
+import { validateEvaluator } from "./validateEvaluator";
 
 export default function ValidateSimInputs(
   appState,
   setValidationErrors,
-  throwable = false) {
+  throwable = false,
+) {
   const {
     simulationInput,
     taskList,
@@ -24,12 +25,28 @@ export default function ValidateSimInputs(
     setDependencyErrors,
     setConstraintErrors,
   } = setValidationErrors;
-  console.log('Validating all simulation inputs');
-  const { name, version, dependencies, simulationParameters, schedulerParameters } = simulationInput;
+  console.log("Validating all simulation inputs");
+  const {
+    name,
+    version,
+    dependencies,
+    simulationParameters,
+    schedulerParameters,
+  } = simulationInput;
   const { pythonSrc, outputPath } = dependencies;
-  const scenario = { name, version, pythonSrc, outputPath, ...simulationParameters, ...schedulerParameters };
+  const scenario = {
+    name,
+    version,
+    pythonSrc,
+    outputPath,
+    ...simulationParameters,
+    ...schedulerParameters,
+  };
   const pythonSourceFiles = componentList
-    .filter((component) => component.parent && component.type.toLowerCase() === 'scripted')
+    .filter(
+      (component) =>
+        component.parent && component.type.toLowerCase() === "scripted",
+    )
     .map((component) => component.src);
 
   validateScenario(scenario, setScenarioErrors, pythonSourceFiles);

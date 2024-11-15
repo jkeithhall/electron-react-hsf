@@ -1,34 +1,42 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react";
 
-import NavDrawer from './components/NavDrawer';
-import ScenarioParameters from './components/ScenarioParameters';
-import TaskTable from './components/TaskTable';
-import ModelGraph from './components/ModelGraph';
-import DependencyGraph from './components/DependencyGraph';
-import ConstraintsTable from './components/ConstraintsTable';
-import SimulateStep from './components/SimulateStep';
-import Analyze from './components/Analyze';
-import ConfirmationModal from './components/ConfirmationModal';
-import SaveConfirmationModal from './components/SaveConfirmationModal';
-import ErrorModal from './components/ErrorModal';
-import { useNodesState, useEdgesState } from 'reactflow';
+import NavDrawer from "./components/NavDrawer";
+import ScenarioParameters from "./components/ScenarioParameters";
+import TaskTable from "./components/TaskTable";
+import ModelGraph from "./components/ModelGraph";
+import DependencyGraph from "./components/DependencyGraph";
+import ConstraintsTable from "./components/ConstraintsTable";
+import SimulateStep from "./components/SimulateStep";
+import Analyze from "./components/Analyze";
+import ConfirmationModal from "./components/ConfirmationModal";
+import SaveConfirmationModal from "./components/SaveConfirmationModal";
+import ErrorModal from "./components/ErrorModal";
+import { useNodesState, useEdgesState } from "reactflow";
 
-import { initSimulationInput, aeolusSimulationInput } from './aeolus_config/initSimulationInput';
-import flattenedInitTasks from './aeolus_config/initTaskList';
-import initModel from './aeolus_config/initModel';
+import {
+  initSimulationInput,
+  aeolusSimulationInput,
+} from "./aeolus_config/initSimulationInput";
+import flattenedInitTasks from "./aeolus_config/initTaskList";
+import initModel from "./aeolus_config/initModel";
 
-import { parseModel } from './utils/parseModel';
-import parseJSONFile from './utils/parseJSONFile';
-import parseCSVFile from './utils/parseCSVFile';
-import buildDownloadJSON from './utils/buildDownloadJSON';
-import downloadCSV from './utils/downloadCSV';
-import { createModelNodesEdges } from './utils/createModelNodesEdges';
+import { parseModel } from "./utils/parseModel";
+import parseJSONFile from "./utils/parseJSONFile";
+import parseCSVFile from "./utils/parseCSVFile";
+import buildDownloadJSON from "./utils/buildDownloadJSON";
+import downloadCSV from "./utils/downloadCSV";
+import { createModelNodesEdges } from "./utils/createModelNodesEdges";
 
-const { systemComponents, systemDependencies, systemEvaluator, systemConstraints } = parseModel(initModel);
+const {
+  systemComponents,
+  systemDependencies,
+  systemEvaluator,
+  systemConstraints,
+} = parseModel(initModel);
 
 export default function App() {
   // Scenario and Tasks state variables
-  const [activeStep, setActiveStep] = useState('Scenario');
+  const [activeStep, setActiveStep] = useState("Scenario");
   const [simulationInput, setSimulationInput] = useState(aeolusSimulationInput);
   const [taskList, setTaskList] = useState(flattenedInitTasks);
 
@@ -39,15 +47,21 @@ export default function App() {
   const [constraints, setConstraints] = useState(systemConstraints);
 
   // React Flow state variables
-  const { initialNodes, initialEdges } = createModelNodesEdges(componentList, dependencyList);
-  const [modelNodes, setModelNodes, onModelNodesChange] = useNodesState(initialNodes);
-  const [modelEdges, setModelEdges, onModelEdgesChange] = useEdgesState(initialEdges);
+  const { initialNodes, initialEdges } = createModelNodesEdges(
+    componentList,
+    dependencyList,
+  );
+  const [modelNodes, setModelNodes, onModelNodesChange] =
+    useNodesState(initialNodes);
+  const [modelEdges, setModelEdges, onModelEdgesChange] =
+    useEdgesState(initialEdges);
 
-  const [filePath, setFilePath] = useState('');
+  const [filePath, setFilePath] = useState("");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [confirmationModalOpen, setConfirmationModalOpen] = useState(false);
   const [confirmationHandler, setConfirmationHandler] = useState(() => {});
-  const [saveConfirmationModalOpen, setSaveConfirmationModalOpen] = useState(false);
+  const [saveConfirmationModalOpen, setSaveConfirmationModalOpen] =
+    useState(false);
   const [simulationRunning, setSimulationRunning] = useState(false);
 
   // TO DO: Create context provider for all errors
@@ -60,25 +74,28 @@ export default function App() {
   const [constraintErrors, setConstraintErrors] = useState({});
 
   // States saved in file download/save
-  const appState = useMemo(() => ({
-    simulationInput,
-    taskList,
-    componentList,
-    dependencyList,
-    evaluator,
-    constraints,
-    modelNodes,
-    modelEdges,
-  }), [
-    simulationInput,
-    taskList,
-    componentList,
-    dependencyList,
-    evaluator,
-    constraints,
-    modelNodes,
-    modelEdges
-  ]);
+  const appState = useMemo(
+    () => ({
+      simulationInput,
+      taskList,
+      componentList,
+      dependencyList,
+      evaluator,
+      constraints,
+      modelNodes,
+      modelEdges,
+    }),
+    [
+      simulationInput,
+      taskList,
+      componentList,
+      dependencyList,
+      evaluator,
+      constraints,
+      modelNodes,
+      modelEdges,
+    ],
+  );
 
   // Bundling state methods
   const setAppStateMethods = {
@@ -98,16 +115,22 @@ export default function App() {
     setModelErrors,
     setDependencyErrors,
     setConstraintErrors,
-  }
+  };
 
   const navDrawerWidth = 220;
-  const [ navOpen, setNavOpen ] = useState(true);
+  const [navOpen, setNavOpen] = useState(true);
   const toggleNav = () => {
     setNavOpen(!navOpen);
-  }
+  };
 
   // Called when user selects a file to open OR upload using the Electron File Menu
-  function handleFileUpload(fileType, fileName, content, componentList, pythonSrc) {
+  function handleFileUpload(
+    fileType,
+    fileName,
+    content,
+    componentList,
+    pythonSrc,
+  ) {
     setConfirmationHandler(() => () => {
       handleUploadConfirm(
         fileType,
@@ -115,10 +138,11 @@ export default function App() {
         fileName,
         content,
         componentList,
-        pythonSrc);
+        pythonSrc,
+      );
     });
     setConfirmationModalOpen(true);
-  };
+  }
 
   function handleFileOpen(filePath, fileName, content) {
     setConfirmationHandler(() => () => openSimFile(filePath, content));
@@ -126,7 +150,7 @@ export default function App() {
   }
 
   function handleNewFile() {
-    setHasUnsavedChanges(hasUnsavedChanges => {
+    setHasUnsavedChanges((hasUnsavedChanges) => {
       if (hasUnsavedChanges) {
         setSaveConfirmationModalOpen(true);
       } else {
@@ -143,9 +167,9 @@ export default function App() {
     setDependencyList(systemDependencies);
     setEvaluator(systemEvaluator);
     setConstraints(systemConstraints);
-    setActiveStep('Scenario');
+    setActiveStep("Scenario");
     setSaveConfirmationModalOpen(false);
-    setFilePath('');
+    setFilePath("");
     setHasUnsavedChanges(false);
     if (window.electronApi) {
       window.electronApi.resetCurrentFile();
@@ -167,16 +191,27 @@ export default function App() {
   ) {
     // Parse file content
     try {
-      switch(fileType) {
-        case 'Scenario':
-          parseJSONFile(fileType, content, setAppStateMethods, setValidationErrors, componentList);
-          setActiveStep('Scenario');
+      switch (fileType) {
+        case "Scenario":
+          parseJSONFile(
+            fileType,
+            content,
+            setAppStateMethods,
+            setValidationErrors,
+            componentList,
+          );
+          setActiveStep("Scenario");
           break;
-        case 'Tasks':
-          parseJSONFile(fileType, content, setAppStateMethods, setValidationErrors);
-          setActiveStep('Tasks');
+        case "Tasks":
+          parseJSONFile(
+            fileType,
+            content,
+            setAppStateMethods,
+            setValidationErrors,
+          );
+          setActiveStep("Tasks");
           break;
-        case 'System Model':
+        case "System Model":
           parseJSONFile(
             fileType,
             content,
@@ -184,16 +219,16 @@ export default function App() {
             setValidationErrors,
             componentList,
             pythonSrc,
-            updateModelGraph
+            updateModelGraph,
           );
-          setActiveStep('System Model');
+          setActiveStep("System Model");
           break;
-        case 'CSV':
+        case "CSV":
           parseCSVFile(content, setTaskList, setTaskErrors);
-          setActiveStep('Tasks');
+          setActiveStep("Tasks");
           break;
         default:
-          throw new Error('Invalid file type');
+          throw new Error("Invalid file type");
       }
     } catch (error) {
       // If error, display error modal
@@ -215,7 +250,13 @@ export default function App() {
 
   function openSimFile(filePath, content) {
     try {
-      parseJSONFile('SIM', content, setAppStateMethods, setValidationErrors, componentList);
+      parseJSONFile(
+        "SIM",
+        content,
+        setAppStateMethods,
+        setValidationErrors,
+        componentList,
+      );
       setFilePath(filePath);
       setHasUnsavedChanges(false);
       window.electronApi.confirmFileOpened(filePath, content);
@@ -227,7 +268,7 @@ export default function App() {
       // Always close modal and reset selected file
       setConfirmationModalOpen(false);
       setConfirmationHandler(() => {});
-      setActiveStep('Scenario');
+      setActiveStep("Scenario");
     }
   }
 
@@ -239,7 +280,10 @@ export default function App() {
   }
 
   function updateModelGraph(componentList, dependencyList) {
-    const { initialNodes, initialEdges } = createModelNodesEdges(componentList, dependencyList);
+    const { initialNodes, initialEdges } = createModelNodesEdges(
+      componentList,
+      dependencyList,
+    );
     setModelNodes(initialNodes);
     setModelEdges(initialEdges);
   }
@@ -257,32 +301,40 @@ export default function App() {
         modelEdges,
       } = appState;
 
-      const content = JSON.stringify({
-        simulationInput,
-        taskList,
-        componentList,
-        dependencyList,
-        evaluator,
-        constraints,
-        modelNodes,
-        modelEdges,
-      }, null, 2);
+      const content = JSON.stringify(
+        {
+          simulationInput,
+          taskList,
+          componentList,
+          dependencyList,
+          evaluator,
+          constraints,
+          modelNodes,
+          modelEdges,
+        },
+        null,
+        2,
+      );
       window.electronApi.saveCurrentFile(content, updateCache);
-      window.electronApi.onSaveConfirm(setFilePath, setHasUnsavedChanges, callback);
+      window.electronApi.onSaveConfirm(
+        setFilePath,
+        setHasUnsavedChanges,
+        callback,
+      );
     }
-  };
+  }
 
   function handleSaveReset(resetFile, appState) {
     handleSaveFile(resetFile, true, appState);
   }
 
   async function handleFileDownload(fileType, appState) {
-    if (fileType === 'CSV') {
+    if (fileType === "CSV") {
       downloadCSV(appState.taskList);
     } else {
       return await buildDownloadJSON(fileType, appState);
     }
-  };
+  }
 
   useEffect(() => {
     if (window.electronApi) {
@@ -293,14 +345,23 @@ export default function App() {
       window.electronApi.onRevert(openSimFile);
       window.electronApi.notifyRenderComplete();
     }
-  }, []);  // Register event handlers only on first render (empty dependency array)
+  }, []); // Register event handlers only on first render (empty dependency array)
 
   useEffect(() => {
     setHasUnsavedChanges(true);
     if (window.electronApi) {
-      window.electronApi.onFileUpload(handleFileUpload, componentList, simulationInput.dependencies.pythonSrc);
+      window.electronApi.onFileUpload(
+        handleFileUpload,
+        componentList,
+        simulationInput.dependencies.pythonSrc,
+      );
       window.electronApi.hasUnsavedChanges(true);
-      window.electronApi.onSaveFileClick(handleSaveFile, () => {}, true, appState);
+      window.electronApi.onSaveFileClick(
+        handleSaveFile,
+        () => {},
+        true,
+        appState,
+      );
       window.electronApi.onAutoSave(handleSaveFile, () => {}, true, appState);
       window.electronApi.onFileDownload(handleFileDownload, appState);
     }
@@ -323,135 +384,143 @@ export default function App() {
       hasUnsavedChanges={hasUnsavedChanges}
       simulationRunning={simulationRunning}
     >
-      <div className={`work-space ${navOpen ? 'work-space-nav-open' : 'work-space-nav-closed'}`} >
-        {{'Scenario':
-            <ScenarioParameters
-              activeStep={activeStep}
-              setActiveStep={setActiveStep}
-              simulationInput={simulationInput}
-              setSimulationInput={setSimulationInput}
-              componentList={componentList}
-              evaluator={evaluator}
-              setEvaluator={setEvaluator}
-              formErrors={scenarioErrors}
-              setFormErrors={setScenarioErrors}
-            />,
-          'Tasks':
-            <TaskTable
-              navOpen={navOpen}
-              taskList={taskList}
-              setTaskList={setTaskList}
-              taskErrors={taskErrors}
-              setTaskErrors={setTaskErrors}
-            />,
-          'System Model':
-            <ModelGraph
-              navOpen={navOpen}
-              activeStep={activeStep}
-              setActiveStep={setActiveStep}
-              pythonSrc={simulationInput.dependencies.pythonSrc}
-              componentList={componentList}
-              setComponentList={setComponentList}
-              dependencyList={dependencyList}
-              setDependencyList={setDependencyList}
-              constraints={constraints}
-              setConstraints={setConstraints}
-              setEvaluator={setEvaluator}
-              nodes={modelNodes}
-              edges={modelEdges}
-              setNodes={setModelNodes}
-              setEdges={setModelEdges}
-              onNodesChange={onModelNodesChange}
-              onEdgesChange={onModelEdgesChange}
-              modelErrors={modelErrors}
-              setModelErrors={setModelErrors}
-              constraintErrors={constraintErrors}
-              setConstraintErrors={setConstraintErrors}
-              setErrorModalOpen={setErrorModalOpen}
-              setErrorMessage={setErrorMessage}
-            />,
-          'Dependencies':
-            <DependencyGraph
-              navOpen={navOpen}
-              componentList={componentList}
-              dependencyList={dependencyList}
-              setDependencyList={setDependencyList}
-              dependencyErrors={dependencyErrors}
-              setDependencyErrors={setDependencyErrors}
-            />,
-          'Constraints':
-            <ConstraintsTable
-              navOpen={navOpen}
-              constraints={constraints}
-              setConstraints={setConstraints}
-              componentList={componentList}
-              constraintErrors={constraintErrors}
-              setConstraintErrors={setConstraintErrors}
-            />,
-          'Simulate':
-            <SimulateStep
-              navOpen={navOpen}
-              simulationRunning={simulationRunning}
-              setSimulationRunning={setSimulationRunning}
-              setErrorMessage={setErrorMessage}
-              setErrorModalOpen={setErrorModalOpen}
-              setActiveStep={setActiveStep}
-              setNavOpen={setNavOpen}
-              appState={appState}
-              setValidationErrors={setValidationErrors}
-              outputPath={simulationInput.dependencies.outputPath}
-              scenarioErrors={scenarioErrors}
-              tasksErrors={taskErrors}
-              modelErrors={modelErrors}
-              dependencyErrors={dependencyErrors}
-              constraintsErrors={constraintErrors}
-              taskList={taskList}
-              componentList={componentList}
-              dependencyList={dependencyList}
-              constraints={constraints}
-              evaluator={evaluator}
-            />,
-          'Analyze':
-            <Analyze
-              outputPath={simulationInput.dependencies.outputPath}
-            />,
-          }[activeStep]}
+      <div
+        className={`work-space ${navOpen ? "work-space-nav-open" : "work-space-nav-closed"}`}
+      >
+        {
           {
-            confirmationModalOpen && (
-            <div className='stacking-context'>
-              <ConfirmationModal
-                title={'Overwrite parameters?'}
-                message={'Are you sure you want to overwrite with the current file?'}
-                onConfirm={confirmationHandler}
-                onCancel={() => handleUploadCancel()}
-                confirmText={'Confirm'}
-                cancelText={'Cancel'}
+            Scenario: (
+              <ScenarioParameters
+                activeStep={activeStep}
+                setActiveStep={setActiveStep}
+                simulationInput={simulationInput}
+                setSimulationInput={setSimulationInput}
+                componentList={componentList}
+                evaluator={evaluator}
+                setEvaluator={setEvaluator}
+                formErrors={scenarioErrors}
+                setFormErrors={setScenarioErrors}
               />
-            </div>)
-          }
-          {
-            saveConfirmationModalOpen && (
-            <div className='stacking-context'>
-              <SaveConfirmationModal
-                onSaveConfirm={() => handleSaveReset(resetFile, appState)}
-                onDontSaveConfirm={() => handleDontSaveReset()}
-                onClose={() => setSaveConfirmationModalOpen(false)}
+            ),
+            Tasks: (
+              <TaskTable
+                navOpen={navOpen}
+                taskList={taskList}
+                setTaskList={setTaskList}
+                taskErrors={taskErrors}
+                setTaskErrors={setTaskErrors}
               />
-            </div>)
-          }
-          {
-            errorModalOpen && (
-            <div className='stacking-context'>
-              <ErrorModal
-                title={Error}
-                message={errorMessage}
-                onConfirm={() => setErrorModalOpen(false)}
+            ),
+            "System Model": (
+              <ModelGraph
+                navOpen={navOpen}
+                activeStep={activeStep}
+                setActiveStep={setActiveStep}
+                pythonSrc={simulationInput.dependencies.pythonSrc}
+                componentList={componentList}
+                setComponentList={setComponentList}
+                dependencyList={dependencyList}
+                setDependencyList={setDependencyList}
+                constraints={constraints}
+                setConstraints={setConstraints}
+                setEvaluator={setEvaluator}
+                nodes={modelNodes}
+                edges={modelEdges}
+                setNodes={setModelNodes}
+                setEdges={setModelEdges}
+                onNodesChange={onModelNodesChange}
+                onEdgesChange={onModelEdgesChange}
+                modelErrors={modelErrors}
+                setModelErrors={setModelErrors}
+                constraintErrors={constraintErrors}
+                setConstraintErrors={setConstraintErrors}
+                setErrorModalOpen={setErrorModalOpen}
+                setErrorMessage={setErrorMessage}
               />
-            </div>)
-          }
+            ),
+            Dependencies: (
+              <DependencyGraph
+                navOpen={navOpen}
+                componentList={componentList}
+                dependencyList={dependencyList}
+                setDependencyList={setDependencyList}
+                dependencyErrors={dependencyErrors}
+                setDependencyErrors={setDependencyErrors}
+              />
+            ),
+            Constraints: (
+              <ConstraintsTable
+                navOpen={navOpen}
+                constraints={constraints}
+                setConstraints={setConstraints}
+                componentList={componentList}
+                constraintErrors={constraintErrors}
+                setConstraintErrors={setConstraintErrors}
+              />
+            ),
+            Simulate: (
+              <SimulateStep
+                navOpen={navOpen}
+                simulationRunning={simulationRunning}
+                setSimulationRunning={setSimulationRunning}
+                setErrorMessage={setErrorMessage}
+                setErrorModalOpen={setErrorModalOpen}
+                setActiveStep={setActiveStep}
+                setNavOpen={setNavOpen}
+                appState={appState}
+                setValidationErrors={setValidationErrors}
+                outputPath={simulationInput.dependencies.outputPath}
+                scenarioErrors={scenarioErrors}
+                tasksErrors={taskErrors}
+                modelErrors={modelErrors}
+                dependencyErrors={dependencyErrors}
+                constraintsErrors={constraintErrors}
+                taskList={taskList}
+                componentList={componentList}
+                dependencyList={dependencyList}
+                constraints={constraints}
+                evaluator={evaluator}
+              />
+            ),
+            Analyze: (
+              <Analyze outputPath={simulationInput.dependencies.outputPath} />
+            ),
+          }[activeStep]
+        }
+        {confirmationModalOpen && (
+          <div className="stacking-context">
+            <ConfirmationModal
+              title={"Overwrite parameters?"}
+              message={
+                "Are you sure you want to overwrite with the current file?"
+              }
+              onConfirm={confirmationHandler}
+              onCancel={() => handleUploadCancel()}
+              confirmText={"Confirm"}
+              cancelText={"Cancel"}
+            />
+          </div>
+        )}
+        {saveConfirmationModalOpen && (
+          <div className="stacking-context">
+            <SaveConfirmationModal
+              onSaveConfirm={() => handleSaveReset(resetFile, appState)}
+              onDontSaveConfirm={() => handleDontSaveReset()}
+              onClose={() => setSaveConfirmationModalOpen(false)}
+            />
+          </div>
+        )}
+        {errorModalOpen && (
+          <div className="stacking-context">
+            <ErrorModal
+              title={Error}
+              message={errorMessage}
+              onConfirm={() => setErrorModalOpen(false)}
+            />
+          </div>
+        )}
         {/* <Footer workspaceRef={workspaceRef} activeStep={activeStep} /> */}
       </div>
     </NavDrawer>
   );
 }
-

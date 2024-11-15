@@ -1,17 +1,20 @@
-import { useState, useEffect } from 'react';
-import { ReactFlowProvider, useNodesState, useEdgesState } from '@xyflow/react';
-import { randomId } from '@mui/x-data-grid-generator';
-import DependencyFlow from './DependencyFlow';
+import { useState, useEffect } from "react";
+import { ReactFlowProvider, useNodesState, useEdgesState } from "@xyflow/react";
+import { randomId } from "@mui/x-data-grid-generator";
+import DependencyFlow from "./DependencyFlow";
 
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import Paper from '@mui/material/Paper';
-import EditingPalette from './EditingPalette';
-import { createDependencyNodesEdges, depEdgeConfig } from '../utils/createDependencyNodesEdges';
+import Box from "@mui/material/Box";
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import Paper from "@mui/material/Paper";
+import EditingPalette from "./EditingPalette";
+import {
+  createDependencyNodesEdges,
+  depEdgeConfig,
+} from "../utils/createDependencyNodesEdges";
 
-import '@xyflow/react/dist/style.css';
+import "@xyflow/react/dist/style.css";
 
 export default function DependencyGraph({
   navOpen,
@@ -21,12 +24,17 @@ export default function DependencyGraph({
   dependencyErrors,
   setDependencyErrors,
 }) {
-  const { initialDependencyNodes, initialDependencyEdges } = createDependencyNodesEdges(componentList, dependencyList);
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialDependencyNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialDependencyEdges);
-  const [ componentA, setComponentA ] = useState(null);
-  const [ componentB, setComponentB ] = useState(null);
-  const [ paletteOpen, setPaletteOpen ] = useState(false);
+  const { initialDependencyNodes, initialDependencyEdges } =
+    createDependencyNodesEdges(componentList, dependencyList);
+  const [nodes, setNodes, onNodesChange] = useNodesState(
+    initialDependencyNodes,
+  );
+  const [edges, setEdges, onEdgesChange] = useEdgesState(
+    initialDependencyEdges,
+  );
+  const [componentA, setComponentA] = useState(null);
+  const [componentB, setComponentB] = useState(null);
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
   const selectNodes = (nodeIds) => {
     setNodes((prevNodes) => {
@@ -54,9 +62,12 @@ export default function DependencyGraph({
         // Add selected edges to the end of the list of edges and mark them as selected
         // (This is necessary because edges are svgs rendered in the order they appear in the list
         // and we want selected edges to be rendered on top of unselected edges)
-        return [...unselectedEdges, ...selectedEdges.map((edge) => {
-          return { ...edge, selected: true };
-        })];
+        return [
+          ...unselectedEdges,
+          ...selectedEdges.map((edge) => {
+            return { ...edge, selected: true };
+          }),
+        ];
       });
       handlePaletteOpen();
     } else {
@@ -67,7 +78,7 @@ export default function DependencyGraph({
       });
       handlePaletteClose();
     }
-  }
+  };
 
   const handleNodeClick = (e, node) => {
     const { id, data } = node;
@@ -81,15 +92,17 @@ export default function DependencyGraph({
         setComponentB(component);
         selectNodes([componentA.id, id]);
       }
-    } else { // 2 selected components
-      if (componentA !== component && componentB !== component) { // Clicked on a different component
+    } else {
+      // 2 selected components
+      if (componentA !== component && componentB !== component) {
+        // Clicked on a different component
         setComponentA(component);
         setComponentB(null);
         selectNodes([id]);
         handlePaletteClose();
       }
     }
-  }
+  };
 
   const handleEdgeClick = (e, edge) => {
     const { source, target } = edge;
@@ -101,7 +114,7 @@ export default function DependencyGraph({
     setComponentA(sourceComponent);
     setComponentB(targetComponent);
     selectNodes([source, target]);
-  }
+  };
 
   const onConnect = (params) => {
     const { source, target, sourceHandle, targetHandle } = params;
@@ -109,36 +122,43 @@ export default function DependencyGraph({
     if (source === target) return;
 
     // Edges must connect to the correct handles
-    if (sourceHandle === 'right' && targetHandle === 'bottom') return;
-    if (sourceHandle === 'left' && targetHandle === 'top') return;
+    if (sourceHandle === "right" && targetHandle === "bottom") return;
+    if (sourceHandle === "left" && targetHandle === "top") return;
 
     const id = randomId();
 
     setDependencyList((prevList) => {
-      return [...prevList, {
-        id,
-        depSubsystem: target,
-        subsystem: source,
-        asset: componentList.find((component) => component.id === source).parent,
-        depAsset: componentList.find((component) => component.id === target).parent,
-        fcnName: '',
-      }];
+      return [
+        ...prevList,
+        {
+          id,
+          depSubsystem: target,
+          subsystem: source,
+          asset: componentList.find((component) => component.id === source)
+            .parent,
+          depAsset: componentList.find((component) => component.id === target)
+            .parent,
+          fcnName: "",
+        },
+      ];
     });
     setEdges((prevEdges) => {
-      return [...prevEdges, {
-        id,
-        source,
-        target,
-        sourceHandle,
-        targetHandle,
-        data: '',
-        type: depEdgeConfig.type,
-        markerEnd: { ...depEdgeConfig.markerEnd },
-        style: { ...depEdgeConfig.style },
-      }];
+      return [
+        ...prevEdges,
+        {
+          id,
+          source,
+          target,
+          sourceHandle,
+          targetHandle,
+          data: "",
+          type: depEdgeConfig.type,
+          markerEnd: { ...depEdgeConfig.markerEnd },
+          style: { ...depEdgeConfig.style },
+        },
+      ];
     });
-
-  }
+  };
 
   const handlePaneClick = (e) => {
     setComponentA(null);
@@ -149,17 +169,24 @@ export default function DependencyGraph({
 
   const handlePaletteOpen = () => {
     setPaletteOpen(true);
-  }
+  };
 
   const handlePaletteClose = () => {
     setPaletteOpen(false);
-  }
+  };
 
   const handleComponentSelectChange = (e, index) => {
     index === 0 ? setComponentA(e.target.value) : setComponentB(e.target.value);
-  }
+  };
 
-  const graphEditorSize = navOpen && paletteOpen ? 'graph-editor-all-open' : navOpen ? 'graph-editor-nav-open' : paletteOpen ? 'graph-editor-palette-open' : 'graph-editor-all-closed';
+  const graphEditorSize =
+    navOpen && paletteOpen
+      ? "graph-editor-all-open"
+      : navOpen
+        ? "graph-editor-nav-open"
+        : paletteOpen
+          ? "graph-editor-palette-open"
+          : "graph-editor-all-closed";
 
   const assetNames = {};
   componentList.forEach((component) => {
@@ -189,69 +216,76 @@ export default function DependencyGraph({
           return { ...edge, selected: false };
         });
       });
-    }
+    };
   }, [componentA, componentB]);
 
   return (
     <>
       <Box className={`graph-editor ${graphEditorSize} dependency-editor`}>
         <Stack
-          direction='row'
+          direction="row"
           spacing={1}
           sx={{
-            justifyContent: 'space-around',
-            backgroundColor: '#EEEE',
-            padding: '10px',
-            margin: '10px',
-            borderRadius: '5px',
+            justifyContent: "space-around",
+            backgroundColor: "#EEEE",
+            padding: "10px",
+            margin: "10px",
+            borderRadius: "5px",
             width: 500,
-            }}
+          }}
         >
           <TextField
-            id='componentA'
-            label='Component 1'
-            variant='outlined'
-            color='primary'
-            value={componentA || ''}
-            name='componentA'
+            id="componentA"
+            label="Component 1"
+            variant="outlined"
+            color="primary"
+            value={componentA || ""}
+            name="componentA"
             select
-            align='left'
+            align="left"
             onChange={(e) => handleComponentSelectChange(e, 0)}
-            sx={{ width: 230, backgroundColor: '#EEE', margin: 1 }}
+            sx={{ width: 230, backgroundColor: "#EEE", margin: 1 }}
           >
             {componentList
-              .filter((component) => component.parent && component.id !== componentB?.id)
+              .filter(
+                (component) =>
+                  component.parent && component.id !== componentB?.id,
+              )
               .map((component) => (
                 <MenuItem key={component.id} value={component}>
                   {`${component.name} (${assetNames[component.parent]})`}
                 </MenuItem>
-              ))
-            }
+              ))}
           </TextField>
           <TextField
-            id='componentB'
-            label='Component 2'
-            variant='outlined'
-            color='primary'
-            value={componentB || ''}
-            name='componentB'
+            id="componentB"
+            label="Component 2"
+            variant="outlined"
+            color="primary"
+            value={componentB || ""}
+            name="componentB"
             select
-            align='left'
+            align="left"
             onChange={(e) => handleComponentSelectChange(e, 1)}
-            sx={{ width: 230, backgroundColor: '#EEE', margin: 1 }}
+            sx={{ width: 230, backgroundColor: "#EEE", margin: 1 }}
           >
             {componentList
-              .filter((component) => component.parent && component.id !== componentA?.id)
+              .filter(
+                (component) =>
+                  component.parent && component.id !== componentA?.id,
+              )
               .map((component) => (
                 <MenuItem key={component.id} value={component}>
                   {`${component.name} (${assetNames[component.parent]})`}
                 </MenuItem>
-              ))
-            }
+              ))}
           </TextField>
         </Stack>
-        <Paper className="react-flow-board dependency-flow-board" sx={{ backgroundColor: '#282D3D', padding: '10px' }}>
-          <div style={{ width: '100%', height: '100%' }}>
+        <Paper
+          className="react-flow-board dependency-flow-board"
+          sx={{ backgroundColor: "#282D3D", padding: "10px" }}
+        >
+          <div style={{ width: "100%", height: "100%" }}>
             <ReactFlowProvider>
               <DependencyFlow
                 nodes={nodes}
@@ -267,11 +301,11 @@ export default function DependencyGraph({
           </div>
         </Paper>
       </Box>
-      {paletteOpen &&
+      {paletteOpen && (
         <EditingPalette
           componentA={componentA}
           componentB={componentB}
-          editingMode={'dependencyEditor'}
+          editingMode={"dependencyEditor"}
           paletteOpen={paletteOpen}
           componentList={componentList}
           setEdges={setEdges}
@@ -281,7 +315,7 @@ export default function DependencyGraph({
           setDependencyErrors={setDependencyErrors}
           handlePaletteClose={handlePaletteClose}
         />
-      }
+      )}
     </>
   );
 }

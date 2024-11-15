@@ -1,10 +1,19 @@
-import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
 
-const dynStateTypeOptions = ['STATIC_LLA', 'STATIC_ECI', 'PREDETERMINED_LLA', 'PREDETERMINED_ECI', 'DYNAMIC_LLA', 'DYNAMIC_ECI', 'STATIC_LVLH', 'NULL_STATE'];
+const dynStateTypeOptions = [
+  "STATIC_LLA",
+  "STATIC_ECI",
+  "PREDETERMINED_LLA",
+  "PREDETERMINED_ECI",
+  "DYNAMIC_LLA",
+  "DYNAMIC_ECI",
+  "STATIC_LVLH",
+  "NULL_STATE",
+];
 
-function DynamicStateType({ value, setComponentList, id, errors, handleBlur}) {
+function DynamicStateType({ value, setComponentList, id, errors, handleBlur }) {
   const handleChange = (e) => {
     let { name, value } = e.target;
 
@@ -17,27 +26,31 @@ function DynamicStateType({ value, setComponentList, id, errors, handleBlur}) {
         }
       });
     });
-  }
+  };
 
   return (
     <Grid item xs={6}>
       <TextField
         fullWidth
         id="dyn-state-select"
-        name='dynamicStateType'
+        name="dynamicStateType"
         select
         value={value.toUpperCase()}
         label="Dyn. State Type"
         onChange={handleChange}
-        align='left'
+        align="left"
         error={errors.dynamicStateType !== undefined}
         helperText={errors.dynamicStateType}
         onBlur={handleBlur}
       >
-        {dynStateTypeOptions.map((option) => <MenuItem key={option} value={option}>{option}</MenuItem>)}
+        {dynStateTypeOptions.map((option) => (
+          <MenuItem key={option} value={option}>
+            {option}
+          </MenuItem>
+        ))}
       </TextField>
     </Grid>
-  )
-};
+  );
+}
 
 export { DynamicStateType, dynStateTypeOptions };

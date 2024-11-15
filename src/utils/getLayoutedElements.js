@@ -1,5 +1,5 @@
-import Dagre from '@dagrejs/dagre';
-import recenterAssets from './recenterAssets';
+import Dagre from "@dagrejs/dagre";
+import recenterAssets from "./recenterAssets";
 
 const g = new Dagre.graphlib.Graph().setDefaultEdgeLabel(() => ({}));
 
@@ -19,5 +19,8 @@ export default function getLayoutedElements(nodes, edges, options) {
     }),
     edges,
   };
-  return recenterAssets(dagreLayoutedElements.nodes, dagreLayoutedElements.edges);
-};
+  return recenterAssets(
+    dagreLayoutedElements.nodes,
+    dagreLayoutedElements.edges,
+  );
+}

@@ -4,7 +4,9 @@ function validatePythonFile(pythonDirectoryPath, filePath) {
 }
 
 function findInvalidPythonFiles(pythonDirectoryPath, filePaths) {
-  return filePaths.filter((file) => !validatePythonFile(pythonDirectoryPath, file));
+  return filePaths.filter(
+    (file) => !validatePythonFile(pythonDirectoryPath, file),
+  );
 }
 
 export { findInvalidPythonFiles, validatePythonFile };

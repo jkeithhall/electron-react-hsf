@@ -1,9 +1,8 @@
-import { useRef, useMemo } from 'react';
-import { Marker } from 'react-leaflet/Marker';
-
+import { useRef, useMemo } from "react";
+import { Marker } from "react-leaflet/Marker";
 
 export default function DraggableMarker({ position, setPosition }) {
-  const markerRef = useRef(null)
+  const markerRef = useRef(null);
   const eventHandlers = useMemo(
     () => ({
       dragend() {
@@ -18,14 +17,14 @@ export default function DraggableMarker({ position, setPosition }) {
       },
     }),
     [setPosition],
-  )
+  );
 
   return (
     <Marker
       draggable={true}
       eventHandlers={eventHandlers}
       position={position}
-      ref={markerRef}>
-    </Marker>
-  )
+      ref={markerRef}
+    ></Marker>
+  );
 }

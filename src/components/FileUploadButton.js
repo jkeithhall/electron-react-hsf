@@ -1,14 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-import ConfirmationModal from './ConfirmationModal';
-import ErrorModal from './ErrorModal';
-import Input from '@mui/material/Input';
-import Button from '@mui/material/Button';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
+import ConfirmationModal from "./ConfirmationModal";
+import ErrorModal from "./ErrorModal";
+import Input from "@mui/material/Input";
+import Button from "@mui/material/Button";
+import UploadFileIcon from "@mui/icons-material/UploadFile";
 
-import parseJSONFile from '../utils/parseJSONFile';
+import parseJSONFile from "../utils/parseJSONFile";
 
-export default function FileUploadButton({activeStep, setStateMethod}) {
+export default function FileUploadButton({ activeStep, setStateMethod }) {
   const [selectedFileName, setSelectedFileName] = useState(null);
   const [selectedFileType, setSelectedFileType] = useState(null);
   const [selectedFileContent, setSelectedFileContent] = useState(null);
@@ -34,7 +34,7 @@ export default function FileUploadButton({activeStep, setStateMethod}) {
       // Read file as text
       reader.readAsText(selectedFile);
     }
-  }
+  };
 
   // Called when user selects a file using the Electron File Menu or the in-browser upload button
   const handleFileUpload = (fileType, fileContent, fileName) => {
@@ -57,7 +57,7 @@ export default function FileUploadButton({activeStep, setStateMethod}) {
   const handleConfirm = (fileType, fileContent, fileName) => {
     // Parse file content
     try {
-      if (fileType === 'JSON') {
+      if (fileType === "JSON") {
         parseJSONFile(fileType, fileContent, setStateMethod);
       } else {
         // parseCSVFile(fileType, fileContent, setStateMethod);
@@ -73,12 +73,12 @@ export default function FileUploadButton({activeStep, setStateMethod}) {
       setConfirmationModalOpen(false);
 
       // Reset file input field so that new file can be selected
-      const fileInput = document.getElementById('fileInput');
+      const fileInput = document.getElementById("fileInput");
       if (fileInput) {
-        fileInput.value = '';
+        fileInput.value = "";
       }
     }
-  }
+  };
 
   // Called when user cancels file selection
   const handleCancel = () => {
@@ -88,49 +88,56 @@ export default function FileUploadButton({activeStep, setStateMethod}) {
     setConfirmationModalOpen(false);
 
     // Reset file input field so that new file can be selected
-    const fileInput = document.getElementById('fileInput');
+    const fileInput = document.getElementById("fileInput");
     if (fileInput) {
-      fileInput.value = '';
+      fileInput.value = "";
     }
-  }
-
+  };
 
   return (
     <>
       <Input
         type="file"
-        id='fileInput'
+        id="fileInput"
         onChange={handleFileChange}
-        style={{ display: 'none' }}
+        style={{ display: "none" }}
         mx={3}
       />
-      <label htmlFor='fileInput'>
+      <label htmlFor="fileInput">
         <Button
           variant="contained"
           component="span"
           startIcon={<UploadFileIcon />}
-          color='light'
+          color="light"
         >
           Upload File
         </Button>
       </label>
       {confirmationModalOpen && (
-      <div className='stacking-context'>
-        <ConfirmationModal
-          title={'Overwrite parameters?'}
-          message={`Are you sure you want to overwrite with current file?`}
-          onConfirm={() => handleConfirm(selectedFileType, selectedFileContent, selectedFileName)}
-          onCancel={handleCancel}
-        />
-      </div>)}
+        <div className="stacking-context">
+          <ConfirmationModal
+            title={"Overwrite parameters?"}
+            message={`Are you sure you want to overwrite with current file?`}
+            onConfirm={() =>
+              handleConfirm(
+                selectedFileType,
+                selectedFileContent,
+                selectedFileName,
+              )
+            }
+            onCancel={handleCancel}
+          />
+        </div>
+      )}
       {errorModalOpen && (
-      <div className='stacking-context'>
-        <ErrorModal
-          title={Error}
-          message={errorMessage}
-          onConfirm={() => setErrorModalOpen(false)}
-        />
-      </div>)}
+        <div className="stacking-context">
+          <ErrorModal
+            title={Error}
+            message={errorMessage}
+            onConfirm={() => setErrorModalOpen(false)}
+          />
+        </div>
+      )}
     </>
-  )
+  );
 }

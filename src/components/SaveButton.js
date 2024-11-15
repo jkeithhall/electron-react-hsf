@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
-import Button from '@mui/material/Button';
-import StyledMenu from './StyledMenu';
-import MenuItem from '@mui/material/MenuItem';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
-import buildDownloadBlob from '../utils/buildDownloadBlob';
-import downloadBlob from '../utils/downloadBlob';
-import buildDownloadJSON from '../utils/buildDownloadJSON';
+import { useState, useEffect } from "react";
+import Button from "@mui/material/Button";
+import StyledMenu from "./StyledMenu";
+import MenuItem from "@mui/material/MenuItem";
+import FileDownloadIcon from "@mui/icons-material/FileDownload";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import buildDownloadBlob from "../utils/buildDownloadBlob";
+import downloadBlob from "../utils/downloadBlob";
+import buildDownloadJSON from "../utils/buildDownloadJSON";
 
-export default function SaveButton({activeStep, activeStepState}) {
+export default function SaveButton({ activeStep, activeStepState }) {
   // State variables for form validation and errors
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
@@ -30,17 +30,18 @@ export default function SaveButton({activeStep, activeStepState}) {
     } else {
       // Otherwise, use the in-browser downloadBlob function
       const fileName = `${activeStep.toLowerCase()}.json`;
-      buildDownloadBlob(activeStep, activeStepState)
-      .then(blob => downloadBlob(blob, fileName));
+      buildDownloadBlob(activeStep, activeStepState).then((blob) =>
+        downloadBlob(blob, fileName),
+      );
     }
     // Close the menu
     handleSaveButtonClose();
-  }
+  };
 
   // TO DO: Implement handleSaveToCloud
   const handleSaveToCloud = () => {
     handleSaveButtonClose();
-  }
+  };
 
   // Register event handler for menu bar file download click
   useEffect(() => {
@@ -77,5 +78,5 @@ export default function SaveButton({activeStep, activeStepState}) {
         </MenuItem>
       </StyledMenu>
     </>
-  )
+  );
 }

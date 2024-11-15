@@ -1,11 +1,17 @@
-import { copyParameters } from './parseModel';
-import typecastNumbers from './typecastNumbers';
+import { copyParameters } from "./parseModel";
+import typecastNumbers from "./typecastNumbers";
 
-export default function reformatModel(componentList, dependencyList, constraints, parsedEvaluator) {
+export default function reformatModel(
+  componentList,
+  dependencyList,
+  constraints,
+  parsedEvaluator,
+) {
   const assets = [];
   // Reconstruct assets and their constraints
   componentList.forEach((component) => {
-    if (component.parent === undefined) { // Asset
+    if (component.parent === undefined) {
+      // Asset
       const asset = {
         id: component.id,
         name: component.name,
@@ -15,8 +21,12 @@ export default function reformatModel(componentList, dependencyList, constraints
           Eoms: {
             type: component.eomsType,
           },
-          integratorOptions: typecastNumbers({...component.integratorOptions}),
-          integratorParameters: typecastNumbers(copyParameters(component.integratorParameters)),
+          integratorOptions: typecastNumbers({
+            ...component.integratorOptions,
+          }),
+          integratorParameters: typecastNumbers(
+            copyParameters(component.integratorParameters),
+          ),
         },
         subsystems: [],
         constraints: [],
@@ -28,7 +38,8 @@ export default function reformatModel(componentList, dependencyList, constraints
 
   // Reconstruct subsystems
   componentList.forEach((component) => {
-    if (component.parent) { // Subsystem
+    if (component.parent) {
+      // Subsystem
       const subsystem = {
         id: component.id,
         name: component.name,
@@ -53,7 +64,7 @@ export default function reformatModel(componentList, dependencyList, constraints
             subsystemName: component.name,
             type: constraint.type,
             value: typecastNumbers(constraint.value),
-            state: {type: constraint.stateType, key: constraint.stateKey},
+            state: { type: constraint.stateType, key: constraint.stateKey },
           });
         }
       });
@@ -90,18 +101,22 @@ export default function reformatModel(componentList, dependencyList, constraints
   // Reconstruct evaluator
   const evaluator = {
     ...parsedEvaluator,
-    keyRequests: parsedEvaluator.keyRequests.map(({ asset, subsystem, type }) => {
-      const assetName = componentList.find((c) => c.id === asset).name;
-      const subsystemName = componentList.find((c) => c.id === subsystem).name;
-      return {
-        asset: assetName,
-        subsystem: subsystemName,
-        type,
-      };
-    }),
+    keyRequests: parsedEvaluator.keyRequests.map(
+      ({ asset, subsystem, type }) => {
+        const assetName = componentList.find((c) => c.id === asset).name;
+        const subsystemName = componentList.find(
+          (c) => c.id === subsystem,
+        ).name;
+        return {
+          asset: assetName,
+          subsystem: subsystemName,
+          type,
+        };
+      },
+    ),
   };
 
   return {
-    model: { assets, dependencies, evaluator }
+    model: { assets, dependencies, evaluator },
   };
 }

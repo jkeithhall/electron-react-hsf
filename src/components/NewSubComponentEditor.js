@@ -1,26 +1,26 @@
-import { useState, useRef } from 'react';
-import { validateComponent } from '../utils/validateComponents';
-import { validateAllConstraints } from '../utils/validateConstraints';
+import { useState, useRef } from "react";
+import { validateComponent } from "../utils/validateComponents";
+import { validateAllConstraints } from "../utils/validateConstraints";
 
-import NameField from './PaletteComponents/NameField';
-import ClassName from './PaletteComponents/ClassName';
-import SubsystemType from './PaletteComponents/SubsystemType';
-import ParentSelector from './PaletteComponents/ParentSelector';
-import SourceFile from './PaletteComponents/SourceFile';
-import SubsystemParameters from './PaletteComponents/SubsystemParameters';
-import SubsystemStates from './PaletteComponents/SubsystemStates';
-import { Constraints } from './PaletteComponents/Constraints';
+import NameField from "./PaletteComponents/NameField";
+import ClassName from "./PaletteComponents/ClassName";
+import SubsystemType from "./PaletteComponents/SubsystemType";
+import ParentSelector from "./PaletteComponents/ParentSelector";
+import SourceFile from "./PaletteComponents/SourceFile";
+import SubsystemParameters from "./PaletteComponents/SubsystemParameters";
+import SubsystemStates from "./PaletteComponents/SubsystemStates";
+import { Constraints } from "./PaletteComponents/Constraints";
 
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import Stack from '@mui/material/Stack';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import ContentPasteIcon from '@mui/icons-material/ContentPaste';
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import Stack from "@mui/material/Stack";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
+import ContentPasteIcon from "@mui/icons-material/ContentPaste";
 
-import { randomId } from '@mui/x-data-grid-generator';
+import { randomId } from "@mui/x-data-grid-generator";
 
 export default function NewSubComponentEditor({
   componentList,
@@ -31,13 +31,15 @@ export default function NewSubComponentEditor({
   clipboardData,
 }) {
   const [id] = useState(randomId());
-  const [name, setName] = useState('');
-  const [className, setClassName] = useState('power');
+  const [name, setName] = useState("");
+  const [className, setClassName] = useState("power");
   const [parent, setParent] = useState(() => {
-    const asset = componentList.find((component) => component.parent === undefined);
+    const asset = componentList.find(
+      (component) => component.parent === undefined,
+    );
     return asset ? asset.id : null;
   });
-  const [type, setType] = useState('scripted');
+  const [type, setType] = useState("scripted");
   const [src, setSrc] = useState(pythonSrc);
   const [states, setStates] = useState([]);
   const [parameters, setParameters] = useState([]);
@@ -60,7 +62,7 @@ export default function NewSubComponentEditor({
   const updateNewComponent = (updaterFunc) => {
     // updaterFunc is a function that takes the current state (componentList)
     // and returns an updated state (componentList of one new component)
-    const [ updatedData ] = updaterFunc([data]);
+    const [updatedData] = updaterFunc([data]);
     setName(updatedData.name);
     setClassName(updatedData.className);
     setParent(updatedData.parent);
@@ -68,11 +70,12 @@ export default function NewSubComponentEditor({
     setSrc(updatedData.src);
     setStates([...updatedData.states]);
     setParameters([...updatedData.parameters]);
-  }
+  };
 
   const handlePasteClick = () => {
     if (clipboardData) {
-      const { name, className, parent, type, src, states, parameters } = clipboardData;
+      const { name, className, parent, type, src, states, parameters } =
+        clipboardData;
       setName(name);
       setClassName(className);
       setParent(parent);
@@ -93,57 +96,87 @@ export default function NewSubComponentEditor({
       };
       const newComponentList = [...componentList, newComponent];
       // Validate the pasted component
-      validateComponent(newComponent, setNewNodeErrors, newComponentList, pythonSrc);
+      validateComponent(
+        newComponent,
+        setNewNodeErrors,
+        newComponentList,
+        pythonSrc,
+      );
 
       // Copy constraints that are associated with the pasted component
-      const copiedConstraints = constraints.filter((constraint) => constraint.subsystem === clipboardData.id).map((constraint) => {
-        // Generate a new id for the copied constraint and use id of the new component as the subsystem id
-        return { ...constraint, subsystem: id, id: randomId() }
-      })
+      const copiedConstraints = constraints
+        .filter((constraint) => constraint.subsystem === clipboardData.id)
+        .map((constraint) => {
+          // Generate a new id for the copied constraint and use id of the new component as the subsystem id
+          return { ...constraint, subsystem: id, id: randomId() };
+        });
       // Add the copied constraints to the list of new constraints
       setNewConstraints(copiedConstraints);
-      validateAllConstraints(copiedConstraints, setNewConstraintErrors, newComponentList);
+      validateAllConstraints(
+        copiedConstraints,
+        setNewConstraintErrors,
+        newComponentList,
+      );
     }
-  }
+  };
 
   const handleBlur = () => {
     const newComponentList = [...componentList, data];
     validateComponent(data, setNewNodeErrors, newComponentList, pythonSrc);
-  }
+  };
 
   const handleDragStart = (e) => {
-    e.dataTransfer.setData('application/reactflow', JSON.stringify({ data, newConstraints }));
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData(
+      "application/reactflow",
+      JSON.stringify({ data, newConstraints }),
+    );
+    e.dataTransfer.effectAllowed = "move";
   };
 
   const scrollToConstraint = (stateKey) => {
     if (constraintRefs.current[stateKey]) {
-      constraintRefs.current[stateKey].scrollIntoView({ behavior: 'smooth' });
+      constraintRefs.current[stateKey].scrollIntoView({ behavior: "smooth" });
     }
   };
 
-  const componentKeys = ['id', 'name', 'className', 'parent', 'type', 'src'];
-  states.forEach((state) => { componentKeys.push(state.key) });
-  parameters.forEach((parameter) => { componentKeys.push(parameter.name) });
+  const componentKeys = ["id", "name", "className", "parent", "type", "src"];
+  states.forEach((state) => {
+    componentKeys.push(state.key);
+  });
+  parameters.forEach((parameter) => {
+    componentKeys.push(parameter.name);
+  });
 
   const currentNodeErrors = newNodeErrors[id] ? newNodeErrors[id] : {};
-  const noErrors = Object.keys(currentNodeErrors).length === 0 &&
-  Object.keys(newConstraintErrors).length === 0;
+  const noErrors =
+    Object.keys(currentNodeErrors).length === 0 &&
+    Object.keys(newConstraintErrors).length === 0;
 
   return (
     <>
-      <Box sx={{ margin: '0 20px', padding: '10px', backgroundColor: '#eeeeee', borderRadius: '5px' }}>
-      {clipboardData && clipboardData.className !== 'asset' ?
-          <Stack direction="row" alignItems="center" sx={{ position: 'relative', width: '100%' }}>
+      <Box
+        sx={{
+          margin: "0 20px",
+          padding: "10px",
+          backgroundColor: "#eeeeee",
+          borderRadius: "5px",
+        }}
+      >
+        {clipboardData && clipboardData.className !== "asset" ? (
+          <Stack
+            direction="row"
+            alignItems="center"
+            sx={{ position: "relative", width: "100%" }}
+          >
             <Typography
               variant="h4"
               color="secondary"
               mt={2}
-              sx={{ flexGrow: 1, textAlign: 'center' }}
+              sx={{ flexGrow: 1, textAlign: "center" }}
             >
-              {'Create New Subcomponent'}
+              {"Create New Subcomponent"}
             </Typography>
-            <Box sx={{ position: 'absolute', right: 0 }}>
+            <Box sx={{ position: "absolute", right: 0 }}>
               <Tooltip title="Paste from clipboard">
                 <IconButton
                   onClick={handlePasteClick}
@@ -154,8 +187,12 @@ export default function NewSubComponentEditor({
                 </IconButton>
               </Tooltip>
             </Box>
-          </Stack> : <Typography variant="h4" color="secondary" mt={2}>{'Create New Subcomponent'}</Typography>
-        }
+          </Stack>
+        ) : (
+          <Typography variant="h4" color="secondary" mt={2}>
+            {"Create New Subcomponent"}
+          </Typography>
+        )}
         <NameField
           name={name}
           setComponentList={updateNewComponent}
@@ -167,7 +204,8 @@ export default function NewSubComponentEditor({
           <SubsystemType
             type={type}
             setComponentList={updateNewComponent}
-            id={id} errors={currentNodeErrors}
+            id={id}
+            errors={currentNodeErrors}
             handleBlur={handleBlur}
           />
           <ParentSelector
@@ -180,7 +218,7 @@ export default function NewSubComponentEditor({
             disabled={false}
           />
         </Grid>
-        {type === 'scripted' ?
+        {type === "scripted" ? (
           <SourceFile
             src={src}
             setComponentList={updateNewComponent}
@@ -188,7 +226,8 @@ export default function NewSubComponentEditor({
             pythonSrc={pythonSrc}
             errors={currentNodeErrors}
             handleBlur={handleBlur}
-          /> :
+          />
+        ) : (
           <ClassName
             className={className}
             id={id}
@@ -196,7 +235,7 @@ export default function NewSubComponentEditor({
             errors={currentNodeErrors}
             handleBlur={handleBlur}
           />
-        }
+        )}
         <SubsystemParameters
           parameters={parameters}
           id={id}
@@ -215,7 +254,8 @@ export default function NewSubComponentEditor({
           errors={currentNodeErrors}
           handleBlur={handleBlur}
         />
-        {states.length > 0 && <Constraints
+        {states.length > 0 && (
+          <Constraints
             states={states}
             componentId={id}
             constraints={newConstraints}
@@ -225,35 +265,41 @@ export default function NewSubComponentEditor({
             errors={newConstraintErrors}
             setErrors={setNewConstraintErrors}
             ref={constraintRefs.current}
-        />}
+          />
+        )}
       </Box>
       <div className="drag-drop-container" style={{ marginBottom: 120 }}>
-        {name && noErrors &&
-        <>
-          <Typography variant="body2" color="light" mt={2} >{'Drag and drop this component into the model.'}</Typography>
-          <div className="new-node-origin">
-            <Card
-              sx={{
-                display: 'flex',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginRight: '20px',
-                padding: '10px',
-                backgroundColor: '#eeeeee',
-                borderRadius: '5px',
-                height: 50,
-                width: 200,
-                cursor: 'grab',
-                gap: 1,
-              }}
-              onDragStart={handleDragStart}
-              draggable
-            >
-              <Typography variant="h6" color="secondary">{name}</Typography>
-            </Card>
-          </div>
-        </>}
+        {name && noErrors && (
+          <>
+            <Typography variant="body2" color="light" mt={2}>
+              {"Drag and drop this component into the model."}
+            </Typography>
+            <div className="new-node-origin">
+              <Card
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginRight: "20px",
+                  padding: "10px",
+                  backgroundColor: "#eeeeee",
+                  borderRadius: "5px",
+                  height: 50,
+                  width: 200,
+                  cursor: "grab",
+                  gap: 1,
+                }}
+                onDragStart={handleDragStart}
+                draggable
+              >
+                <Typography variant="h6" color="secondary">
+                  {name}
+                </Typography>
+              </Card>
+            </div>
+          </>
+        )}
       </div>
     </>
   );

@@ -1,9 +1,15 @@
-import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
 
-export default function SubsystemType({ type, setComponentList, id, errors, handleBlur }) {
-  const typeOptions = ['scripted', 'unscripted'];
+export default function SubsystemType({
+  type,
+  setComponentList,
+  id,
+  errors,
+  handleBlur,
+}) {
+  const typeOptions = ["scripted", "unscripted"];
 
   const handleChange = (e) => {
     let { name, value } = e.target;
@@ -17,28 +23,32 @@ export default function SubsystemType({ type, setComponentList, id, errors, hand
         }
       });
     });
-  }
+  };
 
   return (
     <Grid item xs={6}>
       <TextField
-        id='type'
-        key='type'
+        id="type"
+        key="type"
         fullWidth
-        label='Type'
+        label="Type"
         variant="outlined"
-        color='primary'
+        color="primary"
         value={type}
-        name='type'
+        name="type"
         select
-        align='left'
+        align="left"
         onChange={handleChange}
         error={errors.type !== undefined}
         helperText={errors.type}
         onBlur={handleBlur}
       >
-        {typeOptions.map((option) => <MenuItem key={option} value={option}>{option.toUpperCase()}</MenuItem>)}
+        {typeOptions.map((option) => (
+          <MenuItem key={option} value={option}>
+            {option.toUpperCase()}
+          </MenuItem>
+        ))}
       </TextField>
     </Grid>
-  )
+  );
 }

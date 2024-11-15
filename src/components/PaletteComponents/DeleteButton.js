@@ -1,9 +1,16 @@
-import { useEffect, useRef } from 'react';
-import IconButton from '@mui/material/IconButton';
-import Button from '@mui/material/Button';
-import RemoveCircleIcon from '@mui/icons-material/RemoveCircle';
+import { useEffect, useRef } from "react";
+import IconButton from "@mui/material/IconButton";
+import Button from "@mui/material/Button";
+import RemoveCircleIcon from "@mui/icons-material/RemoveCircle";
 
-export default function DeleteParameterButton({index, markedForDeletion, hovered, setHovered, setMarkedForDeletion, handleDeleteClicked}) {
+export default function DeleteParameterButton({
+  index,
+  markedForDeletion,
+  hovered,
+  setHovered,
+  setMarkedForDeletion,
+  handleDeleteClicked,
+}) {
   const buttonRef = useRef(null);
 
   const handleClickOutside = (e) => {
@@ -11,26 +18,29 @@ export default function DeleteParameterButton({index, markedForDeletion, hovered
       setHovered(-1);
       setMarkedForDeletion(-1);
     }
-  }
+  };
 
   useEffect(() => {
-    document.addEventListener('click', handleClickOutside);
+    document.addEventListener("click", handleClickOutside);
     return () => {
-      document.removeEventListener('click', handleClickOutside);
-    }
+      document.removeEventListener("click", handleClickOutside);
+    };
   }, []);
-
 
   if (markedForDeletion !== index) {
     return (
       <IconButton
         size="medium"
-        color={markedForDeletion === index || hovered === index ? 'error' : 'light.text'}
+        color={
+          markedForDeletion === index || hovered === index
+            ? "error"
+            : "light.text"
+        }
         onClick={(e) => handleDeleteClicked(e, index)}
         onMouseEnter={() => setHovered(index)}
         onMouseLeave={() => setHovered(-1)}
       >
-        <RemoveCircleIcon fontSize="inherit"/>
+        <RemoveCircleIcon fontSize="inherit" />
       </IconButton>
     );
   } else {
@@ -41,7 +51,9 @@ export default function DeleteParameterButton({index, markedForDeletion, hovered
         color="error"
         sx={{ paddingTop: 0, paddingLeft: 3 }}
         onClick={(e) => handleDeleteClicked(e, index)}
-        startIcon={<RemoveCircleIcon sx={{ '&.MuiSvgIcon-root': { fontSize: 20 }}}/>}
+        startIcon={
+          <RemoveCircleIcon sx={{ "&.MuiSvgIcon-root": { fontSize: 20 } }} />
+        }
         fontSize="inherit"
       >
         Confirm

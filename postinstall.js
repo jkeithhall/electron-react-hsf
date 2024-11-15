@@ -1,12 +1,12 @@
-const { exec } = require('child_process');
-const path = require('path');
-const fs = require('fs').promises;
+const { exec } = require("child_process");
+const path = require("path");
+const fs = require("fs").promises;
 
 // Define the commands to run
 const commands = [
-  'git submodule update --init --recursive',
-  'git checkout main',
-  'git pull origin main'
+  "git submodule update --init --recursive",
+  "git checkout main",
+  "git pull origin main",
 ];
 
 // Function to execute a command
@@ -40,11 +40,13 @@ async function createDirectory(dirPath) {
 async function runCommands() {
   try {
     await runCommand(commands[0], process.cwd());
-    await runCommand(commands[1], path.join(process.cwd(), 'Horizon'));
-    await createDirectory(path.join(process.cwd(), 'Horizon', 'output', 'HorizonLog'));
-    console.log('Postinstall script completed successfully.');
+    await runCommand(commands[1], path.join(process.cwd(), "Horizon"));
+    await createDirectory(
+      path.join(process.cwd(), "Horizon", "output", "HorizonLog"),
+    );
+    console.log("Postinstall script completed successfully.");
   } catch (error) {
-    console.error('Postinstall script failed.');
+    console.error("Postinstall script failed.");
     process.exit(1);
   }
 }

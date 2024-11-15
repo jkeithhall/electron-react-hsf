@@ -1,7 +1,7 @@
-import { randomId } from '@mui/x-data-grid-generator';
+import { randomId } from "@mui/x-data-grid-generator";
 
 const flattenTasks = ({ tasks }) => {
-  const flattenedTasks = tasks.map(task => {
+  const flattenedTasks = tasks.map((task) => {
     const { target, ...rest } = task;
     const { name, type, value, dynamicState } = target;
     const { integratorType, stateData, eoms } = dynamicState;
@@ -21,11 +21,24 @@ const flattenTasks = ({ tasks }) => {
     };
   });
   return flattenedTasks;
-}
+};
 
 const reformatTasks = (taskList) => {
-  return taskList.map(task => {
-    const { name, type, maxTimes, targetName, targetType, targetValue, dynamicStateType, integratorType, latitude, longitude, altitude, eomsType } = task;
+  return taskList.map((task) => {
+    const {
+      name,
+      type,
+      maxTimes,
+      targetName,
+      targetType,
+      targetValue,
+      dynamicStateType,
+      integratorType,
+      latitude,
+      longitude,
+      altitude,
+      eomsType,
+    } = task;
     return {
       name,
       type,
@@ -45,6 +58,6 @@ const reformatTasks = (taskList) => {
       },
     };
   });
-}
+};
 
 export { flattenTasks, reformatTasks };

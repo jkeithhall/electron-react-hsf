@@ -1,59 +1,76 @@
-import { useState } from 'react';
+import { useState } from "react";
 import {
   GridRowModes,
   DataGrid,
   GridActionsCellItem,
   GridRowEditStopReasons,
   GridToolbarContainer,
-} from '@mui/x-data-grid';
-import TextField from '@mui/material/TextField';
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
-import MenuItem from '@mui/material/MenuItem';
-import InputAdornment from '@mui/material/InputAdornment';
-import FolderIcon from '@mui/icons-material/Folder';
-import DeleteIcon from '@mui/icons-material/Delete';
-import Tooltip from '@mui/material/Tooltip';
-import ConfirmationModal from './ConfirmationModal';
+} from "@mui/x-data-grid";
+import TextField from "@mui/material/TextField";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import MenuItem from "@mui/material/MenuItem";
+import InputAdornment from "@mui/material/InputAdornment";
+import FolderIcon from "@mui/icons-material/Folder";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Tooltip from "@mui/material/Tooltip";
+import ConfirmationModal from "./ConfirmationModal";
 
-import Button from '@mui/material/Button';
-import AddIcon from '@mui/icons-material/Add';
+import Button from "@mui/material/Button";
+import AddIcon from "@mui/icons-material/Add";
 
-import { randomId } from '@mui/x-data-grid-generator';
-import { shortenPath } from '../utils/shortenPath.js';
-import { validateEvaluator } from '../utils/validateEvaluator';
-import { convertDisplayName } from '../utils/displayNames';
+import { randomId } from "@mui/x-data-grid-generator";
+import { shortenPath } from "../utils/shortenPath.js";
+import { validateEvaluator } from "../utils/validateEvaluator";
+import { convertDisplayName } from "../utils/displayNames";
 
-const evaluatorTypeOptions = [ 'scripted', 'TargetValueEvaluator', 'default' ];
+const evaluatorTypeOptions = ["scripted", "TargetValueEvaluator", "default"];
 
-function Evaluator ({ evaluator, setEvaluator, formErrors, setFormErrors, componentList, pythonDirectorySrc }) {
+function Evaluator({
+  evaluator,
+  setEvaluator,
+  formErrors,
+  setFormErrors,
+  componentList,
+  pythonDirectorySrc,
+}) {
   const { type, src, className, keyRequests } = evaluator;
-  const [ rowModesModel, setRowModesModel ] = useState({});
-  const [ confirmModalOpen, setConfirmModalOpen ] = useState(false);
-  const [ selectedRowId, setSelectedRowId ] = useState('');
-  const [ selectedKeyRequestName, setSelectedKeyRequestName ] = useState('');
+  const [rowModesModel, setRowModesModel] = useState({});
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [selectedRowId, setSelectedRowId] = useState("");
+  const [selectedKeyRequestName, setSelectedKeyRequestName] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEvaluator({ ...evaluator, [name]: value });
-  }
+  };
 
   const handleBlur = () => {
-    validateEvaluator(evaluator, setFormErrors, componentList, pythonDirectorySrc);
-  }
+    validateEvaluator(
+      evaluator,
+      setFormErrors,
+      componentList,
+      pythonDirectorySrc,
+    );
+  };
 
   const handleFileSelected = (filePath) => {
     setEvaluator((prevEvaluator) => {
       return { ...prevEvaluator, src: filePath };
     });
-    validateEvaluator({ ...evaluator, src: filePath }, setFormErrors, componentList, pythonDirectorySrc);
-  }
+    validateEvaluator(
+      { ...evaluator, src: filePath },
+      setFormErrors,
+      componentList,
+      pythonDirectorySrc,
+    );
+  };
 
   const handleFileClick = () => {
     if (window.electronApi) {
-      window.electronApi.selectFile(src, 'Python', handleFileSelected);
+      window.electronApi.selectFile(src, "Python", handleFileSelected);
     }
-  }
+  };
 
   const componentNames = componentList.reduce((acc, component) => {
     acc[component.id] = component.name;
@@ -68,9 +85,11 @@ function Evaluator ({ evaluator, setEvaluator, formErrors, setFormErrors, compon
     return acc;
   }, {});
 
-  const subsystemValueOptions = Object.entries(subsystemLabels).map(([id, label]) => {
-    return { value: id, label: label };
-  });
+  const subsystemValueOptions = Object.entries(subsystemLabels).map(
+    ([id, label]) => {
+      return { value: id, label: label };
+    },
+  );
 
   const handleRowModesModelChange = (newRowModesModel) => {
     setRowModesModel(newRowModesModel);
@@ -79,10 +98,17 @@ function Evaluator ({ evaluator, setEvaluator, formErrors, setFormErrors, compon
   // Update the row in the DataGrid
   const processRowUpdate = (newRow) => {
     const updatedRow = { ...newRow, isNew: false };
-    const asset = componentList.find((component) => component.id === newRow.subsystem).parent;
+    const asset = componentList.find(
+      (component) => component.id === newRow.subsystem,
+    ).parent;
     const newKeyRequest = { ...newRow, asset };
     delete newKeyRequest.isNew;
-    setEvaluator({ ...evaluator, keyRequests: keyRequests.map((keyreq) => (keyreq.id === newRow.id ? newKeyRequest : keyreq)) });
+    setEvaluator({
+      ...evaluator,
+      keyRequests: keyRequests.map((keyreq) =>
+        keyreq.id === newRow.id ? newKeyRequest : keyreq,
+      ),
+    });
     return updatedRow;
   };
 
@@ -107,52 +133,61 @@ function Evaluator ({ evaluator, setEvaluator, formErrors, setFormErrors, compon
   };
 
   const handleDeleteConfirm = (deleteRowId) => {
-    setEvaluator({ ...evaluator, keyRequests: keyRequests.filter((row) => row.id !== deleteRowId) });
-    setSelectedKeyRequestName('');
-    setSelectedRowId('');
+    setEvaluator({
+      ...evaluator,
+      keyRequests: keyRequests.filter((row) => row.id !== deleteRowId),
+    });
+    setSelectedKeyRequestName("");
+    setSelectedRowId("");
     setConfirmModalOpen(false);
   };
 
   const handleDeleteCancel = () => {
-    setSelectedKeyRequestName('');
-    setSelectedRowId('');
+    setSelectedKeyRequestName("");
+    setSelectedRowId("");
     setConfirmModalOpen(false);
   };
 
   const columns = [
     {
-      field: 'Delete Row Button',
-      type: 'actions',
-      headerName: '',
+      field: "Delete Row Button",
+      type: "actions",
+      headerName: "",
       width: 50,
-      cellClassName: 'actions',
+      cellClassName: "actions",
       getActions: ({ id }) => {
         return [
           <GridActionsCellItem
-            icon={<Tooltip title="Delete Key Request"><DeleteIcon /></Tooltip>}
+            icon={
+              <Tooltip title="Delete Key Request">
+                <DeleteIcon />
+              </Tooltip>
+            }
             label="Delete"
             onClick={() => handleDeleteClick(id)}
             color="inherit"
-          />
+          />,
         ];
       },
     },
     {
-      field: 'subsystem',
-      headerName: 'Subsystem',
-      type: 'singleSelect',
+      field: "subsystem",
+      headerName: "Subsystem",
+      type: "singleSelect",
       valueOptions: subsystemValueOptions,
       width: 250,
       editable: true,
       preProcessEditCellProps: (params) => {
-        const hasError = !Object.values(subsystemValueOptions).map(option => option.value).includes(params.props.value);
-        setFormErrors(prevErrors => {
+        const hasError = !Object.values(subsystemValueOptions)
+          .map((option) => option.value)
+          .includes(params.props.value);
+        setFormErrors((prevErrors) => {
           const updatedErrors = { ...prevErrors };
 
           if (hasError) {
             updatedErrors[params.id] = {
               ...updatedErrors[params.id],
-              subsystem: 'Subsystem must be selected',
+              subsystem: "Subsystem must be selected",
             };
           } else if (updatedErrors[params.id]) {
             delete updatedErrors[params.id].subsystem;
@@ -163,27 +198,29 @@ function Evaluator ({ evaluator, setEvaluator, formErrors, setFormErrors, compon
             }
           }
 
-            return updatedErrors;
-          });
-          return { ...params.props, error: hasError };
-      }
+          return updatedErrors;
+        });
+        return { ...params.props, error: hasError };
+      },
     },
     {
-      field: 'type',
-      headerName: 'Type',
-      type: 'singleSelect',
-      valueOptions: [ 'float', 'double', 'int' ],
+      field: "type",
+      headerName: "Type",
+      type: "singleSelect",
+      valueOptions: ["float", "double", "int"],
       width: 100,
       editable: true,
       preProcessEditCellProps: (params) => {
-        const hasError = ![ 'float', 'double', 'int' ].includes(params.props.value);
-        setFormErrors(prevErrors => {
+        const hasError = !["float", "double", "int"].includes(
+          params.props.value,
+        );
+        setFormErrors((prevErrors) => {
           const updatedErrors = { ...prevErrors };
 
           if (hasError) {
             updatedErrors[params.id] = {
               ...updatedErrors[params.id],
-              evaluatorType: 'Evaluator type must be selected',
+              evaluatorType: "Evaluator type must be selected",
             };
           } else if (updatedErrors[params.id]) {
             delete updatedErrors[params.id].evaluatorType;
@@ -194,35 +231,44 @@ function Evaluator ({ evaluator, setEvaluator, formErrors, setFormErrors, compon
             }
           }
 
-            return updatedErrors;
-          });
-          return { ...params.props, error: hasError };
-      }
+          return updatedErrors;
+        });
+        return { ...params.props, error: hasError };
+      },
     },
   ];
 
   return (
     <>
       {confirmModalOpen && (
-        <div className='stacking-context'>
+        <div className="stacking-context">
           <ConfirmationModal
-            title={'Remove Key Request?'}
+            title={"Remove Key Request?"}
             message={`Are you sure you want to remove the key request on ${selectedKeyRequestName}?`}
             onConfirm={() => handleDeleteConfirm(selectedRowId)}
             onCancel={handleDeleteCancel}
             confirmText={"Remove"}
             cancelText={"Cancel"}
           />
-      </div>)}
-      <Box sx={{ padding: '5px', backgroundColor: '#eeeeee', borderRadius: '5px', height: 500, overflow: 'scroll' }}>
+        </div>
+      )}
+      <Box
+        sx={{
+          padding: "5px",
+          backgroundColor: "#eeeeee",
+          borderRadius: "5px",
+          height: 500,
+          overflow: "scroll",
+        }}
+      >
         <Box my={1}>
           <TextField
             fullWidth
-            align='left'
-            label={'Type'}
+            align="left"
+            label={"Type"}
             variant="outlined"
-            color='primary'
-            name={'type'}
+            color="primary"
+            name={"type"}
             value={type}
             onChange={handleChange}
             select
@@ -235,35 +281,47 @@ function Evaluator ({ evaluator, setEvaluator, formErrors, setFormErrors, compon
           </TextField>
         </Box>
         <Box my={1}>
-          {type === 'scripted' ? <TextField
-            fullWidth
-            label={'Source File'}
-            variant="outlined"
-            color='primary'
-            name={src}
-            value={shortenPath(src, 50)}
-            type={'text'}
-            onClick={handleFileClick}
-            onBlur={handleBlur}
-            error={formErrors['src'] !== undefined}
-            helperText={formErrors['src']}
-            InputProps={{ endAdornment: <InputAdornment position="end"><FolderIcon /></InputAdornment> }}
-          /> : <TextField
-            fullWidth
-            label={'Class Name'}
-            variant="outlined"
-            color='primary'
-            name={'className'}
-            value={className}
-            type={'text'}
-            onChange={handleChange}
-            onBlur={handleBlur}
-            error={formErrors['className'] !== undefined}
-            helperText={formErrors['className']}
-          />}
+          {type === "scripted" ? (
+            <TextField
+              fullWidth
+              label={"Source File"}
+              variant="outlined"
+              color="primary"
+              name={src}
+              value={shortenPath(src, 50)}
+              type={"text"}
+              onClick={handleFileClick}
+              onBlur={handleBlur}
+              error={formErrors["src"] !== undefined}
+              helperText={formErrors["src"]}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <FolderIcon />
+                  </InputAdornment>
+                ),
+              }}
+            />
+          ) : (
+            <TextField
+              fullWidth
+              label={"Class Name"}
+              variant="outlined"
+              color="primary"
+              name={"className"}
+              value={className}
+              type={"text"}
+              onChange={handleChange}
+              onBlur={handleBlur}
+              error={formErrors["className"] !== undefined}
+              helperText={formErrors["className"]}
+            />
+          )}
         </Box>
         <Box my={1} sx={{ height: 309 }}>
-          <Typography variant="h6" my={1} color="secondary">Key Requests</Typography>
+          <Typography variant="h6" my={1} color="secondary">
+            Key Requests
+          </Typography>
           <DataGrid
             rows={keyRequests}
             columns={columns}
@@ -284,13 +342,13 @@ function Evaluator ({ evaluator, setEvaluator, formErrors, setFormErrors, compon
             slotProps={{
               toolbar: { setEvaluator, setRowModesModel },
             }}
-            sx={{ width: '100%', backgroundColor: '#eeeeee' }}
+            sx={{ width: "100%", backgroundColor: "#eeeeee" }}
             density="compact"
           />
         </Box>
       </Box>
     </>
-  )
+  );
 }
 
 function KeyRequestToolbar({ setEvaluator, setRowModesModel }) {
@@ -308,15 +366,19 @@ function KeyRequestToolbar({ setEvaluator, setRowModesModel }) {
     setEvaluator((prevEvaluator) => {
       return {
         ...prevEvaluator,
-        keyRequests: [{ id, subsystem: '', type: '', asset: '' }, ...prevEvaluator.keyRequests] };
+        keyRequests: [
+          { id, subsystem: "", type: "", asset: "" },
+          ...prevEvaluator.keyRequests,
+        ],
+      };
     });
-  }
+  };
 
   return (
     <GridToolbarContainer>
       <Button
         color="primary"
-        size='small'
+        size="small"
         startIcon={<AddIcon />}
         onClick={handleAddRowClick}
       >

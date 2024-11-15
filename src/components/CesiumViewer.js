@@ -1,15 +1,16 @@
-import { useEffect, useState } from 'react';
-import { Ion } from 'cesium';
+import { useEffect, useState } from "react";
+import { Ion } from "cesium";
 import { Viewer, CzmlDataSource, Clock, Globe } from "resium";
 
-Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIzZTUwYjViMy1jZGJlLTRkNDctYjU0Yi1hYTkxMzNmOTE3YjkiLCJpZCI6MjQ3MjY5LCJpYXQiOjE3Mjg2MDY4MDV9.KIky_Gm2xOVO2RkSUOiVDs8e_50JdBaJiosVa_brl04';
+Ion.defaultAccessToken =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiIzZTUwYjViMy1jZGJlLTRkNDctYjU0Yi1hYTkxMzNmOTE3YjkiLCJpZCI6MjQ3MjY5LCJpYXQiOjE3Mjg2MDY4MDV9.KIky_Gm2xOVO2RkSUOiVDs8e_50JdBaJiosVa_brl04";
 
 // onTick event fires every frame (60fps) even when the clock is paused
 // so we throttle it to only update every 100ms
 function throttle(callback, delay) {
   let lastCall = null;
 
-  return function(...args) {
+  return function (...args) {
     if (lastCall === null) {
       lastCall = new Date();
       callback.apply(this, args);
@@ -21,17 +22,19 @@ function throttle(callback, delay) {
         callback.apply(this, args);
       }
     }
-  }
+  };
 }
 
-export default function CesiumViewer({czmlData, handleClockTick}) {
+export default function CesiumViewer({ czmlData, handleClockTick }) {
   const [shadowsEnabled, setShadowsEnabled] = useState(false);
 
   useEffect(() => {
     // Poll for the element to exist in the DOM
     const interval = setInterval(() => {
       const toolbar = document.querySelector("div.cesium-viewer-toolbar");
-      const modeButton = document.querySelector("span.cesium-sceneModePicker-wrapper");
+      const modeButton = document.querySelector(
+        "span.cesium-sceneModePicker-wrapper",
+      );
 
       // When toolbar and modeButton exist, add the button and clear the interval
       if (toolbar && modeButton) {
@@ -68,7 +71,9 @@ export default function CesiumViewer({czmlData, handleClockTick}) {
 
         // Cleanup function to remove button and event listener on unmount
         return () => {
-          myButton.removeEventListener("click", () => setShadowsEnabled(!shadowsEnabled));
+          myButton.removeEventListener("click", () =>
+            setShadowsEnabled(!shadowsEnabled),
+          );
           myButton.remove();
         };
       }
@@ -83,7 +88,7 @@ export default function CesiumViewer({czmlData, handleClockTick}) {
       {/* CzmlDataSource must have a unique key for each data source to rerender appropriately. */}
       <CzmlDataSource data={czmlData} key={czmlData[0].name} />
       <Clock onTick={throttle(handleClockTick, 100)} />
-      <Globe enableLighting={shadowsEnabled} key={shadowsEnabled}/>
+      <Globe enableLighting={shadowsEnabled} key={shadowsEnabled} />
     </Viewer>
-  )
+  );
 }
