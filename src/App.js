@@ -519,7 +519,6 @@ export default function App() {
             />
           </div>
         )}
-        {/* <Footer workspaceRef={workspaceRef} activeStep={activeStep} /> */}
       </div>
     </NavDrawer>
   );

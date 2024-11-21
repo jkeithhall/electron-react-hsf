@@ -291,7 +291,9 @@ export default function SimulateStep({
               if (data.includes("Scheduler Status:")) {
                 setProgressValue(data);
               } else if (data.includes("Publishing simulation results to")) {
-                fileName = data.split("/").pop().split("\n")[0];
+                const dirSep = backend.directorySeparator;
+                const lineSep = backend.lineSeparator;
+                fileName = data.split(dirSep).pop().split(lineSep)[0];
               }
             }
           },

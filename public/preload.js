@@ -11,6 +11,7 @@ ipcRenderer.on("set-revert-status", (_, status) => {
 
 const api = {
   directorySeparator: process.platform === "win32" ? "\\" : "/",
+  lineSeparator: process.platform === "win32" ? "\r\n" : "\n",
   baseSrc: path.join(__dirname, "../Horizon/output"),
   pythonSrc: path.join(__dirname, "../Horizon/samples/Aeolus/pythonScripts"),
   getRelativePath: (from, to) => path.relative(from, to),

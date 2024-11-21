@@ -28,7 +28,7 @@ const createMenu = (window, autosaveStatus = "disabled") => {
       label: "File",
       submenu: [
         {
-          label: "New\t\t\t",
+          label: "New",
           click() {
             handleNewFileClick(window);
           },
@@ -68,10 +68,10 @@ const createMenu = (window, autosaveStatus = "disabled") => {
         },
         { type: "separator" },
         {
-          label: "Upload \t\t\t",
+          label: "Upload",
           submenu: [
             {
-              label: "Scenario File...\t\t",
+              label: "Scenario File...",
               click() {
                 handleOpenFileClick(window, "Scenario");
               },
@@ -80,7 +80,7 @@ const createMenu = (window, autosaveStatus = "disabled") => {
               label: "Tasks File",
               submenu: [
                 {
-                  label: "JSON File...\t\t",
+                  label: "JSON File...",
                   click() {
                     handleOpenFileClick(window, "Tasks");
                   },
@@ -105,7 +105,7 @@ const createMenu = (window, autosaveStatus = "disabled") => {
           label: "Export",
           submenu: [
             {
-              label: "Scenario File\t\t\t",
+              label: "Scenario File",
               click() {
                 handleFileDownloadClick(window, "Scenario");
               },
@@ -114,7 +114,7 @@ const createMenu = (window, autosaveStatus = "disabled") => {
               label: "Tasks File",
               submenu: [
                 {
-                  label: "JSON File\t\t\t",
+                  label: "JSON File",
                   click() {
                     handleFileDownloadClick(window, "Tasks");
                   },
