@@ -1,7 +1,12 @@
-import TextField from '@mui/material/TextField';
+import TextField from "@mui/material/TextField";
 
-export default function ClassName({ className, id, setComponentList, errors, handleBlur }) {
-
+export default function ClassName({
+  className,
+  id,
+  setComponentList,
+  errors,
+  handleBlur,
+}) {
   const handleChange = (e) => {
     let { name, value } = e.target;
 
@@ -14,22 +19,22 @@ export default function ClassName({ className, id, setComponentList, errors, han
         }
       });
     });
-  }
+  };
 
   return (
     <TextField
-      id='className'
+      id="className"
       fullWidth
-      label='Class Name'
+      label="Class Name"
       variant="outlined"
-      color='primary'
-      name='className'
+      color="primary"
+      name="className"
       value={className}
-      align='left'
+      align="left"
       onChange={handleChange}
       error={errors.className !== undefined}
       helperText={errors.className}
       onBlur={handleBlur}
     />
-  )
+  );
 }

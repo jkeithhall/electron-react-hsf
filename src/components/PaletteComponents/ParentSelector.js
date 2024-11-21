@@ -1,14 +1,26 @@
-import MenuItem from '@mui/material/MenuItem';
-import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
+import MenuItem from "@mui/material/MenuItem";
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
 
-export default function ParentSelector({ id, parent, componentList, setComponentList, errors, handleBlur, disabled }) {
-  const options = componentList.filter((component) => component.parent === undefined).map((component) => component.name);
+export default function ParentSelector({
+  id,
+  parent,
+  componentList,
+  setComponentList,
+  errors,
+  handleBlur,
+  disabled,
+}) {
+  const options = componentList
+    .filter((component) => component.parent === undefined)
+    .map((component) => component.name);
   const name = componentList.find((component) => component.id === parent)?.name;
 
   const handleChange = (e) => {
     const { value } = e.target;
-    const newParent = componentList.find((component) => component.name === value)?.id;
+    const newParent = componentList.find(
+      (component) => component.name === value,
+    )?.id;
 
     setComponentList((prevList) => {
       return prevList.map((component) => {
@@ -19,20 +31,20 @@ export default function ParentSelector({ id, parent, componentList, setComponent
         }
       });
     });
-  }
+  };
 
   return (
     <Grid item xs={6}>
       <TextField
-        id='parent'
+        id="parent"
         fullWidth
-        label='Asset Group'
+        label="Asset Group"
         variant="outlined"
-        color='primary'
-        name='parent'
-        placeholder='Select Asset Group'
+        color="primary"
+        name="parent"
+        placeholder="Select Asset Group"
         value={name || options[0]}
-        align='left'
+        align="left"
         select={!disabled}
         disabled={disabled}
         onChange={handleChange}
@@ -47,5 +59,5 @@ export default function ParentSelector({ id, parent, componentList, setComponent
         ))}
       </TextField>
     </Grid>
-  )
+  );
 }

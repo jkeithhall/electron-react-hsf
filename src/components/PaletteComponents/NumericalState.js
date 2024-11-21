@@ -1,10 +1,10 @@
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import Tooltop from '@mui/material/Tooltip';
-import IconButton from '@mui/material/IconButton';
-import RuleIcon from '@mui/icons-material/Rule';
-import DeleteParameterButton from './DeleteButton';
-import { convertDisplayName } from '../../utils/displayNames';
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import Tooltop from "@mui/material/Tooltip";
+import IconButton from "@mui/material/IconButton";
+import RuleIcon from "@mui/icons-material/Rule";
+import DeleteParameterButton from "./DeleteButton";
+import { convertDisplayName } from "../../utils/displayNames";
 
 export default function NumericalState({
   name,
@@ -19,9 +19,8 @@ export default function NumericalState({
   hovered,
   setHovered,
   setMarkedForDeletion,
-  handleDeleteClicked
+  handleDeleteClicked,
 }) {
-
   return (
     <Stack direction="row" mt={2}>
       <TextField
@@ -29,25 +28,23 @@ export default function NumericalState({
         fullWidth
         label={convertDisplayName(name)}
         variant="outlined"
-        color='primary'
+        color="primary"
         name={name}
         value={value}
-        type='text'
+        type="text"
         onChange={handleChange}
         error={error !== undefined}
         helperText={error}
         onBlur={handleBlur}
       />
-      {constraint ?
+      {constraint ? (
         <Tooltop title="Scroll to constraint">
-          <IconButton
-            size="medium"
-            onClick={() => scrollToConstraint(name)}
-          >
-            <RuleIcon fontSize="inherit" color="primary"/>
+          <IconButton size="medium" onClick={() => scrollToConstraint(name)}>
+            <RuleIcon fontSize="inherit" color="primary" />
           </IconButton>
         </Tooltop>
-      : <DeleteParameterButton
+      ) : (
+        <DeleteParameterButton
           index={index}
           markedForDeletion={markedForDeletion}
           hovered={hovered}
@@ -55,7 +52,7 @@ export default function NumericalState({
           setMarkedForDeletion={setMarkedForDeletion}
           handleDeleteClicked={handleDeleteClicked}
         />
-      }
+      )}
     </Stack>
-  )
+  );
 }

@@ -1,5 +1,5 @@
-import { getSmoothStepPath, EdgeLabelRenderer, BaseEdge } from '@xyflow/react';
-import Tooltip from '@mui/material/Tooltip';
+import { getSmoothStepPath, EdgeLabelRenderer, BaseEdge } from "@xyflow/react";
+import Tooltip from "@mui/material/Tooltip";
 
 const DependencyEdge = ({
   id,
@@ -12,7 +12,7 @@ const DependencyEdge = ({
   data: label,
   markerEnd: unselectedMarkerEnd,
   style: unselectedEdgeStyle,
-  selected
+  selected,
 }) => {
   const [edgePath] = getSmoothStepPath({
     sourceX,
@@ -28,7 +28,7 @@ const DependencyEdge = ({
 
   const selectedEdgeStyle = {
     ...unselectedEdgeStyle,
-    stroke: '#e53935',
+    stroke: "#e53935",
     strokeOpacity: 1,
     strokeWidth: 1.5,
   };
@@ -38,36 +38,38 @@ const DependencyEdge = ({
       <BaseEdge
         id={id}
         path={edgePath}
-        markerEnd={selected ? 'url(#red-arrowhead)' : unselectedMarkerEnd}
+        markerEnd={selected ? "url(#red-arrowhead)" : unselectedMarkerEnd}
         style={selected ? selectedEdgeStyle : unselectedEdgeStyle}
       />
-      {label &&
+      {label && (
         <EdgeLabelRenderer>
-            <div
-              style={{
-                width,
-                height,
-                position: 'absolute',
-                display: 'flex',
-                padding: '18 8 8 8',
-                justifyContent: 'center',
-                alignItems: 'flex-start',
-                border: selected ? '1px solid #e53935' : 'none',
-                borderRadius: 5,
-                background: `${unselectedEdgeStyle.stroke}`,
-                color: '#333',
-                fontSize: 10,
-                fontWeight: 700,
-                transform: `translate(${targetX - width / 2}px,${sourceY - height / 2}px)`,
-                zIndex: selected ? 4 : 2,
-                pointerEvents: 'all',
-              }}
-              className="edge-label"
-            >
-              <Tooltip title={label} placement="top"><p>⨍</p></Tooltip>
-            </div>
+          <div
+            style={{
+              width,
+              height,
+              position: "absolute",
+              display: "flex",
+              padding: "18 8 8 8",
+              justifyContent: "center",
+              alignItems: "flex-start",
+              border: selected ? "1px solid #e53935" : "none",
+              borderRadius: 5,
+              background: `${unselectedEdgeStyle.stroke}`,
+              color: "#333",
+              fontSize: 10,
+              fontWeight: 700,
+              transform: `translate(${targetX - width / 2}px,${sourceY - height / 2}px)`,
+              zIndex: selected ? 4 : 2,
+              pointerEvents: "all",
+            }}
+            className="edge-label"
+          >
+            <Tooltip title={label} placement="top">
+              <p>⨍</p>
+            </Tooltip>
+          </div>
         </EdgeLabelRenderer>
-      }
+      )}
     </>
   );
 };

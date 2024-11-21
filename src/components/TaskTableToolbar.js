@@ -1,22 +1,26 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   GridRowModes,
   GridToolbarContainer,
   GridToolbarColumnsButton,
   GridToolbarFilterButton,
   GridToolbarDensitySelector,
-} from '@mui/x-data-grid';
-import TaskExportButton from './TaskExportButton';
-import { randomId } from '@mui/x-data-grid-generator';
-import Button from '@mui/material/Button';
-import AddIcon from '@mui/icons-material/Add';
-import PublicIcon from '@mui/icons-material/Public';
-import Box from '@mui/material/Box';
-import Modal from '@mui/material/Modal';
+} from "@mui/x-data-grid";
+import TaskExportButton from "./TaskExportButton";
+import { randomId } from "@mui/x-data-grid-generator";
+import Button from "@mui/material/Button";
+import AddIcon from "@mui/icons-material/Add";
+import PublicIcon from "@mui/icons-material/Public";
+import Box from "@mui/material/Box";
+import Modal from "@mui/material/Modal";
 import { Viewer, CzmlDataSource } from "resium";
-import { addTaskPacketsToCzml } from '../utils/buildCzml';
+import { addTaskPacketsToCzml } from "../utils/buildCzml";
 
-export default function TaskTableToolbar({taskList, setTaskList, setRowModesModel }) {
+export default function TaskTableToolbar({
+  taskList,
+  setTaskList,
+  setRowModesModel,
+}) {
   const [modalOpen, setModalOpen] = useState(false);
   const [czmlData, setCzmlData] = useState([]);
 
@@ -36,24 +40,24 @@ export default function TaskTableToolbar({taskList, setTaskList, setRowModesMode
       const newTaskList = [...taskList];
       let name = `Task ${newTaskList.length + 1}`;
       while (newTaskList.find((task) => task.name === name)) {
-        name = 'Task ' + (parseInt(name.slice(1)) + 1).toString();
+        name = "Task " + (parseInt(name.slice(1)) + 1).toString();
       }
 
       // Add the new task to the task list
       const newTask = {
         id,
         name,
-        type: '',
+        type: "",
         maxTimes: 1,
-        targetName: '',
-        targetType: '',
-        targetValue: '',
-        dynamicStateType: '',
-        integratorType: 'None',
-        latitude: '',
-        longitude: '',
+        targetName: "",
+        targetType: "",
+        targetValue: "",
+        dynamicStateType: "",
+        integratorType: "None",
+        latitude: "",
+        longitude: "",
         altitude: 0,
-        eomsType: 'none',
+        eomsType: "none",
       };
 
       newTaskList.unshift(newTask);
@@ -63,9 +67,9 @@ export default function TaskTableToolbar({taskList, setTaskList, setRowModesMode
     // Set the new task to Edit mode
     setRowModesModel((oldModel) => ({
       ...oldModel,
-      [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' },
+      [id]: { mode: GridRowModes.Edit, fieldToFocus: "name" },
     }));
-  }
+  };
 
   function handleModalOpen() {
     setModalOpen(true);
@@ -76,45 +80,59 @@ export default function TaskTableToolbar({taskList, setTaskList, setRowModesMode
   }
 
   useEffect(() => {
-    const newCzml = [{
-      id: "document",
-      name: `Target List - ${new Date().toISOString()}`,
-      version: "1.0",
-    }];
+    const newCzml = [
+      {
+        id: "document",
+        name: `Target List - ${new Date().toISOString()}`,
+        version: "1.0",
+      },
+    ];
     addTaskPacketsToCzml(newCzml, taskList);
     setCzmlData(newCzml);
   }, [taskList]);
 
-  return (<GridToolbarContainer>
-    <Button color="primary" size='small' startIcon={<AddIcon />} onClick={handleAddRowClick}>
-      Add task
-    </Button>
-    <GridToolbarColumnsButton color="primary"/>
-    <GridToolbarFilterButton color="primary"/>
-    <GridToolbarDensitySelector color="primary"/>
-    <TaskExportButton color="primary"/>
-    <Button color="primary" size='small' startIcon={<PublicIcon />} onClick={handleModalOpen}>
-      Globe
-    </Button>
-    <Modal
-      open={modalOpen}
-      onClose={handleModalClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
-    >
-      <Box className="cesium-modal">
-        <Box sx={{width: '100%'}}>
-          {czmlData.length > 0 &&
-            <Viewer
-              animation={false}
-              timeline={false}
-              fullscreenButton={false}
-            >
-              <CzmlDataSource data={czmlData} key={czmlData[0]?.name} />
-            </Viewer>}
+  return (
+    <GridToolbarContainer>
+      <Button
+        color="primary"
+        size="small"
+        startIcon={<AddIcon />}
+        onClick={handleAddRowClick}
+      >
+        Add task
+      </Button>
+      <GridToolbarColumnsButton color="primary" />
+      <GridToolbarFilterButton color="primary" />
+      <GridToolbarDensitySelector color="primary" />
+      <TaskExportButton color="primary" />
+      <Button
+        color="primary"
+        size="small"
+        startIcon={<PublicIcon />}
+        onClick={handleModalOpen}
+      >
+        Globe
+      </Button>
+      <Modal
+        open={modalOpen}
+        onClose={handleModalClose}
+        aria-labelledby="modal-modal-title"
+        aria-describedby="modal-modal-description"
+      >
+        <Box className="cesium-modal">
+          <Box sx={{ width: "100%" }}>
+            {czmlData.length > 0 && (
+              <Viewer
+                animation={false}
+                timeline={false}
+                fullscreenButton={false}
+              >
+                <CzmlDataSource data={czmlData} key={czmlData[0]?.name} />
+              </Viewer>
+            )}
+          </Box>
         </Box>
-      </Box>
-  </Modal>
-  </GridToolbarContainer >
+      </Modal>
+    </GridToolbarContainer>
   );
 }

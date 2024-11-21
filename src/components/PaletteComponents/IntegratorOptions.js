@@ -1,15 +1,22 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import Stack from '@mui/material/Stack';
-import IconButton from '@mui/material/IconButton';
-import AddCircleIcon from '@mui/icons-material/AddCircle';
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+import Stack from "@mui/material/Stack";
+import IconButton from "@mui/material/IconButton";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 
-import DeleteParameterButton from './DeleteButton';
-import AddParameterModal from './AddParameterModal';
+import DeleteParameterButton from "./DeleteButton";
+import AddParameterModal from "./AddParameterModal";
 
-export default function IntegratorOptions({ integratorOptions, setComponentList, id, errors, componentKeys, handleBlur }) {
+export default function IntegratorOptions({
+  integratorOptions,
+  setComponentList,
+  id,
+  errors,
+  componentKeys,
+  handleBlur,
+}) {
   const [hovered, setHovered] = useState(-1);
   const [markedForDeletion, setMarkedForDeletion] = useState(-1);
   const [modalOpen, setModalOpen] = useState(false);
@@ -28,22 +35,28 @@ export default function IntegratorOptions({ integratorOptions, setComponentList,
         }
       });
     });
-  }
+  };
 
   const handleDeleteClicked = (e, index) => {
     e.stopPropagation();
     // If the delete button is clicked, mark the parameter for deletion
     if (markedForDeletion !== index) {
       setMarkedForDeletion(index);
-    } else { // If the delete button is clicked again, delete the parameter
+    } else {
+      // If the delete button is clicked again, delete the parameter
       setComponentList((prevList) => {
         return prevList.map((component) => {
           if (component.id === id) {
-            const newIntegratorOptionsArray = Object.entries(component.integratorOptions).filter((_, i) => i !== index);
-            const newIntegratorOptions = newIntegratorOptionsArray.reduce((acc, [key, value]) => {
-              acc[key] = value;
-              return acc;
-            }, {});
+            const newIntegratorOptionsArray = Object.entries(
+              component.integratorOptions,
+            ).filter((_, i) => i !== index);
+            const newIntegratorOptions = newIntegratorOptionsArray.reduce(
+              (acc, [key, value]) => {
+                acc[key] = value;
+                return acc;
+              },
+              {},
+            );
             return { ...component, integratorOptions: newIntegratorOptions };
           } else {
             return component;
@@ -53,7 +66,7 @@ export default function IntegratorOptions({ integratorOptions, setComponentList,
       setHovered(-1);
       setMarkedForDeletion(-1);
     }
-  }
+  };
 
   const handleAddOption = (name, value) => {
     setComponentList((prevList) => {
@@ -67,11 +80,13 @@ export default function IntegratorOptions({ integratorOptions, setComponentList,
         }
       });
     });
-  }
+  };
 
   return (
     <>
-      <Typography variant="h6" color="secondary" my={2}>Integrator Options</Typography>
+      <Typography variant="h6" color="secondary" my={2}>
+        Integrator Options
+      </Typography>
       {Object.entries(integratorOptions).map(([key, value], index) => (
         <Stack key={key} direction="row" mt={2}>
           <TextField
@@ -83,7 +98,7 @@ export default function IntegratorOptions({ integratorOptions, setComponentList,
             color="primary"
             name={key}
             value={value}
-            type='text'
+            type="text"
             onChange={handleChange}
             error={errors[`integratorOptions.${key}`] !== undefined}
             helperText={errors[`integratorOptions.${key}`]}
@@ -102,16 +117,22 @@ export default function IntegratorOptions({ integratorOptions, setComponentList,
       <IconButton
         color="secondary"
         size="large"
-        onClick={() => {setModalOpen(true)}}
+        onClick={() => {
+          setModalOpen(true);
+        }}
       >
-        <AddCircleIcon fontSize="inherit"/>
+        <AddCircleIcon fontSize="inherit" />
       </IconButton>
-      {modalOpen && <AddParameterModal
-        label="Integrator Option"
-        componentKeys={componentKeys}
-        handleClose={() => {setModalOpen(false)}}
-        handleAddParameter={handleAddOption}
-      />}
+      {modalOpen && (
+        <AddParameterModal
+          label="Integrator Option"
+          componentKeys={componentKeys}
+          handleClose={() => {
+            setModalOpen(false);
+          }}
+          handleAddParameter={handleAddOption}
+        />
+      )}
     </>
-  )
+  );
 }

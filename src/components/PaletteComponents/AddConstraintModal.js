@@ -1,25 +1,33 @@
-import { useState } from 'react';
-import Card from '@mui/material/Card';
-import Typography from '@mui/material/Typography';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import Button from '@mui/material/Button';
-import AddIcon from '@mui/icons-material/Add';
-import CloseIcon from '@mui/icons-material/Close';
+import { useState } from "react";
+import Card from "@mui/material/Card";
+import Typography from "@mui/material/Typography";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import Button from "@mui/material/Button";
+import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
 
-import { randomId } from '@mui/x-data-grid-generator';
+import { randomId } from "@mui/x-data-grid-generator";
 
-export default function AddConstraintModal({ setConstraints, handleClose, states, subsystem, typeOptions }) {
+export default function AddConstraintModal({
+  setConstraints,
+  handleClose,
+  states,
+  subsystem,
+  typeOptions,
+}) {
   const [stateKey, setStateKey] = useState(states[0].key);
   const [stateType, setStateType] = useState(states[0].type);
-  const [name, setName] = useState('');
-  const [type, setType] = useState('FAIL_IF_HIGHER');
+  const [name, setName] = useState("");
+  const [type, setType] = useState("FAIL_IF_HIGHER");
   const [value, setValue] = useState(0);
-  const [valueErrorMessage, setValueErrorMessage] = useState('');
+  const [valueErrorMessage, setValueErrorMessage] = useState("");
 
   const titleCase = (str) => str[0].toUpperCase() + str.slice(1);
 
-  const stateKeys = states.filter((state) => state.type === 'int' || state.type === 'double').map((state) => state.key);
+  const stateKeys = states
+    .filter((state) => state.type === "int" || state.type === "double")
+    .map((state) => state.key);
   const stateTypes = states.reduce((acc, state) => {
     acc[state.key] = state.type;
     return acc;
@@ -29,59 +37,75 @@ export default function AddConstraintModal({ setConstraints, handleClose, states
     const { value } = e.target;
     setStateKey(value);
     setStateType(stateTypes[value]);
-  }
+  };
 
   const handleConfirm = () => {
     setConstraints((prevConstraints) => {
-      return [...prevConstraints, { id: randomId(), name, stateKey, stateType, subsystem, type, value }];
+      return [
+        ...prevConstraints,
+        { id: randomId(), name, stateKey, stateType, subsystem, type, value },
+      ];
     });
     handleClose();
-  }
+  };
 
   const handleBlur = () => {
-    if (stateType === 'int') {
+    if (stateType === "int") {
       if (!Number.isInteger(parseFloat(value))) {
-        setValueErrorMessage('Value must be an integer');
+        setValueErrorMessage("Value must be an integer");
       } else {
-        setValueErrorMessage('');
+        setValueErrorMessage("");
       }
     } else {
       if (Number(value) !== parseFloat(value)) {
-        setValueErrorMessage('Value must be a number');
+        setValueErrorMessage("Value must be a number");
       } else {
-        setValueErrorMessage('');
+        setValueErrorMessage("");
       }
     }
-  }
+  };
 
   return (
     <div className="overlay">
-      <Card sx={{ maxWidth: 500, zIndex: 2, padding: '20px', height: 'auto', borderRadius: "5px" }}>
-        <Typography variant="h4" my={2}>{'Add a New Constraint'}</Typography>
+      <Card
+        sx={{
+          maxWidth: 500,
+          zIndex: 2,
+          padding: "20px",
+          height: "auto",
+          borderRadius: "5px",
+        }}
+      >
+        <Typography variant="h4" my={2}>
+          {"Add a New Constraint"}
+        </Typography>
         <TextField
           id="stateKey"
           key="stateKey"
           fullWidth
-          label={'State Key'}
+          label={"State Key"}
           variant="outlined"
-          color='primary'
+          color="primary"
           select
-          align='left'
+          align="left"
           sx={{ my: 1 }}
           value={stateKey}
           onChange={handleStateKeyChange}
         >
           {stateKeys.map((option) => (
-            <MenuItem key={option} value={option}>{`${titleCase(option)} (${stateTypes[option]})`}</MenuItem>
+            <MenuItem
+              key={option}
+              value={option}
+            >{`${titleCase(option)} (${stateTypes[option]})`}</MenuItem>
           ))}
         </TextField>
         <TextField
           id="name"
           key="name"
           fullWidth
-          label={'Name'}
+          label={"Name"}
           variant="outlined"
-          color='primary'
+          color="primary"
           sx={{ my: 1 }}
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -90,10 +114,10 @@ export default function AddConstraintModal({ setConstraints, handleClose, states
           id="value"
           key="value"
           fullWidth
-          label={'Value'}
+          label={"Value"}
           variant="outlined"
-          color='primary'
-          error={valueErrorMessage !== ''}
+          color="primary"
+          error={valueErrorMessage !== ""}
           helperText={valueErrorMessage}
           sx={{ my: 1 }}
           value={value}
@@ -104,29 +128,38 @@ export default function AddConstraintModal({ setConstraints, handleClose, states
           id="type"
           key="type"
           fullWidth
-          label={'Type'}
+          label={"Type"}
           variant="outlined"
-          color='primary'
+          color="primary"
           select
-          align='left'
+          align="left"
           sx={{ my: 1 }}
           value={type}
           onChange={(e) => setType(e.target.value)}
         >
           {typeOptions.map((option) => (
-            <MenuItem key={option} value={option}>{option}</MenuItem>
+            <MenuItem key={option} value={option}>
+              {option}
+            </MenuItem>
           ))}
         </TextField>
-        <div className='confirm-close-icons'>
+        <div className="confirm-close-icons">
           <Button
             variant="contained"
             onClick={handleConfirm}
-            startIcon={<AddIcon/>}
-            disabled={name === '' || value === '' || valueErrorMessage !== ''}
+            startIcon={<AddIcon />}
+            disabled={name === "" || value === "" || valueErrorMessage !== ""}
           >
             Add Constraint
           </Button>
-          <Button variant="contained" color="light" onClick={handleClose} startIcon={<CloseIcon/>}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="light"
+            onClick={handleClose}
+            startIcon={<CloseIcon />}
+          >
+            Cancel
+          </Button>
         </div>
       </Card>
     </div>

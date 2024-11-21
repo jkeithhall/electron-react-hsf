@@ -1,8 +1,8 @@
-import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
 
-const eomsOptions = ['orbitalEOMS', 'EarthPerts', 'scriptedEOMS'];
+const eomsOptions = ["orbitalEOMS", "EarthPerts", "scriptedEOMS"];
 
 function EomsType({ value, setComponentList, id, errors, handleBlur }) {
   const handleChange = (e) => {
@@ -17,29 +17,33 @@ function EomsType({ value, setComponentList, id, errors, handleBlur }) {
         }
       });
     });
-  }
+  };
 
   return (
     <Grid item xs={6}>
       <TextField
-        id='eomsType'
+        id="eomsType"
         fullWidth
-        label='EOMs Type'
+        label="EOMs Type"
         variant="outlined"
-        color='primary'
-        name='eomsType'
+        color="primary"
+        name="eomsType"
         value={value}
         select
-        align='left'
+        align="left"
         onChange={handleChange}
         error={errors.eomsType !== undefined}
         helperText={errors.eomsType}
         onBlur={handleBlur}
       >
-        {eomsOptions.map((option) => <MenuItem key={option} value={option}>{option}</MenuItem>)}
+        {eomsOptions.map((option) => (
+          <MenuItem key={option} value={option}>
+            {option}
+          </MenuItem>
+        ))}
       </TextField>
     </Grid>
-  )
+  );
 }
 
 export { eomsOptions, EomsType };

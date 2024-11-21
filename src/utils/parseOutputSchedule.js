@@ -1,7 +1,7 @@
-import { randomId } from '@mui/x-data-grid-generator';
-import { julianToDate } from './julianConversion';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
+import { randomId } from "@mui/x-data-grid-generator";
+import { julianToDate } from "./julianConversion";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
 
 dayjs.extend(utc);
 
@@ -28,7 +28,7 @@ function getAccessIntervals(scheduleContent) {
             accessIntervals[accessName] = {
               taskIntervals: [],
               eventIntervals: [],
-            }
+            };
           }
           break;
         case 3: // Task Start
@@ -37,15 +37,21 @@ function getAccessIntervals(scheduleContent) {
           break;
         case 5: // Event Start
           const eventStart = parseInt(token);
-          accessIntervals[accessName].eventIntervals.push({ start: eventStart });
+          accessIntervals[accessName].eventIntervals.push({
+            start: eventStart,
+          });
           break;
         case 7: // Task End
           const taskEnd = parseInt(token);
-          accessIntervals[accessName].taskIntervals[accessIntervals[accessName].taskIntervals.length - 1].end = taskEnd;
+          accessIntervals[accessName].taskIntervals[
+            accessIntervals[accessName].taskIntervals.length - 1
+          ].end = taskEnd;
           break;
         case 9: // Event End
           const eventEnd = parseInt(token);
-          accessIntervals[accessName].eventIntervals[accessIntervals[accessName].eventIntervals.length - 1].end = eventEnd;
+          accessIntervals[accessName].eventIntervals[
+            accessIntervals[accessName].eventIntervals.length - 1
+          ].end = eventEnd;
           break;
         default:
           break;
@@ -58,7 +64,7 @@ function getAccessIntervals(scheduleContent) {
 
 async function parseTimelineData(scheduleContent, startJD) {
   let scheduleValue;
-  let startTime = Number.POSITIVE_INFINITY
+  let startTime = Number.POSITIVE_INFINITY;
   let endTime = Number.NEGATIVE_INFINITY;
   let items = [];
   let groupObj = {}; // Use object for O(1) lookup
@@ -74,26 +80,33 @@ async function parseTimelineData(scheduleContent, startJD) {
     } else {
       const cleanTokens = splitEventEndFromName(line);
 
-      if (index === 1) { parseAssetGroups(cleanTokens, groupObj); }
+      if (index === 1) {
+        parseAssetGroups(cleanTokens, groupObj);
+      }
 
-      const { lineStartTime, lineEndTime } = parseItemsGroups(cleanTokens, items, groupObj, startDate);
+      const { lineStartTime, lineEndTime } = parseItemsGroups(
+        cleanTokens,
+        items,
+        groupObj,
+        startDate,
+      );
       if (lineStartTime < startTime) startTime = lineStartTime;
       if (lineEndTime > endTime) endTime = lineEndTime;
     }
   });
 
-  const startDatetime = startDate.clone().add(startTime, 'seconds');
-  const endDatetime = startDate.clone().add(endTime, 'seconds');
+  const startDatetime = startDate.clone().add(startTime, "seconds");
+  const endDatetime = startDate.clone().add(endTime, "seconds");
 
   // Map group object to array
-  const groups = Object.values(groupObj).map(group => {
+  const groups = Object.values(groupObj).map((group) => {
     if (group.nestedGroups) {
       return {
         id: group.id,
         content: group.content,
         nestedGroups: Object.values(group.nestedGroups), // Map to array
         showNested: group.showNested,
-      }
+      };
     } else {
       return group;
     }
@@ -103,8 +116,8 @@ async function parseTimelineData(scheduleContent, startJD) {
 }
 
 function separateNumeralName(token) {
-  let numeral = '';
-  while (token[0] >= '0' && token[0] <= '9') {
+  let numeral = "";
+  while (token[0] >= "0" && token[0] <= "9") {
     numeral += token[0].trim();
     token = token.slice(1).trim();
   }
@@ -126,7 +139,7 @@ const splitEventEndFromName = (line) => {
   });
 
   return cleanTokens.slice(1);
-}
+};
 
 function parseAssetGroups(tokens, groupObj) {
   tokens.forEach((token, index) => {
@@ -137,13 +150,13 @@ function parseAssetGroups(tokens, groupObj) {
         content: name,
         nestedGroups: {}, // Use object to avoid duplicates
         showNested: 0,
-      }
+      };
     }
   });
 }
 
 function parseItemsGroups(tokens, items, groups, startDate) {
-  let lineStartTime = Number.POSITIVE_INFINITY
+  let lineStartTime = Number.POSITIVE_INFINITY;
   let lineEndTime = Number.NEGATIVE_INFINITY;
 
   const currEvent = {};
@@ -162,8 +175,8 @@ function parseItemsGroups(tokens, items, groups, startDate) {
         currTask.group = token;
         currEvent.content = `${token} Event`;
         currTask.content = `${token} Task`;
-        currTask.className = 'simulation-task';
-        currEvent.className = 'simulation-event';
+        currTask.className = "simulation-task";
+        currEvent.className = "simulation-event";
 
         groups[assetName].nestedGroups[token] = token;
         groups[token] = { id: token, content: token };
@@ -172,26 +185,26 @@ function parseItemsGroups(tokens, items, groups, startDate) {
         const taskStart = parseInt(token);
         if (taskStart < lineStartTime) lineStartTime = taskStart;
 
-        currTask.start = startDate.clone().add(taskStart, 'seconds').format();
+        currTask.start = startDate.clone().add(taskStart, "seconds").format();
         break;
       case 5: // Event Start
         const eventStart = parseInt(token);
         if (eventStart < lineStartTime) lineStartTime = eventStart;
 
-        currEvent.start = startDate.clone().add(eventStart, 'seconds').format();
+        currEvent.start = startDate.clone().add(eventStart, "seconds").format();
         break;
       case 7: // Task End
         const taskEnd = parseInt(token);
         if (taskEnd > lineEndTime) lineEndTime = taskEnd;
 
-        currTask.end = startDate.clone().add(taskEnd, 'seconds').format();
+        currTask.end = startDate.clone().add(taskEnd, "seconds").format();
         items.push({ ...currTask });
         break;
       case 9: // Event End
         const eventEnd = parseInt(token);
         if (eventEnd > lineEndTime) lineEndTime = eventEnd;
 
-        currEvent.end = startDate.clone().add(eventEnd, 'seconds').format();
+        currEvent.end = startDate.clone().add(eventEnd, "seconds").format();
         items.push({ ...currEvent });
         break;
       default:
@@ -199,7 +212,7 @@ function parseItemsGroups(tokens, items, groups, startDate) {
     }
   });
 
-  return {lineStartTime, lineEndTime};
+  return { lineStartTime, lineEndTime };
 }
 
 export { parseTimelineData, getAccessIntervals };

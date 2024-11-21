@@ -1,143 +1,150 @@
-const electron = require('electron');
-const path = require('path');
+const electron = require("electron");
+const path = require("path");
 const { ipcRenderer, contextBridge } = electron;
 
-ipcRenderer.on('set-autosave-status', (_, status) => {
-  ipcRenderer.send('set-autosave-status', status);
+ipcRenderer.on("set-autosave-status", (_, status) => {
+  ipcRenderer.send("set-autosave-status", status);
 });
-ipcRenderer.on('set-revert-status', (_, status) => {
-  ipcRenderer.send('set-revert-status', status);
+ipcRenderer.on("set-revert-status", (_, status) => {
+  ipcRenderer.send("set-revert-status", status);
 });
 
 const api = {
-  directorySeparator: process.platform === 'win32' ? '\\' : '/',
-  baseSrc: path.join(__dirname, '../Horizon/output'),
-  pythonSrc: path.join(__dirname, '../Horizon/samples/Aeolus/pythonScripts'),
+  directorySeparator: process.platform === "win32" ? "\\" : "/",
+  lineSeparator: process.platform === "win32" ? "\r\n" : "\n",
+  baseSrc: path.join(__dirname, "../Horizon/output"),
+  pythonSrc: path.join(__dirname, "../Horizon/samples/Aeolus/pythonScripts"),
   getRelativePath: (from, to) => path.relative(from, to),
-  notifyRenderComplete: () => ipcRenderer.send('render-complete'),
+  notifyRenderComplete: () => ipcRenderer.send("render-complete"),
   onNewFile: (handleNewFile) => {
-    ipcRenderer.removeAllListeners('new-file-click');
+    ipcRenderer.removeAllListeners("new-file-click");
 
-    ipcRenderer.on('new-file-click', async (_) => {
+    ipcRenderer.on("new-file-click", async (_) => {
       handleNewFile();
     });
   },
   resetCurrentFile: () => {
-    ipcRenderer.send('reset-current-file');
+    ipcRenderer.send("reset-current-file");
   },
   onFileOpen: (handleFileOpen) => {
-    ipcRenderer.removeAllListeners('file-open-selected');
+    ipcRenderer.removeAllListeners("file-open-selected");
 
-    ipcRenderer.on('file-open-selected', async (_, filePath, fileName, content) => {
-      handleFileOpen(filePath, fileName, content);
-    });
+    ipcRenderer.on(
+      "file-open-selected",
+      async (_, filePath, fileName, content) => {
+        handleFileOpen(filePath, fileName, content);
+      },
+    );
   },
   confirmFileOpened: (filePath, content) => {
-    ipcRenderer.send('update-open-file', filePath, content);
+    ipcRenderer.send("update-open-file", filePath, content);
   },
   onFileUpload: (handleFileUpload, ...args) => {
-    ipcRenderer.removeAllListeners('file-upload-selected');
+    ipcRenderer.removeAllListeners("file-upload-selected");
 
-    ipcRenderer.on('file-upload-selected', async (_, fileType, fileName, content) => {
-      handleFileUpload(fileType, fileName, content, ...args);
-    });
+    ipcRenderer.on(
+      "file-upload-selected",
+      async (_, fileType, fileName, content) => {
+        handleFileUpload(fileType, fileName, content, ...args);
+      },
+    );
   },
   onFileDownload: (handleFileDownload, ...args) => {
-    ipcRenderer.removeAllListeners('file-download-click');
+    ipcRenderer.removeAllListeners("file-download-click");
 
-    ipcRenderer.on('file-download-click', async (_, fileType) => {
-      if (fileType === 'CSV') {
+    ipcRenderer.on("file-download-click", async (_, fileType) => {
+      if (fileType === "CSV") {
         handleFileDownload(fileType, ...args);
       } else {
         const content = await handleFileDownload(fileType, ...args);
-        ipcRenderer.send('show-save-dialog', fileType, content);
+        ipcRenderer.send("show-save-dialog", fileType, content);
       }
     });
   },
   onFileUpdate: (handleFileUpdate) => {
-    ipcRenderer.removeAllListeners('has-unsaved-changes');
+    ipcRenderer.removeAllListeners("has-unsaved-changes");
 
-    ipcRenderer.on('has-unsaved-changes', (_, hasUnsavedChanges) => {
+    ipcRenderer.on("has-unsaved-changes", (_, hasUnsavedChanges) => {
       handleFileUpdate(hasUnsavedChanges);
     });
   },
   onDirectorySelect: (handleDirectorySelect) => {
-    ipcRenderer.removeAllListeners('directory-selected');
+    ipcRenderer.removeAllListeners("directory-selected");
 
-    ipcRenderer.send('show-directory-select-dialog');
-    ipcRenderer.on('directory-selected', (_, filePath) => {
+    ipcRenderer.send("show-directory-select-dialog");
+    ipcRenderer.on("directory-selected", (_, filePath) => {
       handleDirectorySelect(filePath);
     });
   },
   selectFile: (directory, fileType, handleFileSelected) => {
-    ipcRenderer.removeAllListeners('file-selected');
+    ipcRenderer.removeAllListeners("file-selected");
 
-    ipcRenderer.send('show-file-select-dialog', directory, fileType);
-    ipcRenderer.on('file-selected', (_, filePath, fileName, content) => {
+    ipcRenderer.send("show-file-select-dialog", directory, fileType);
+    ipcRenderer.on("file-selected", (_, filePath, fileName, content) => {
       handleFileSelected(filePath, fileName, content);
     });
   },
   onSaveFileClick: (handleSaveFile, ...args) => {
-    ipcRenderer.removeAllListeners('file-save-click');
+    ipcRenderer.removeAllListeners("file-save-click");
 
-    ipcRenderer.on('file-save-click', () => {
+    ipcRenderer.on("file-save-click", () => {
       handleSaveFile(...args);
-    })
+    });
   },
   onAutoSave: (handleSaveFile, ...args) => {
-    ipcRenderer.removeAllListeners('autosave');
+    ipcRenderer.removeAllListeners("autosave");
 
-    ipcRenderer.on('autosave', () => {
+    ipcRenderer.on("autosave", () => {
       handleSaveFile(...args);
     });
   },
   onRevert: (handleRevert) => {
-    ipcRenderer.removeAllListeners('revert-changes');
+    ipcRenderer.removeAllListeners("revert-changes");
 
-    ipcRenderer.on('revert-changes', (_, filePath, content) => {
+    ipcRenderer.on("revert-changes", (_, filePath, content) => {
       handleRevert(filePath, content);
     });
   },
   saveCurrentFile: (content, updateCache) => {
-    ipcRenderer.invoke('get-current-filepath').then((filePath) => {
+    ipcRenderer.invoke("get-current-filepath").then((filePath) => {
       if (filePath === null) {
-        ipcRenderer.send('show-save-dialog', 'SIM', content, updateCache);
+        ipcRenderer.send("show-save-dialog", "SIM", content, updateCache);
       } else {
-        ipcRenderer.send('save-current-file', filePath, content, updateCache);
+        ipcRenderer.send("save-current-file", filePath, content, updateCache);
       }
     });
   },
   onSaveConfirm: (setFilePath, setHasUnsavedChanges, callback) => {
-    ipcRenderer.removeAllListeners('file-save-confirmed');
+    ipcRenderer.removeAllListeners("file-save-confirmed");
 
-    ipcRenderer.on('file-save-confirmed', (_, filePath) => {
+    ipcRenderer.on("file-save-confirmed", (_, filePath) => {
       setFilePath(filePath);
       setHasUnsavedChanges(false);
       callback();
     });
   },
   onBuildInputFiles: (fileContents, callback) => {
-    ipcRenderer.removeAllListeners('build-files-complete');
+    ipcRenderer.removeAllListeners("build-files-complete");
 
-    ipcRenderer.on('build-files-complete', (_, data) => {
+    ipcRenderer.on("build-files-complete", (_, data) => {
       callback(data);
     });
-    ipcRenderer.send('build-input-files', fileContents);
+    ipcRenderer.send("build-input-files", fileContents);
   },
   hasUnsavedChanges: (updateStatus) => {
-    ipcRenderer.send('set-revert-status', updateStatus);
+    ipcRenderer.send("set-revert-status", updateStatus);
   },
   writeToClipboard: (content) => {
-    ipcRenderer.send('write-to-clipboard', content);
+    ipcRenderer.send("write-to-clipboard", content);
   },
   copyFromClipboard: (callback) => {
-    ipcRenderer.invoke('copy-from-clipboard').then((content) => {
+    ipcRenderer.invoke("copy-from-clipboard").then((content) => {
       callback(content);
     });
   },
   checkDockerInstalled: () => {
     return new Promise((resolve, reject) => {
-      ipcRenderer.invoke('check-docker-installed').then((error) => {
+      ipcRenderer.invoke("check-docker-installed").then((error) => {
         if (error) {
           resolve(error);
         } else {
@@ -148,7 +155,7 @@ const api = {
   },
   checkDockerRunning: () => {
     return new Promise((resolve, reject) => {
-      ipcRenderer.invoke('check-docker-running').then((error) => {
+      ipcRenderer.invoke("check-docker-running").then((error) => {
         if (error) {
           resolve(error);
         } else {
@@ -159,7 +166,7 @@ const api = {
   },
   startDocker: () => {
     return new Promise((resolve, reject) => {
-      ipcRenderer.invoke('start-docker').then((error) => {
+      ipcRenderer.invoke("start-docker").then((error) => {
         if (error) {
           reject(error);
         } else {
@@ -169,80 +176,80 @@ const api = {
     });
   },
   runSimulation: (inputFiles, outputFiles, handleSimulationResults) => {
-    ipcRenderer.removeAllListeners('simulation-results');
+    ipcRenderer.removeAllListeners("simulation-results");
 
-    ipcRenderer.on('simulation-results', (_, data) => {
+    ipcRenderer.on("simulation-results", (_, data) => {
       handleSimulationResults(data);
     });
-    ipcRenderer.send('run-simulation', inputFiles, outputFiles);
+    ipcRenderer.send("run-simulation", inputFiles, outputFiles);
   },
   abortSimulation: (callback) => {
-    ipcRenderer.removeAllListeners('abort-message');
+    ipcRenderer.removeAllListeners("abort-message");
 
-    ipcRenderer.on('abort-message', (_, error) => {
+    ipcRenderer.on("abort-message", (_, error) => {
       callback(error);
     });
-    ipcRenderer.send('abort-simulation');
+    ipcRenderer.send("abort-simulation");
   },
   saveJDValue: (outputPath, fileName, startJD, callback) => {
-    ipcRenderer.removeAllListeners('jd-value-error');
+    ipcRenderer.removeAllListeners("jd-value-error");
 
-    ipcRenderer.send('save-jd-value', outputPath, fileName, startJD);
-    ipcRenderer.on('jd-value-error', (_, error) => {
+    ipcRenderer.send("save-jd-value", outputPath, fileName, startJD);
+    ipcRenderer.on("jd-value-error", (_, error) => {
       callback(error);
     });
   },
   buildCzml: (outputPath, fileName, content, callback) => {
-    ipcRenderer.removeAllListeners('build-czml-error');
+    ipcRenderer.removeAllListeners("build-czml-error");
 
-    ipcRenderer.send('build-czml', outputPath, fileName, content);
-    ipcRenderer.on('build-czml-error', (_, error) => {
+    ipcRenderer.send("build-czml", outputPath, fileName, content);
+    ipcRenderer.on("build-czml-error", (_, error) => {
       callback(error);
     });
   },
   fetchCzmlData: (outputPath, fileName, callback) => {
-    ipcRenderer.removeAllListeners('cesium-data');
+    ipcRenderer.removeAllListeners("cesium-data");
 
-    ipcRenderer.send('fetch-czml', outputPath, fileName);
-    ipcRenderer.on('cesium-data', (_, err, data) => {
+    ipcRenderer.send("fetch-czml", outputPath, fileName);
+    ipcRenderer.on("cesium-data", (_, err, data) => {
       callback(err, data);
     });
   },
   fetchTimelineFiles: async (outputPath, handleOutput) => {
-    ipcRenderer.removeAllListeners('timeline-files');
+    ipcRenderer.removeAllListeners("timeline-files");
 
-    ipcRenderer.send('fetch-timeline-files', outputPath);
-    ipcRenderer.on('timeline-files', (_, data) => {
+    ipcRenderer.send("fetch-timeline-files", outputPath);
+    ipcRenderer.on("timeline-files", (_, data) => {
       handleOutput(data);
     });
   },
   fetchStateDataFiles: async (outputPath, handleOutput) => {
-    ipcRenderer.removeAllListeners('state-data-files');
+    ipcRenderer.removeAllListeners("state-data-files");
 
-    ipcRenderer.send('fetch-state-data-files', outputPath);
-    ipcRenderer.on('state-data-files', (_, data) => {
+    ipcRenderer.send("fetch-state-data-files", outputPath);
+    ipcRenderer.on("state-data-files", (_, data) => {
       handleOutput(data);
     });
   },
   fetchLatestTimelineData: async (outputPath, fileName, handleOutput) => {
-    ipcRenderer.removeAllListeners('latest-timeline-data');
+    ipcRenderer.removeAllListeners("latest-timeline-data");
 
-    ipcRenderer.send('fetch-latest-timeline-data', outputPath, fileName);
-    ipcRenderer.on('latest-timeline-data', (_, data) => {
+    ipcRenderer.send("fetch-latest-timeline-data", outputPath, fileName);
+    ipcRenderer.on("latest-timeline-data", (_, data) => {
       handleOutput(data);
     });
   },
   fetchLatestStateData: async (outputPath, fileName, handleOutput) => {
-    ipcRenderer.removeAllListeners('latest-state-data');
+    ipcRenderer.removeAllListeners("latest-state-data");
 
-    ipcRenderer.send('fetch-latest-state-data', outputPath, fileName);
-    ipcRenderer.on('latest-state-data', (_, data) => {
+    ipcRenderer.send("fetch-latest-state-data", outputPath, fileName);
+    ipcRenderer.on("latest-state-data", (_, data) => {
       handleOutput(data);
     });
   },
-}
+};
 /*
   contextBridge exposes methods to the window object (accessed on a given API name).
   This is a security measure to prevent the renderer process from accessing the entire electron API.
  */
-contextBridge.exposeInMainWorld('electronApi', api);
+contextBridge.exposeInMainWorld("electronApi", api);

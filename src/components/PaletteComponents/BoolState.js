@@ -1,10 +1,10 @@
-import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
-import MenuItem from '@mui/material/MenuItem';
-import IconButton from '@mui/material/IconButton';
-import RuleIcon from '@mui/icons-material/Rule';
-import DeleteParameterButton from './DeleteButton';
-import { convertDisplayName } from '../../utils/displayNames';
+import Stack from "@mui/material/Stack";
+import TextField from "@mui/material/TextField";
+import MenuItem from "@mui/material/MenuItem";
+import IconButton from "@mui/material/IconButton";
+import RuleIcon from "@mui/icons-material/Rule";
+import DeleteParameterButton from "./DeleteButton";
+import { convertDisplayName } from "../../utils/displayNames";
 
 export default function BoolState({
   name,
@@ -19,9 +19,8 @@ export default function BoolState({
   hovered,
   setHovered,
   setMarkedForDeletion,
-  handleDeleteClicked
+  handleDeleteClicked,
 }) {
-
   return (
     <Stack direction="row" mt={2}>
       <TextField
@@ -29,34 +28,37 @@ export default function BoolState({
         fullWidth
         label={convertDisplayName(name)}
         variant="outlined"
-        color='primary'
+        color="primary"
         name={name}
         value={value}
         select
-        align='left'
+        align="left"
         onChange={handleChange}
         error={error !== undefined}
         helperText={error}
         onBlur={handleBlur}
       >
-        <MenuItem key='true' value='true'>True</MenuItem>
-        <MenuItem key='false' value='false'>False</MenuItem>
+        <MenuItem key="true" value="true">
+          True
+        </MenuItem>
+        <MenuItem key="false" value="false">
+          False
+        </MenuItem>
       </TextField>
-      {constraint ?
-        <IconButton
-          size="medium"
-          onClick={() => scrollToConstraint(index)}
-        >
-          <RuleIcon fontSize="inherit" color="primary"/>
+      {constraint ? (
+        <IconButton size="medium" onClick={() => scrollToConstraint(index)}>
+          <RuleIcon fontSize="inherit" color="primary" />
         </IconButton>
-       : <DeleteParameterButton
-        index={index}
-        markedForDeletion={markedForDeletion}
-        hovered={hovered}
-        setHovered={setHovered}
-        setMarkedForDeletion={setMarkedForDeletion}
-        handleDeleteClicked={handleDeleteClicked}
-      />}
+      ) : (
+        <DeleteParameterButton
+          index={index}
+          markedForDeletion={markedForDeletion}
+          hovered={hovered}
+          setHovered={setHovered}
+          setMarkedForDeletion={setMarkedForDeletion}
+          handleDeleteClicked={handleDeleteClicked}
+        />
+      )}
     </Stack>
-  )
+  );
 }

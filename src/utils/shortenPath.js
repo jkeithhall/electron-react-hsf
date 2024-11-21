@@ -3,11 +3,13 @@ function getOSDirectorySeparator() {
     return window.electronApi.directorySeparator;
   }
   const userAgent = navigator.userAgent;
-  return userAgent.indexOf('Windows') !== -1 ? '\\' : '/';
+  return userAgent.indexOf("Windows") !== -1 ? "\\" : "/";
 }
 
 function getCommonDirectorySeparator(path) {
-  return (path.match(/\\/g) || []).length > (path.match(/\//g) || []).length ? '\\' : '/';
+  return (path.match(/\\/g) || []).length > (path.match(/\//g) || []).length
+    ? "\\"
+    : "/";
 }
 
 function shortenPath(path, maxLength) {
@@ -19,7 +21,7 @@ function shortenPath(path, maxLength) {
   let shortenedPath = path;
   while (shortenedPath.length > maxLength) {
     parts.shift();
-    shortenedPath = '...' + directorySeparator + parts.join(directorySeparator);
+    shortenedPath = "..." + directorySeparator + parts.join(directorySeparator);
   }
   return shortenedPath;
 }

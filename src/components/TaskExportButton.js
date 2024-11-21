@@ -4,9 +4,9 @@ import {
   useGridApiContext,
   gridFilteredSortedRowIdsSelector,
   gridVisibleColumnFieldsSelector,
-} from '@mui/x-data-grid';
-import MenuItem from '@mui/material/MenuItem';
-import { reformatTasks } from '../utils/parseTasks';
+} from "@mui/x-data-grid";
+import MenuItem from "@mui/material/MenuItem";
+import { reformatTasks } from "../utils/parseTasks";
 
 const getJson = (apiRef) => {
   // Select rows and columns
@@ -17,7 +17,7 @@ const getJson = (apiRef) => {
   const tableData = filteredSortedRowIds.map((id) => {
     const row = {};
     visibleColumnsField.forEach((field) => {
-      if (field !== 'Delete Row Button' && field !== 'Map Selector') {
+      if (field !== "Delete Row Button" && field !== "Map Selector") {
         row[field] = apiRef.current.getCellParams(id, field).value;
       }
     });
@@ -32,7 +32,7 @@ const exportBlob = (blob, filename) => {
   // Save the blob in a json file
   const url = URL.createObjectURL(blob);
 
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = filename;
   a.click();
@@ -52,9 +52,9 @@ function JsonExportMenuItem(props) {
       onClick={() => {
         const jsonString = getJson(apiRef);
         const blob = new Blob([jsonString], {
-          type: 'text/json',
+          type: "text/json",
         });
-        exportBlob(blob, 'tasks.json');
+        exportBlob(blob, "tasks.json");
 
         // Hide the export menu after the export
         hideMenu?.();
@@ -65,7 +65,7 @@ function JsonExportMenuItem(props) {
   );
 }
 
-const csvOptions = { delimiter: ';', allColumns: true };
+const csvOptions = { delimiter: ";", allColumns: true };
 
 export default function TaskExportButton(props) {
   return (

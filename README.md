@@ -10,14 +10,21 @@ The Horizon Simulation Framework (HSF) is a modeling and simulation framework de
 
 ## How to Use PICASSO (Development Mode)
 
-First, make sure you have installed the latest version of [Node.js](https://nodejs.org/). Check your Node version in Terminal using
+First, check your Node and .NET versions using
 
-### `node -v`
+### `node --version`
+### `dotnet --version`
 
-Next, install the dependencies (this will take a minute):
+Make sure you have installed [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) and the latest version of [Node.js](https://nodejs.org/):
+
+Next, pull down the latest changes:
+
+### `git pull origin main`
+
+(Optional: If you have previously run simulations using older versions of the project, you may need to store any previous output data and then delete the contents of /Horizon/output, as the API for the simulation output files may have changed.) Next, install the dependencies:
 
 ### `npm install`
 
-To start the app:
+A postinstall script will ensure you are using the latest committed version of Horizon and rebuild the simulation output directory (/Horizon/output). To start the app:
 
 ### `npm run electron:serve`

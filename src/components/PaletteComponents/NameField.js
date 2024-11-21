@@ -1,6 +1,12 @@
-import TextField from '@mui/material/TextField';
+import TextField from "@mui/material/TextField";
 
-export default function NameField({ name, setComponentList, id, errors, handleBlur }) {
+export default function NameField({
+  name,
+  setComponentList,
+  id,
+  errors,
+  handleBlur,
+}) {
   const handleChange = (e) => {
     let { name, value } = e.target;
 
@@ -13,24 +19,24 @@ export default function NameField({ name, setComponentList, id, errors, handleBl
         }
       });
     });
-  }
+  };
 
   return (
     <TextField
-      id='name'
-      key='name'
+      id="name"
+      key="name"
       fullWidth
       sx={{ my: 2 }}
-      label='Name'
+      label="Name"
       variant="outlined"
-      color='primary'
+      color="primary"
       value={name}
-      name='name'
-      type='text'
+      name="name"
+      type="text"
       onChange={handleChange}
       error={errors.name !== undefined}
       helperText={errors.name}
       onBlur={handleBlur}
     />
-  )
+  );
 }

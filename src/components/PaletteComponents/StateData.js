@@ -1,11 +1,17 @@
-import Typography from '@mui/material/Typography';
-import Grid from '@mui/material/Grid';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
+import Typography from "@mui/material/Typography";
+import Grid from "@mui/material/Grid";
+import TextField from "@mui/material/TextField";
+import InputAdornment from "@mui/material/InputAdornment";
 
-const stateComponents = ['x', 'y', 'z', 'v_x', 'v_y', 'v_z'];
+const stateComponents = ["x", "y", "z", "v_x", "v_y", "v_z"];
 
-export default function StateData({ stateData, setComponentList, id, errors, handleBlur }) {
+export default function StateData({
+  stateData,
+  setComponentList,
+  id,
+  errors,
+  handleBlur,
+}) {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setComponentList((prevList) => {
@@ -20,7 +26,7 @@ export default function StateData({ stateData, setComponentList, id, errors, han
         }
       });
     });
-  }
+  };
 
   let stateDataError = errors.stateData;
   const stateDataErrorIndices = [];
@@ -29,21 +35,30 @@ export default function StateData({ stateData, setComponentList, id, errors, han
       if (stateDataError.includes(index)) {
         stateDataErrorIndices.push(index);
       }
-      stateDataError = stateDataError.replace(new RegExp(`\\b${index}\\b`, 'g'), component);
+      stateDataError = stateDataError.replace(
+        new RegExp(`\\b${index}\\b`, "g"),
+        component,
+      );
     });
   }
 
   const componentError = (index) => {
     return stateDataError && stateDataErrorIndices.includes(index);
-  }
+  };
   const uniquenessError = (index) => {
-    return index < 3 ? stateDataError.includes('unique') : false;
-  }
+    return index < 3 ? stateDataError.includes("unique") : false;
+  };
 
   return (
     <>
-      <Typography variant="h6" color="secondary" my={2}>State Data</Typography>
-      {stateDataError && <Typography variant="body2" color="error" sx={{ my: 1 }}>{stateDataError}</Typography>}
+      <Typography variant="h6" color="secondary" my={2}>
+        State Data
+      </Typography>
+      {stateDataError && (
+        <Typography variant="body2" color="error" sx={{ my: 1 }}>
+          {stateDataError}
+        </Typography>
+      )}
       <Grid container spacing={2}>
         {stateData.map((value, index) => {
           const key = stateComponents[index];
@@ -61,17 +76,24 @@ export default function StateData({ stateData, setComponentList, id, errors, han
                 type="text"
                 fullWidth
                 onChange={handleChange}
-                error={stateDataError && (componentError(index) || uniquenessError(index))}
+                error={
+                  stateDataError &&
+                  (componentError(index) || uniquenessError(index))
+                }
                 onBlur={handleBlur}
                 // Units are km
                 InputProps={{
-                  endAdornment: <InputAdornment position="end">{index < 3 ? 'km' : 'km/s'}</InputAdornment>,
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      {index < 3 ? "km" : "km/s"}
+                    </InputAdornment>
+                  ),
                 }}
               />
             </Grid>
-          )
+          );
         })}
       </Grid>
     </>
-  )
+  );
 }
