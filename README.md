@@ -1,30 +1,114 @@
-# PICASSO - Horizon Simulation Framework builder
+# PICASSO – Horizon Simulation Framework Builder
 
-## About Picasso
+PICASSO is a desktop application for configuring, running, and inspecting simulations built on top of the **Horizon Simulation Framework (HSF)**. It provides a graphical interface for defining simulation inputs and exploring outputs, allowing researchers to reason about complex aerospace system behavior without working directly in configuration files or raw simulation outputs.
 
-Picasso is an application that allows users to create and manage the parameters for a Horizon Simulation Framework (HSF) simulation.
+This project was developed in collaboration with the Aerospace Engineering Simulation Lab at Cal Poly, San Luis Obispo.
 
-## About Horizon Simulation Framework
+---
 
-The Horizon Simulation Framework (HSF) is a modeling and simulation framework developed by Eric Mehiel and his merry band of students at Cal Poly, San Luis Obispo. The HSF was originally developed to model and simulate the operation of complex space-based systems for the Aerospace Industry. The HSF takes a model of the system, constraints and dependencies, and a set of tasks as inputs and generates the state data of the system over a given time period. The data generated can be used to analyze the "Day In The Life" (DITL) of the system for system-level requirements verification.
+## What PICASSO Does
 
-## How to Use PICASSO (Development Mode)
+PICASSO allows users to:
 
-First, check your Node and .NET versions using
+- Define and edit simulation parameters and inputs for Horizon simulations  
+- Launch simulations from a desktop interface  
+- Parse and visualize simulation outputs, including timelines, state changes, and system behavior over time  
+- Iterate on configurations as the underlying Horizon API evolves  
 
-### `node --version`
-### `dotnet --version`
+---
 
-Make sure you have installed [.NET 8.0](https://dotnet.microsoft.com/en-us/download/dotnet/8.0) and the latest version of [Node.js](https://nodejs.org/):
+## About the Horizon Simulation Framework
 
-Next, pull down the latest changes:
+The **Horizon Simulation Framework (HSF)** is a modeling and simulation system developed at Cal Poly to simulate complex space-based systems. Given a system model, constraints, dependencies, and a set of tasks, Horizon produces time-series state data representing the “day in the life” (DITL) of the system.
 
-### `git pull origin main`
+These outputs are used for system-level analysis and requirements verification in aerospace research.
 
-(Optional: If you have previously run simulations using older versions of the project, you may need to store any previous output data and then delete the contents of /Horizon/output, as the API for the simulation output files may have changed.) Next, install the dependencies:
+PICASSO provides a UI layer over this framework, translating structured simulation inputs and outputs into interfaces researchers can reason about.
 
-### `npm install`
+---
 
-A postinstall script will ensure you are using the latest committed version of Horizon and rebuild the simulation output directory (/Horizon/output). To start the app:
+## Architecture Overview
 
-### `npm run electron:serve`
+- Electron desktop application  
+- React frontend for configuration, visualization, and interaction  
+- Node.js backend to orchestrate simulation execution  
+- Interfaces with the Horizon simulation engine (.NET)  
+- Parses JSON-based inputs and outputs produced by Horizon  
+
+The application was built to accommodate changing simulation APIs and evolving output formats, which required flexible parsing and visualization logic.
+
+---
+
+## Running PICASSO (Development)
+
+### Prerequisites
+
+Check your installed versions:
+
+```bash
+node --version
+dotnet --version
+```
+
+You will need:
+
+- Node.js (latest LTS recommended)  
+- .NET SDK 8.0  
+  <https://dotnet.microsoft.com/en-us/download/dotnet/8.0>  
+
+---
+
+### Setup
+
+Pull the latest code:
+
+```bash
+git pull origin main
+```
+
+If you have previously run simulations with older versions of Horizon, the simulation output format may have changed. You may need to archive or delete existing output data:
+
+```text
+/Horizon/output
+```
+
+Install dependencies:
+
+```bash
+npm install
+```
+
+A post-install script ensures the correct Horizon submodule version is in place and rebuilds the simulation output directory.
+
+---
+
+### Start the App
+
+```bash
+npm run electron:serve
+```
+
+---
+
+## Project Context and Notes
+
+PICASSO was developed as a research-facing tool in an academic lab environment. Some aspects of the codebase (for example, build tooling and typing decisions) reflect the constraints and priorities of an evolving research project rather than a greenfield commercial product.
+
+---
+
+## Future Improvements
+
+If continued development were planned, potential next steps would include:
+
+- Completing a full TypeScript migration  
+- Modernizing the build pipeline (e.g., Vite-based setup)  
+- Improving test coverage around simulation input/output handling  
+- Adding richer visualization and comparison tools for simulation runs  
+
+---
+
+## Author
+
+Developed by **Keith Hall**  
+Software Engineer, Cal Poly Aerospace Simulation Lab  
+GitHub: <https://github.com/jkeithhall>  
