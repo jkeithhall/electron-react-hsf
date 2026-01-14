@@ -3,17 +3,31 @@
 PICASSO is a desktop application for configuring, running, and inspecting simulations built on top of the **Horizon Simulation Framework (HSF)**. It provides a graphical interface for defining simulation inputs and exploring outputs, allowing researchers to reason about complex aerospace system behavior without working directly in configuration files or raw simulation outputs.
 
 This project was developed in collaboration with the Aerospace Engineering Simulation Lab at Cal Poly, San Luis Obispo.
+<p align="center">
+  <img src="demo_1.gif" width="700" alt="Configuration Interface">
+  <br>
+  <em><strong>Simulation Configuration:</strong> Defining system constraints and aerospace parameters.</em>
+</p>
 
+<p align="center">
+  <img src="demo_2.gif" width="700" alt="Visualization Interface">
+  <br>
+  <em><strong>Visual Analytics:</strong> Parsing and inspecting time-series state data for satellite tasks.</em>
+</p>
+
+<p align="center">
+  <small><em>Note: GIFs optimized for performance and README load speed. High-resolution demos available upon request.</em></small>
+</p>
 ---
 
 ## What PICASSO Does
 
 PICASSO allows users to:
 
-- Define and edit simulation parameters and inputs for Horizon simulations  
-- Launch simulations from a desktop interface  
-- Parse and visualize simulation outputs, including timelines, state changes, and system behavior over time  
-- Iterate on configurations as the underlying Horizon API evolves  
+- Define and edit simulation parameters and inputs for Horizon simulations
+- Launch simulations from a desktop interface
+- Parse and visualize simulation outputs, including timelines, state changes, and system behavior over time
+- Iterate on configurations as the underlying Horizon API evolves
 
 ---
 
@@ -29,11 +43,11 @@ PICASSO provides a UI layer over this framework, translating structured simulati
 
 ## Architecture Overview
 
-- Electron desktop application  
-- React frontend for configuration, visualization, and interaction  
-- Node.js backend to orchestrate simulation execution  
-- Interfaces with the Horizon simulation engine (.NET)  
-- Parses JSON-based inputs and outputs produced by Horizon  
+- Electron desktop application
+- React frontend for configuration, visualization, and interaction
+- Node.js backend to orchestrate simulation execution
+- Interfaces with the Horizon simulation engine (.NET)
+- Parses JSON-based inputs and outputs produced by Horizon
 
 The application was built to accommodate changing simulation APIs and evolving output formats, which required flexible parsing and visualization logic.
 
@@ -52,9 +66,9 @@ dotnet --version
 
 You will need:
 
-- Node.js (latest LTS recommended)  
-- .NET SDK 8.0  
-  <https://dotnet.microsoft.com/en-us/download/dotnet/8.0>  
+- Node.js (latest LTS recommended)
+- .NET SDK 8.0
+  <https://dotnet.microsoft.com/en-us/download/dotnet/8.0>
 
 ---
 
@@ -100,15 +114,15 @@ PICASSO was developed as a research-facing tool in an academic lab environment. 
 
 If continued development were planned, potential next steps would include:
 
-- Completing a full TypeScript migration  
-- Modernizing the build pipeline (e.g., Vite-based setup)  
-- Improving test coverage around simulation input/output handling  
-- Adding richer visualization and comparison tools for simulation runs  
+- Completing a full TypeScript migration
+- Modernizing the build pipeline (e.g., Vite-based setup)
+- Improving test coverage around simulation input/output handling
+- Adding richer visualization and comparison tools for simulation runs
 
 ---
 
 ## Author
 
-Developed by **Keith Hall**  
-Software Engineer, Cal Poly Aerospace Simulation Lab  
-GitHub: <https://github.com/jkeithhall>  
+Developed by **Keith Hall**
+Software Engineer, Cal Poly Aerospace Simulation Lab
+GitHub: <https://github.com/jkeithhall>
