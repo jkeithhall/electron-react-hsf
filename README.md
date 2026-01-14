@@ -4,13 +4,13 @@ PICASSO is a desktop application for configuring, running, and inspecting simula
 
 This project was developed in collaboration with the Aerospace Engineering Simulation Lab at Cal Poly, San Luis Obispo.
 <p align="center">
-  <img src="demo_1.gif" width="700" alt="Configuration Interface">
+  <img src="demo_2.gif" width="700" alt="Configuration Interface">
   <br>
   <em><strong>Simulation Configuration:</strong> Defining system constraints and aerospace parameters.</em>
 </p>
 
 <p align="center">
-  <img src="demo_2.gif" width="700" alt="Visualization Interface">
+  <img src="demo_1.gif" width="700" alt="Visualization Interface">
   <br>
   <em><strong>Visual Analytics:</strong> Parsing and inspecting time-series state data for satellite tasks.</em>
 </p>
